@@ -13,3 +13,8 @@ type TokenResponse = {
 type OwnedGamesResponse = {
     owned: int list;
 }
+
+type UserDataResponse = {
+    username: string;
+    email: string;
+}
