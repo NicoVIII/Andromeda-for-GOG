@@ -1,6 +1,5 @@
 ﻿// Learn more about F# at http://fsharp.org
 
-open Andromeda.Core.FSharp.Auth
 open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.User
@@ -13,15 +12,13 @@ let authenticate () =
 
     System.Console.ReadLine ()
     |> sscanf "%s"
-    |> newToken
-    |> function
-        | None -> Empty
-        | Some { access_token = token } ->
-            token
-            |> createAuth
+    |> Token.newToken
 
 [<EntryPoint>]
 let main argv =
+    // Initialise Couchbase Lite
+    Couchbase.Lite.Support.NetDesktop.Activate ()
+
     let auth = authenticate ()
 
     match auth with
@@ -31,6 +28,7 @@ let main argv =
         printfn "Authentication successful!"
 
         getUserData auth
+        |> fst
         |> function
             | Some r ->
                 printfn "Logged in as:\n%s\n%s" r.username r.email

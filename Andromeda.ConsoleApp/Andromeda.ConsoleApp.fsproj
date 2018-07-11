@@ -12,4 +12,8 @@
   <ItemGroup>
     <ProjectReference Include="../Andromeda.Core/Andromeda.Core.fsproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Couchbase.Lite.Support.NetDesktop" Version="2.0.3" />
+  </ItemGroup>
 </Project>
