@@ -8,19 +8,23 @@ let saveAuth auth =
     | Empty ->
         ()
     | Auth { refreshToken = refreshToken; accessToken = accessToken } ->
-        let db = new Database ("andromeda")
-        let doc =
+        use db = new Database ("andromeda")
+        use doc =
             match db.GetDocument "auth" with
             | null -> new MutableDocument("auth")
             | x -> x.ToMutable ()
         doc.SetString ("refresh-token", refreshToken) |> ignore
         doc.SetString ("access-token", accessToken) |> ignore
         db.Save doc
+        db.Close ()
 
 let loadAuth () =
-    let db = new Database ("andromeda")
-    let doc = db.GetDocument("auth")
+    use db = new Database ("andromeda")
+    use doc = db.GetDocument("auth")
     match doc with
-    | null -> Empty
+    | null ->
+        db.Close ()
+        Empty
     | doc ->
+        db.Close ()
         Auth { refreshToken = doc.GetString("refresh-token"); accessToken = doc.GetString("access-token"); refreshed = false }
