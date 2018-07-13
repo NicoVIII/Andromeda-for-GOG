@@ -73,6 +73,9 @@ let rec makeRequest<'T> method auth queries url :'T option * Authentication =
     with
     | :? System.Exception ->
         match auth with
+        | Empty ->
+            printfn "No authentication was given. Maybe valid authentication is necessary?"
+            (None, auth)
         | Auth x & Auth { refreshed = true } ->
             printfn "Returned Json is not valid! Refreshing the authentication did not work."
             (None, Auth { x with refreshed = false})
@@ -80,6 +83,3 @@ let rec makeRequest<'T> method auth queries url :'T option * Authentication =
             // Refresh authentication
             let auth' = Token.refresh x
             makeRequest<'T> method auth' queries url
-        | Empty ->
-            printfn "No authentication was given. Maybe valid authentication is necessary?"
-            (None, auth)

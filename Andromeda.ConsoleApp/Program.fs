@@ -2,6 +2,7 @@
 
 open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Games
+open Andromeda.Core.FSharp.SaveLoad
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
 open System
@@ -19,13 +20,18 @@ let main argv =
     // Initialise Couchbase Lite
     Couchbase.Lite.Support.NetDesktop.Activate ()
 
-    let auth = authenticate ()
+    let auth =
+        match loadAuth () with
+        | Empty -> authenticate ()
+        | auth -> auth
 
     match auth with
     | Empty ->
         printfn "Authentication failed!"
-    | Auth _ ->
+    | auth & Auth _ ->
         printfn "Authentication successful!"
+
+        saveAuth auth
 
         getUserData auth
         |> fst
