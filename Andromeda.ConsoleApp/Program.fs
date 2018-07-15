@@ -5,7 +5,9 @@ open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.SaveLoad
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
+open Couchbase.Lite
 open System
+open Couchbase.Lite.Logging
 
 let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
@@ -15,20 +17,17 @@ let authenticate () =
     |> sscanf "%s"
     |> Token.newToken
 
-[<EntryPoint>]
-let main argv =
-    // Initialise Couchbase Lite
-    Couchbase.Lite.Support.NetDesktop.Activate ()
-
+let rec mainloop start auth =
     let auth =
-        match loadAuth () with
-        | Empty -> authenticate ()
+        match auth with
+        | NoAuth -> authenticate ()
         | auth -> auth
 
-    match auth with
-    | Empty ->
+    match (start, auth) with
+    | (true, NoAuth) ->
         printfn "Authentication failed!"
-    | auth & Auth _ ->
+        1
+    | (true, Auth _) ->
         printfn "Authentication successful!"
 
         saveAuth auth
@@ -37,9 +36,31 @@ let main argv =
         |> fst
         |> function
             | Some r ->
-                printfn "Logged in as:\n%s\n%s" r.username r.email
+                printfn "Logged in as: %s <%s>" r.username r.email
             | None -> ()
-        //getOwnedGameIds auth
-        //|> List.iter (fun (GameId id) -> printfn "%i" id)
+        mainloop false auth
+    | (false, auth) ->
+        printfn "What do you want to do?"
+        printf "> "
+        let command = Console.ReadLine () |> sscanf "%s"
+        match command with
+        | "logout" ->
+            printfn "Logged out."
+            mainloop true NoAuth
+        | "exit" | "close" | "quit" ->
+            0
+        | s ->
+            printfn "Command '%s' not found. Type 'help' to get an overview over all available commands!" s
+            mainloop false auth
 
-    0 // return an integer exit code
+[<EntryPoint>]
+let main _ =
+    // Initialise Couchbase Lite
+    Couchbase.Lite.Support.NetDesktop.Activate ()
+    Database.SetLogLevel (LogDomain.All, LogLevel.None)
+
+    loadAuth ()
+    |> mainloop true
+
+    //getOwnedGameIds auth
+    //|> List.iter (fun (GameId id) -> printfn "%i" id)

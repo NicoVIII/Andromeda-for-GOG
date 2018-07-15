@@ -5,7 +5,7 @@ open Andromeda.Core.FSharp.Basics
 
 let saveAuth auth =
     match auth with
-    | Empty ->
+    | NoAuth ->
         ()
     | Auth { refreshToken = refreshToken; accessToken = accessToken } ->
         use db = new Database ("andromeda")
@@ -24,7 +24,7 @@ let loadAuth () =
     match doc with
     | null ->
         db.Close ()
-        Empty
+        NoAuth
     | doc ->
         db.Close ()
         Auth { refreshToken = doc.GetString("refresh-token"); accessToken = doc.GetString("access-token"); refreshed = false }
