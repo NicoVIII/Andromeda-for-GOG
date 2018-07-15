@@ -2,6 +2,7 @@
 
 open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Games
+open Andromeda.Core.FSharp.Installed
 open Andromeda.Core.FSharp.SaveLoad
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
@@ -17,15 +18,16 @@ let authenticate () =
     |> sscanf "%s"
     |> Token.newToken
 
-let rec mainloop start auth =
-    let newRound () = mainloop true NoAuth
+let rec mainloop start appData =
+    let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames }
     let nextRound = mainloop false
 
-    let auth =
-        match auth with
-        | NoAuth -> authenticate ()
-        | auth -> auth
+    let appData =
+        match appData with
+        | { authentication = NoAuth } -> { appData with authentication = authenticate () }
+        | { authentication = Auth _ } -> appData
 
+    let auth = appData.authentication
     match (start, auth) with
     | (true, NoAuth) ->
         printfn "Authentication failed!"
@@ -41,9 +43,9 @@ let rec mainloop start auth =
             | Some r ->
                 printfn "Logged in as: %s <%s>" r.username r.email
             | None -> ()
-        nextRound auth
+        nextRound appData
     | (false, auth) ->
-        printfn "What do you want to do?"
+        printfn "\nWhat do you want to do?"
         printf "> "
         let command = Console.ReadLine () |> sscanf "%s"
         match command with
@@ -52,7 +54,14 @@ let rec mainloop start auth =
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
             saveAuth NoAuth
-            nextRound auth
+            nextRound appData
+        | "search-installed" ->
+            let installed = searchInstalled ()
+            nextRound { appData with installedGames = installed }
+        | "list-installed" ->
+            appData.installedGames
+            |> List.iter (printfn "%A")
+            nextRound appData
         | "logout" ->
             printfn "Logged out."
             newRound ()
@@ -60,15 +69,17 @@ let rec mainloop start auth =
             0
         | s ->
             printfn "Command '%s' not found. Type 'help' to get an overview over all available commands!" s
-            nextRound auth
+            nextRound appData
 
 [<EntryPoint>]
 let main _ =
+    printfn "Andromeda for GOG - v0.1.0"
+
     // Initialise Couchbase Lite
     Couchbase.Lite.Support.NetDesktop.Activate ()
     Database.SetLogLevel (LogDomain.All, LogLevel.None)
 
-    loadAuth ()
+    { authentication = loadAuth (); installedGames = loadInstalledGames () }
     |> mainloop true
 
     //getOwnedGameIds auth

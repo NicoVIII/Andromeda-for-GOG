@@ -10,6 +10,7 @@
     <Compile Include="Basics.fs" />
     <Compile Include="Games.fs" />
     <Compile Include="User.fs" />
+    <Compile Include="Installed.fs" />
     <Compile Include="SaveLoad.fs" />
   </ItemGroup>
 

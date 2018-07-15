@@ -1,6 +1,7 @@
 module Andromeda.Core.FSharp.SaveLoad
 
 open Couchbase.Lite
+
 open Andromeda.Core.FSharp.Basics
 
 let saveAuth auth =
@@ -27,3 +28,4 @@ let loadAuth () =
         NoAuth
     | doc ->
         Auth { refreshToken = doc.GetString("refresh-token"); accessToken = doc.GetString("access-token"); refreshed = false }
+

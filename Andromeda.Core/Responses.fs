@@ -18,3 +18,7 @@ type UserDataResponse = {
     username: string;
     email: string;
 }
+
+type GameInfoResponse = {
+    title: string;
+}

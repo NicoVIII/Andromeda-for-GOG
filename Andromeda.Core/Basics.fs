@@ -5,6 +5,9 @@ open Hopac
 open HttpFs.Client
 
 open Andromeda.Core.FSharp.Responses
+open System.Runtime.InteropServices
+
+type GameId = GameId of int
 
 type AuthenticationData = {
     accessToken: string;
@@ -14,10 +17,35 @@ type AuthenticationData = {
 
 type Authentication = NoAuth | Auth of AuthenticationData
 
+type GamePath = GamePath of string
+
+type InstalledGame = {
+    id: GameId;
+    name: string;
+    path: GamePath;
+    version: string;
+}
+
+type AppData = {
+    authentication: Authentication;
+    installedGames: InstalledGame list;
+}
+
+let createBasicAppData () = { authentication = NoAuth; installedGames = [] }
+
 type QueryString = {
     name: QueryStringName;
     value: QueryStringValue;
 }
+
+type OS = Linux | MacOS | Windows | Unknown
+
+let getOS () =
+    let isOS = RuntimeInformation.IsOSPlatform
+    if isOS OSPlatform.Linux then Linux
+    elif isOS OSPlatform.Windows then Windows
+    elif isOS OSPlatform.OSX then MacOS
+    else Unknown
 
 let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
@@ -36,9 +64,9 @@ let makeBasicRequest<'T> method auth queries url :'T option =
     |> Json.deserialize<'T>
     |> Some
 
-module Token =
-    let createQuery name value = { name = name; value = value }
+let createQuery name value = { name = name; value = value }
 
+module Token =
     let createAuth refreshed response =
         match response with
         | Some response ->
