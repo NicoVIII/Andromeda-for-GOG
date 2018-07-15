@@ -18,6 +18,9 @@ let authenticate () =
     |> Token.newToken
 
 let rec mainloop start auth =
+    let newRound () = mainloop true NoAuth
+    let nextRound = mainloop false
+
     let auth =
         match auth with
         | NoAuth -> authenticate ()
@@ -38,20 +41,26 @@ let rec mainloop start auth =
             | Some r ->
                 printfn "Logged in as: %s <%s>" r.username r.email
             | None -> ()
-        mainloop false auth
+        nextRound auth
     | (false, auth) ->
         printfn "What do you want to do?"
         printf "> "
         let command = Console.ReadLine () |> sscanf "%s"
         match command with
+        | "help" ->
+            printfn "Available commands:"
+            printfn "- logout: Logs you out. You have to reauthenticate after that."
+            printfn "- quit: Close Andromeda."
+            saveAuth NoAuth
+            nextRound auth
         | "logout" ->
             printfn "Logged out."
-            mainloop true NoAuth
+            newRound ()
         | "exit" | "close" | "quit" ->
             0
         | s ->
             printfn "Command '%s' not found. Type 'help' to get an overview over all available commands!" s
-            mainloop false auth
+            nextRound auth
 
 [<EntryPoint>]
 let main _ =
