@@ -55,6 +55,9 @@ let rec mainloop start appData =
         match command with
         | "help" ->
             printfn "Available commands:"
+            printfn "- search-installed: Searches the default location for installed GOG games (only on linux for now)"
+            printfn "- list-installed: Lists the installed and found GOG games. Run 'search-installed', if empty."
+            printfn "- check-updates: Looks for which games GOG has a newer version online."
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
             nextRound appData
