@@ -19,6 +19,21 @@ type UserDataResponse = {
     email: string;
 }
 
+type DownloadInfo = {
+    id: string;
+    name: string;
+    os: string;
+    language: string;
+    language_full: string;
+    version: string;
+    total_size: int;
+}
+
+type DownloadsInfo = {
+    installers: DownloadInfo list
+}
+
 type GameInfoResponse = {
     title: string;
+    downloads: DownloadsInfo;
 }

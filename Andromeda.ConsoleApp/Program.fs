@@ -1,9 +1,9 @@
 ﻿// Learn more about F# at http://fsharp.org
 
+open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.Installed
-open Andromeda.Core.FSharp.SaveLoad
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
 open Couchbase.Lite
@@ -22,22 +22,26 @@ let rec mainloop start appData =
     let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames }
     let nextRound = mainloop false
 
-    let appData =
+    let (appData, authenticated) =
         match appData with
-        | { authentication = NoAuth } -> { appData with authentication = authenticate () }
-        | { authentication = Auth _ } -> appData
+        | { authentication = NoAuth } ->
+            ({ appData with authentication = authenticate () }, true)
+        | { authentication = Auth _ } ->
+            (appData, false)
 
     let auth = appData.authentication
     match (start, auth) with
     | (true, NoAuth) ->
         printfn "Authentication failed!"
         1
-    | (true, Auth _) ->
+    | (true, Auth x) ->
         printfn "Authentication successful!"
 
-        saveAuth auth
+        match authenticated with
+        | true -> saveAppData appData
+        | false -> ()
 
-        getUserData auth
+        getUserData appData
         |> fst
         |> function
             | Some r ->
@@ -53,17 +57,22 @@ let rec mainloop start appData =
             printfn "Available commands:"
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
-            saveAuth NoAuth
             nextRound appData
         | "search-installed" ->
-            let installed = searchInstalled ()
-            nextRound { appData with installedGames = installed }
+            let appData = searchInstalled appData
+            nextRound appData
         | "list-installed" ->
             appData.installedGames
+            |> List.iter (fun game -> printfn "%s - %s" game.name game.version)
+            nextRound appData
+        | "check-updates" ->
+            let (updates, appData) = checkAllForUpdates appData
+            updates
             |> List.iter (printfn "%A")
             nextRound appData
         | "logout" ->
             printfn "Logged out."
+            saveAppData { appData with authentication = NoAuth }
             newRound ()
         | "exit" | "close" | "quit" ->
             0
@@ -79,7 +88,8 @@ let main _ =
     Couchbase.Lite.Support.NetDesktop.Activate ()
     Database.SetLogLevel (LogDomain.All, LogLevel.None)
 
-    { authentication = loadAuth (); installedGames = loadInstalledGames () }
+
+    loadAppData ()
     |> mainloop true
 
     //getOwnedGameIds auth

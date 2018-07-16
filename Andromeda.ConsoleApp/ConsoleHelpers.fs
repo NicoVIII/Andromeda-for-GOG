@@ -47,19 +47,20 @@ let rec getFormatters xs =
    | [] -> []
 
 let sscanf (pf:PrintfFormat<_,_,_,_,'t>) s : 't =
-  let formatStr = pf.Value.Replace("%%", "%")
-  let constants = formatStr.Split(separators, StringSplitOptions.None)
-  let regex = Regex("^" + String.Join("(.*?)", constants |> Array.map Regex.Escape) + "$")
-  let formatters = pf.Value.ToCharArray() // need original string here (possibly with "%%"s)
-                   |> Array.toList |> getFormatters
-  let groups =
-    regex.Match(s).Groups
-    |> Seq.cast<Group>
-    |> Seq.skip 1
-  let matches =
-    (groups, formatters)
-    ||> Seq.map2 (fun g f -> g.Value |> parsers.[f])
-    |> Seq.toArray
+    let formatStr = pf.Value.Replace("%%", "%")
+    let constants = formatStr.Split(separators, StringSplitOptions.None)
+    let regex = Regex("^" + String.Join("(.*?)", constants |> Array.map Regex.Escape) + "$")
+    let formatters =
+        pf.Value.ToCharArray() // need original string here (possibly with "%%"s)
+        |> Array.toList |> getFormatters
+    let groups =
+        regex.Match(s).Groups
+        |> Seq.cast<Group>
+        |> Seq.skip 1
+    let matches =
+        (groups, formatters)
+        ||> Seq.map2 (fun g f -> g.Value |> parsers.[f])
+        |> Seq.toArray
 
-  if matches.Length = 1 then matches.[0] :?> 't
-  else FSharpValue.MakeTuple(matches, typeof<'t>) :?> 't
+    if matches.Length = 1 then matches.[0] :?> 't
+    else FSharpValue.MakeTuple(matches, typeof<'t>) :?> 't

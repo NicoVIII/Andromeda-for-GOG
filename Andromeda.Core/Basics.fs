@@ -3,49 +3,15 @@ module Andromeda.Core.FSharp.Basics
 open FSharp.Json
 open Hopac
 open HttpFs.Client
+open System.IO
 
+open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Responses
-open System.Runtime.InteropServices
-
-type GameId = GameId of int
-
-type AuthenticationData = {
-    accessToken: string;
-    refreshToken: string;
-    refreshed: bool;
-}
-
-type Authentication = NoAuth | Auth of AuthenticationData
-
-type GamePath = GamePath of string
-
-type InstalledGame = {
-    id: GameId;
-    name: string;
-    path: GamePath;
-    version: string;
-}
-
-type AppData = {
-    authentication: Authentication;
-    installedGames: InstalledGame list;
-}
-
-let createBasicAppData () = { authentication = NoAuth; installedGames = [] }
 
 type QueryString = {
     name: QueryStringName;
     value: QueryStringValue;
 }
-
-type OS = Linux | MacOS | Windows | Unknown
-
-let getOS () =
-    let isOS = RuntimeInformation.IsOSPlatform
-    if isOS OSPlatform.Linux then Linux
-    elif isOS OSPlatform.Windows then Windows
-    elif isOS OSPlatform.OSX then MacOS
-    else Unknown
 
 let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
@@ -95,21 +61,25 @@ module Token =
         |> makeBasicRequest<TokenResponse> Get NoAuth <| "https://auth.gog.com/token"
         |> createAuth true
 
-let rec makeRequest<'T> method auth queries url :'T option * Authentication =
+let rec makeRequest<'T> method appData queries url :'T option * AppData =
+    let auth = appData.authentication
     try
-        (makeBasicRequest method auth queries url, auth)
+        (makeBasicRequest method auth queries url, appData)
     with
-    | _ ->
+    | ex ->
         match auth with
         | Auth x ->
             match x with
             | { refreshed = true } ->
                 printfn "Returned Json is not valid! Refreshing the authentication did not work."
-                (None, Auth { x with refreshed = false})
+                File.WriteAllText ("log.txt", ex.Message)
+                (None, { appData with authentication = Auth { x with refreshed = false}})
             | { refreshed = false } ->
                 // Refresh authentication
                 let auth' = Token.refresh x
-                makeRequest<'T> method auth' queries url
+                let appData = { appData with authentication = auth' }
+                saveAppData appData
+                makeRequest<'T> method appData queries url
         | NoAuth ->
             printfn "No authentication was given. Maybe valid authentication is necessary?"
-            (None, auth)
+            (None, { appData with authentication = NoAuth })

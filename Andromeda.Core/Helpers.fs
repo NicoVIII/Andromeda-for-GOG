@@ -1,5 +1,7 @@
 module Andromeda.Core.FSharp.Helpers
 
+open System.Runtime.InteropServices
+
 open Couchbase.Lite
 
 let exeFst fnc (a, b) = (fnc a, b)
@@ -12,9 +14,18 @@ let fluent fnc a =
 
 let convertFromArrayObject fnc array  =
     let rec helper lst index fnc (array: ArrayObject)  =
-        let out = (fnc index array)::lst
-        if array.Count > index + 1 then
+        if array.Count > index then
+            let out = (fnc index array)::lst
             helper out (index+1) fnc array
         else
-            out
+            lst
     helper [] 0 fnc array
+
+type OS = Linux | MacOS | Windows | Unknown
+
+let getOS () =
+    let isOS = RuntimeInformation.IsOSPlatform
+    if isOS OSPlatform.Linux then Linux
+    elif isOS OSPlatform.Windows then Windows
+    elif isOS OSPlatform.OSX then MacOS
+    else Unknown

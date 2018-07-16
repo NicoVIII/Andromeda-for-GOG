@@ -7,11 +7,11 @@
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="Responses.fs" />
+    <Compile Include="AppData.fs" />
     <Compile Include="Basics.fs" />
     <Compile Include="Games.fs" />
     <Compile Include="User.fs" />
     <Compile Include="Installed.fs" />
-    <Compile Include="SaveLoad.fs" />
   </ItemGroup>
 
   <ItemGroup>
