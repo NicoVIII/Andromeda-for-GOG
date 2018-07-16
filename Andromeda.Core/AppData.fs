@@ -13,6 +13,7 @@ type AuthenticationData = {
 type Authentication = NoAuth | Auth of AuthenticationData
 
 type GameId = GameId of int
+type Version = Version of string
 
 type GamePath = GamePath of string
 
@@ -20,7 +21,8 @@ type InstalledGame = {
     id: GameId;
     name: string;
     path: GamePath;
-    version: string;
+    version: Version;
+    updateable: bool;
 }
 
 type AppData = {
@@ -50,12 +52,13 @@ let saveAppData appData =
     // Installed games
     let gamesArray = new MutableArrayObject ()
     List.fold (fun _ info ->
-        let { id = GameId id; name = name; path = GamePath path; version = version } = info
+        let { id = GameId id; name = name; path = GamePath path; version = Version version; updateable = updateable } = info
         let dict = new MutableDictionaryObject ()
         dict.SetInt ("id", id) |> ignore
         dict.SetString ("name", name) |> ignore
         dict.SetString ("path", path) |> ignore
         dict.SetString ("version", version) |> ignore
+        dict.SetBoolean ("updateable", updateable) |> ignore
         gamesArray.AddDictionary dict |> ignore
     ) () appData.installedGames
     doc.SetArray ("installed", gamesArray) |> ignore
@@ -92,7 +95,8 @@ let loadAppData () =
                         id = dict.GetInt "id" |> GameId;
                         name = dict.GetString "name";
                         path = dict.GetString "path" |> GamePath;
-                        version = dict.GetString "version"
+                        version = dict.GetString "version" |> Version;
+                        updateable = dict.GetBoolean "updateable";
                     }
                 )
             { authentication = auth; installedGames = installed }

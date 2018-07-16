@@ -37,3 +37,13 @@ type GameInfoResponse = {
     title: string;
     downloads: DownloadsInfo;
 }
+
+type ProductInfo = {
+    id: int;
+    title: string;
+}
+
+type FilteredProductsResponse = {
+    totalProducts: int;
+    products: ProductInfo list;
+}

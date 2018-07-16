@@ -34,7 +34,7 @@ let rec mainloop start appData =
     | (true, NoAuth) ->
         printfn "Authentication failed!"
         1
-    | (true, Auth x) ->
+    | (true, Auth _) ->
         printfn "Authentication successful!"
 
         match authenticated with
@@ -48,7 +48,7 @@ let rec mainloop start appData =
                 printfn "Logged in as: %s <%s>" r.username r.email
             | None -> ()
         nextRound appData
-    | (false, auth) ->
+    | (false, _) ->
         printfn "\nWhat do you want to do?"
         printf "> "
         let command = Console.ReadLine () |> sscanf "%s"
@@ -63,12 +63,33 @@ let rec mainloop start appData =
             nextRound appData
         | "list-installed" ->
             appData.installedGames
-            |> List.iter (fun game -> printfn "%s - %s" game.name game.version)
+            |> List.iter (fun game ->
+                let (Version version) = game.version
+                let updates =
+                    match game.updateable with
+                    | true -> ""
+                    | false -> " (not updateable)"
+                printfn "%s - %s%s" game.name version updates
+            )
             nextRound appData
         | "check-updates" ->
             let (updates, appData) = checkAllForUpdates appData
-            updates
-            |> List.iter (printfn "%A")
+            match updates with
+            | updates when updates.Length > 0 ->
+                List.iter (fun update ->
+                    let (Version oldVersion) = update.game.version
+                    let (Version newVersion) = update.newVersion
+                    printfn "There is another version of '%s' available: %s -> %s" update.game.name oldVersion newVersion
+                ) updates
+            | _ ->
+                printfn "No updates available."
+
+            let notUpdateable = appData.installedGames |> List.filter (fun game -> game.updateable |> not) |> List.length
+            match notUpdateable with
+            | 0 ->
+                ()
+            | x ->
+                printfn "\n%i games are not updateable." x
             nextRound appData
         | "logout" ->
             printfn "Logged out."
