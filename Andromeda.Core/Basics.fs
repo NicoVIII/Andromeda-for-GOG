@@ -7,7 +7,6 @@ open System.IO
 
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Responses
-open Couchbase.Lite.Sync
 
 type QueryString = {
     name: QueryStringName;

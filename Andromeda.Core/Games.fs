@@ -22,10 +22,8 @@ let getOwnedGameIds (appData :AppData) =
 
 let downloadFile (appData :AppData) url =
     job {
-        let filepath =
-            String.split '/' url
-            |> List.last
-            |> sprintf "%s%s" (Path.GetTempPath())
+        let filepath = Path.GetTempFileName ()
+        printfn "%s" filepath
         use! resp =
             setupBasicRequest Get appData.authentication [] url
             |> getResponse
@@ -43,6 +41,50 @@ let downloadFile (appData :AppData) url =
     }
 
 let installGame (appData :AppData) name =
+    let handleResponse (response :GameDetailsResponse) appData =
+        response.downloads
+        |> (function
+            | lst when not (List.isEmpty lst) ->
+                List.head lst
+            | _ -> failwith "Nope: 1"
+        )
+        |> List.fold (fun lst info ->
+            match info with
+            | :? Map<string, obj> as info ->
+                info::lst
+            | _ -> lst
+        ) []
+        |> (function
+            | lst when not (List.isEmpty lst) ->
+                List.head lst
+            | _ ->
+                failwith "Nope: 2"
+        )
+        |> (fun info ->
+            match getOS () with
+            | Linux -> info.["linux"]
+            | Windows -> info.["windows"]
+            | MacOS -> info.["mac"]
+        )
+        |> function
+            | :? (obj list) as info ->
+                info
+            | info ->
+                printfn "%A" (info.GetType())
+                failwith "Nope: 3"
+        |> function
+            | (info::_) ->
+                match info with
+                | :? Map<string, obj> as info ->
+                    let url = sprintf "https://gog.com%s" ((string)info.["manualUrl"])
+                    downloadFile appData url |> run
+                | info ->
+                    printfn "%A" (info.GetType())
+                    failwith "Nope: 4"
+                (true, appData)
+            | [] ->
+                (false, appData)
+
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
     printfn "%A" response
     match response with
@@ -54,37 +96,6 @@ let installGame (appData :AppData) name =
             | (None, appData) ->
                 (false, appData)
             | (Some response, appData) ->
-                let os =
-                    match getOS () with
-                    | Linux -> Some "linux"
-                    | Windows -> Some "windows"
-                    | MacOS -> Some "mac"
-                    | Unknown -> None
-                printfn "%A" response
-                response.downloads
-                |> List.head
-                |> List.fold (fun lst info ->
-                    match info with
-                    | :? AllOSDownloadInfo as info ->
-                        info::lst
-                    | _ ->
-                        lst
-                ) []
-                |> List.head
-                |> (fun info ->
-                    match getOS () with
-                    | Linux -> Some info.linux
-                    | Windows -> Some info.windows
-                    | MacOS -> Some info.mac
-                    | Unknown -> None
-                )
-                |> (function
-                    | Some (info::_) ->
-                        let url = sprintf "https://gog.com%s" info.manualUrl
-                        downloadFile appData url |> run
-                        (true, appData)
-                    | Some [] | None ->
-                        (false, appData)
-                )
+                handleResponse response appData
     | _ ->
         (false, appData)
