@@ -51,9 +51,15 @@ let rec mainloop start appData =
     | (false, _) ->
         printfn "\nWhat do you want to do?"
         printf "> "
-        let command = Console.ReadLine () |> sscanf "%s"
-        match command with
-        | "help" ->
+        let input =
+            Console.ReadLine ()
+            |> String.split ' '
+            |> function
+               | command::arg::_ -> (command, Some arg)
+               | command::_ -> (command, None)
+               | [] -> ("", None)
+        match input with
+        | ("help", None) ->
             printfn "Available commands:"
             printfn "- search-installed: Searches the default location for installed GOG games (only on linux for now)"
             printfn "- list-installed: Lists the installed and found GOG games. Run 'search-installed', if empty."
@@ -61,10 +67,18 @@ let rec mainloop start appData =
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
             nextRound appData
-        | "search-installed" ->
+        | ("install", Some arg) ->
+            let (res, appData) = installGame appData arg
+            match res with
+            | true ->
+                printfn "Started installer!"
+            | false ->
+                printfn "Game could not be installed. Reason unknown."
+            nextRound appData
+        | ("search-installed", None) ->
             let appData = searchInstalled appData
             nextRound appData
-        | "list-installed" ->
+        | ("list-installed", None) ->
             appData.installedGames
             |> List.iter (fun game ->
                 let (Version version) = game.version
@@ -75,7 +89,7 @@ let rec mainloop start appData =
                 printfn "%s - %s%s" game.name version updates
             )
             nextRound appData
-        | "check-updates" ->
+        | ("check-updates", None) ->
             let (updates, appData) = checkAllForUpdates appData
             match updates with
             | updates when updates.Length > 0 ->
@@ -94,13 +108,13 @@ let rec mainloop start appData =
             | x ->
                 printfn "\n%i games are not updateable." x
             nextRound appData
-        | "logout" ->
+        | ("logout", None) ->
             printfn "Logged out."
             saveAppData { appData with authentication = NoAuth }
             newRound ()
-        | "exit" | "close" | "quit" ->
+        | ("exit", None) | ("close", None) | ("quit", None) ->
             0
-        | s ->
+        | (s, _) ->
             printfn "Command '%s' not found. Type 'help' to get an overview over all available commands!" s
             nextRound appData
 
@@ -112,9 +126,5 @@ let main _ =
     Couchbase.Lite.Support.NetDesktop.Activate ()
     Database.SetLogLevel (LogDomain.All, LogLevel.None)
 
-
     loadAppData ()
     |> mainloop true
-
-    //getOwnedGameIds auth
-    //|> List.iter (fun (GameId id) -> printfn "%i" id)

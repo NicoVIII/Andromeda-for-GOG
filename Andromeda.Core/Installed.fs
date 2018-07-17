@@ -15,11 +15,11 @@ type UpdateData = {
 }
 
 let getGameInfo (GameId id) auth =
-    makeRequest<GameInfoResponse> Get auth [ ] (sprintf "https://embed.gog.com/account/gameDetails/%i.json" id)
+    makeRequest<GameDetailsResponse> Get auth [ ] (sprintf "https://embed.gog.com/account/gameDetails/%i.json" id)
 
 let checkForUpdates appData (GameId id) =
     sprintf "https://api.gog.com/products/%i" id
-    |> makeRequest<GameInfoResponse> Get appData [ createQuery "expand" "downloads" ]
+    |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
 
 let checkAllForUpdates appData =
     appData.installedGames

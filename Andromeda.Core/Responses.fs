@@ -19,21 +19,39 @@ type UserDataResponse = {
     email: string;
 }
 
-type DownloadInfo = {
+type FileResponseInfo = {
     id: string;
-    name: string;
+    size: int;
+    downlink: string;
+}
+
+type DownloadInfo = {
+    manualUrl: string;
+}
+
+type AllOSDownloadInfo = {
+    windows: DownloadInfo list
+    mac: DownloadInfo list
+    linux: DownloadInfo list
+}
+
+type GameDetailsResponse = {
+    title: string;
+    downloads: obj list list;
+}
+
+type InstallerInfo = {
+    id: string;
     os: string;
-    language: string;
-    language_full: string;
     version: string;
-    total_size: int;
 }
 
 type DownloadsInfo = {
-    installers: DownloadInfo list
+    installers: InstallerInfo list;
 }
 
-type GameInfoResponse = {
+type ProductsResponse = {
+    id: int;
     title: string;
     downloads: DownloadsInfo;
 }
