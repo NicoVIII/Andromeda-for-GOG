@@ -24,11 +24,12 @@ let downloadFile (appData :AppData) url =
     job {
         let filepath = Path.GetTempFileName ()
         printfn "%s" filepath
+        printfn "%s" url
         use! resp =
             setupBasicRequest Get appData.authentication [] url
             |> getResponse
         use fileStream = new FileStream(filepath, FileMode.Create)
-        do! resp.body.CopyToAsync fileStream |> Job.awaitUnitTask
+        resp.body.CopyTo fileStream
         fileStream.Close ()
 
         match getOS () with
@@ -86,7 +87,6 @@ let installGame (appData :AppData) name =
                 (false, appData)
 
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
-    printfn "%A" response
     match response with
     | Some { products = products } when products.Length = 1 ->
         let product = products.Head
