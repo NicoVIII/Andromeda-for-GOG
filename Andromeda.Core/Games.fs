@@ -25,12 +25,20 @@ let downloadFile (appData :AppData) url =
         let filepath = Path.GetTempFileName ()
         printfn "%s" filepath
         printfn "%s" url
+
         use! resp =
-            setupBasicRequest Get appData.authentication [] url
+            setupBasicRequest Head appData.authentication [] url
+            |> Request.setHeader (UserAgent "Chrome")
             |> getResponse
+        printfn "%A" (resp.headers.[ResponseHeader.Link])
         use fileStream = new FileStream(filepath, FileMode.Create)
+        printfn "Start downloading..."
         resp.body.CopyTo fileStream
+        printfn "Download completed!"
         fileStream.Close ()
+
+        let fileinfo = new FileInfo(filepath)
+        printfn "%i" fileinfo.Length
 
         match getOS () with
         | Linux | MacOS ->
@@ -38,7 +46,7 @@ let downloadFile (appData :AppData) url =
         | Windows | Unknown ->
             ()
 
-        System.Diagnostics.Process.Start(filepath) |> ignore
+        //System.Diagnostics.Process.Start(filepath) |> ignore
     }
 
 let installGame (appData :AppData) name =
@@ -90,12 +98,13 @@ let installGame (appData :AppData) name =
     match response with
     | Some { products = products } when products.Length = 1 ->
         let product = products.Head
-        sprintf "https://embed.gog.com/account/gameDetails/%i.json" product.id
+        // TODO: use other api to get working downlink, this one seems to need a cookie
+        (*sprintf "https://embed.gog.com/account/gameDetails/%i.json" product.id
         |> makeRequest<GameDetailsResponse> Get appData [ createQuery "expand" "downloads" ]
         |> function
             | (None, appData) ->
                 (false, appData)
             | (Some response, appData) ->
-                handleResponse response appData
+                handleResponse response appData*)
     | _ ->
         (false, appData)
