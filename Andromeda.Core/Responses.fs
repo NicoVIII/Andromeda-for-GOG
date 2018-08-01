@@ -40,10 +40,17 @@ type GameDetailsResponse = {
     downloads: obj list list;
 }
 
+type InstallerFileInfo = {
+    id: string;
+    size: int;
+    downlink: string;
+}
+
 type InstallerInfo = {
     id: string;
     os: string;
     version: string;
+    files: InstallerFileInfo list;
 }
 
 type DownloadsInfo = {
@@ -64,4 +71,9 @@ type ProductInfo = {
 type FilteredProductsResponse = {
     totalProducts: int;
     products: ProductInfo list;
+}
+
+type SecureUrlResponse = {
+    downlink: string;
+    checksum: string;
 }

@@ -23,17 +23,17 @@ let getOwnedGameIds (appData :AppData) =
 let downloadFile (appData :AppData) url =
     job {
         let filepath = Path.GetTempFileName ()
+        let url = String.replace "http://" "https://" url
         printfn "%s" filepath
         printfn "%s" url
 
         use! resp =
-            setupBasicRequest Head appData.authentication [] url
-            |> Request.setHeader (UserAgent "Chrome")
+            setupBasicRequest Get appData.authentication [] url
             |> getResponse
-        printfn "%A" (resp.headers.[ResponseHeader.Link])
         use fileStream = new FileStream(filepath, FileMode.Create)
         printfn "Start downloading..."
-        resp.body.CopyTo fileStream
+        use task = resp.body.CopyToAsync fileStream
+        do task.Wait()
         printfn "Download completed!"
         fileStream.Close ()
 
@@ -42,69 +42,58 @@ let downloadFile (appData :AppData) url =
 
         match getOS () with
         | Linux | MacOS ->
-            Syscall.chmod (filepath, FilePermissions.S_IXUSR) |> ignore
+            Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
         | Windows | Unknown ->
             ()
 
-        //System.Diagnostics.Process.Start(filepath) |> ignore
+        let prog = System.Diagnostics.Process.Start(filepath)
+        prog.WaitForExit() |> ignore
     }
 
 let installGame (appData :AppData) name =
-    let handleResponse (response :GameDetailsResponse) appData =
-        response.downloads
-        |> (function
-            | lst when not (List.isEmpty lst) ->
-                List.head lst
-            | _ -> failwith "Nope: 1"
-        )
-        |> List.fold (fun lst info ->
-            match info with
-            | :? Map<string, obj> as info ->
-                info::lst
-            | _ -> lst
-        ) []
-        |> (function
-            | lst when not (List.isEmpty lst) ->
-                List.head lst
-            | _ ->
-                failwith "Nope: 2"
-        )
+    let handleResponse (response :ProductsResponse) appData =
+        let installers = response.downloads.installers
+        printfn "%A" installers
+        installers
         |> (fun info ->
             match getOS () with
-            | Linux -> info.["linux"]
-            | Windows -> info.["windows"]
-            | MacOS -> info.["mac"]
+            | Linux ->
+                List.filter (fun (i :InstallerInfo) -> i.os = "linux") info
+            | Windows ->
+                List.filter (fun (i :InstallerInfo) -> i.os = "windows") info
+            | MacOS ->
+                List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
+            | Unknown ->
+                []
+        )
+        |> (function
+            | lst when not (List.isEmpty lst) ->
+                let installer = List.head lst
+                installer.files
+            | _ -> failwith "Nope: 1"
         )
         |> function
-            | :? (obj list) as info ->
-                info
-            | info ->
-                printfn "%A" (info.GetType())
-                failwith "Nope: 3"
-        |> function
             | (info::_) ->
-                match info with
-                | :? Map<string, obj> as info ->
-                    let url = sprintf "https://gog.com%s" ((string)info.["manualUrl"])
-                    downloadFile appData url |> run
-                | info ->
-                    printfn "%A" (info.GetType())
-                    failwith "Nope: 4"
+                let url = info.downlink
+                let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
+                downloadFile appData secUrl.Value.downlink
+                |> run
                 (true, appData)
             | [] ->
                 (false, appData)
 
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
     match response with
-    | Some { products = products } when products.Length = 1 ->
+    | Some { products = products } when products.Length > 1 ->
+        printfn "%A" products
+
         let product = products.Head
-        // TODO: use other api to get working downlink, this one seems to need a cookie
-        (*sprintf "https://embed.gog.com/account/gameDetails/%i.json" product.id
-        |> makeRequest<GameDetailsResponse> Get appData [ createQuery "expand" "downloads" ]
+        sprintf "https://api.gog.com/products/%i" product.id
+        |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
         |> function
             | (None, appData) ->
                 (false, appData)
             | (Some response, appData) ->
-                handleResponse response appData*)
+                handleResponse response appData
     | _ ->
         (false, appData)

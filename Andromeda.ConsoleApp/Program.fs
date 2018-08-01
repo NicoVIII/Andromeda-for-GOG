@@ -55,8 +55,8 @@ let rec mainloop start appData =
             Console.ReadLine ()
             |> String.split ' '
             |> function
-               | command::arg::_ -> (command, Some arg)
-               | command::_ -> (command, None)
+               | command::arg::lst -> (command, Some (List.fold (fun out s -> sprintf "%s %s" out s) "" (arg::lst)))
+               | [command] -> (command, None)
                | [] -> ("", None)
         match input with
         | ("help", None) ->
