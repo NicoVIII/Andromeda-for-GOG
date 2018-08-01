@@ -31,6 +31,7 @@ let downloadFile (appData :AppData) url =
             setupBasicRequest Get appData.authentication [] url
             |> getResponse
         use fileStream = new FileStream(filepath, FileMode.Create)
+        printfn "Size of download: %s" resp.headers.[ResponseHeader.ContentLength]
         printfn "Start downloading..."
         use task = resp.body.CopyToAsync fileStream
         do task.Wait()

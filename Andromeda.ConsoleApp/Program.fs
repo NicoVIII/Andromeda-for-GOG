@@ -70,8 +70,7 @@ let rec mainloop start appData =
         | ("install", Some arg) ->
             let (res, appData) = installGame appData arg
             match res with
-            | true ->
-                printfn "Started installer!"
+            | true -> ()
             | false ->
                 printfn "Game could not be installed. Reason unknown."
             nextRound appData
