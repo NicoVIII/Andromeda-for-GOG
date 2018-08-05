@@ -51,50 +51,46 @@ let downloadFile (appData :AppData) url =
         prog.WaitForExit() |> ignore
     }
 
-let installGame (appData :AppData) name =
-    let handleResponse (response :ProductsResponse) appData =
-        let installers = response.downloads.installers
-        printfn "%A" installers
-        installers
-        |> (fun info ->
-            match getOS () with
-            | Linux ->
-                List.filter (fun (i :InstallerInfo) -> i.os = "linux") info
-            | Windows ->
-                List.filter (fun (i :InstallerInfo) -> i.os = "windows") info
-            | MacOS ->
-                List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
-            | Unknown ->
-                []
-        )
-        |> (function
-            | lst when not (List.isEmpty lst) ->
-                let installer = List.head lst
-                installer.files
-            | _ -> failwith "Nope: 1"
-        )
-        |> function
-            | (info::_) ->
-                let url = info.downlink
-                let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
-                downloadFile appData secUrl.Value.downlink
-                |> run
-                (true, appData)
-            | [] ->
-                (false, appData)
-
+let getAvailableGamesForSearch (appData :AppData) name =
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
-    match response with
-    | Some { products = products } when products.Length > 1 ->
-        printfn "%A" products
+    let products =
+        match response with
+        | None ->
+            None
+        | Some response ->
+            Some response.products
+    (products, appData)
 
-        let product = products.Head
-        sprintf "https://api.gog.com/products/%i" product.id
-        |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
-        |> function
-            | (None, appData) ->
-                (false, appData)
-            | (Some response, appData) ->
-                handleResponse response appData
-    | _ ->
-        (false, appData)
+let getAvailableInstallersForOs (appData :AppData) product =
+    sprintf "https://api.gog.com/products/%i" product.id
+    |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
+    |> function
+        | (None, appData) ->
+            ([], appData)
+        | (Some response, appData) ->
+            let installers = response.downloads.installers
+            let installers' =
+                installers
+                |> fun info ->
+                    match getOS () with
+                    | Linux ->
+                        List.filter (fun (i :InstallerInfo) -> i.os = "linux") info
+                    | Windows ->
+                        List.filter (fun (i :InstallerInfo) -> i.os = "windows") info
+                    | MacOS ->
+                        List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
+                    | Unknown ->
+                        []
+            (installers', appData)
+
+let downloadGame (appData :AppData) installer =
+    installer.files
+    |> function
+        | (info::_) ->
+            let url = info.downlink
+            let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
+            downloadFile appData secUrl.Value.downlink
+            |> run
+            (true, appData)
+        | [] ->
+            (false, appData)

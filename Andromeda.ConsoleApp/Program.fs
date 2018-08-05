@@ -9,6 +9,7 @@ open Andromeda.ConsoleApp
 open Couchbase.Lite
 open System
 open Couchbase.Lite.Logging
+open Andromeda.Core.FSharp.Responses
 
 let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
@@ -68,11 +69,34 @@ let rec mainloop start appData =
             printfn "- quit: Close Andromeda."
             nextRound appData
         | ("install", Some arg) ->
-            let (res, appData) = installGame appData arg
-            match res with
-            | true -> ()
-            | false ->
-                printfn "Game could not be installed. Reason unknown."
+            let (games, appData) = getAvailableGamesForSearch appData arg
+            match games with
+            | None -> printfn "No games found for search: %s" arg
+            | Some games ->
+                let game =
+                    match games with
+                    | [game] ->
+                        printfn "Found \"%s\"" game.title
+                        game
+                    | games ->
+                        printfn "Please choose a game:"
+                        List.iteri (fun index (game :ProductInfo) -> printfn "%i: %s" index game.title) games
+                        let index = sscanf "%i" (Console.ReadLine ())
+                        games.[index]
+                let (installers, appData) = getAvailableInstallersForOs appData game
+                match installers with
+                | [] -> printfn "No installer for your os found. Sorry!"
+                | installers ->
+                    let installer =
+                        match installers with
+                        | [installer] -> installer
+                        | lst ->
+                            printfn "Please choose an installer:"
+                            List.head installers
+                    let (res, appData) = downloadGame appData installer
+                    match res with
+                    | true -> ()
+                    | false -> printfn "Game could not be installed. Reason unknown."
             nextRound appData
         | ("search-installed", None) ->
             let appData = searchInstalled appData
