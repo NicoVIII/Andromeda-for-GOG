@@ -70,33 +70,41 @@ let rec mainloop start appData =
             nextRound appData
         | ("install", Some arg) ->
             let (games, appData) = getAvailableGamesForSearch appData arg
-            match games with
-            | None -> printfn "No games found for search: %s" arg
-            | Some games ->
-                let game =
-                    match games with
-                    | [game] ->
-                        printfn "Found \"%s\"" game.title
-                        game
-                    | games ->
-                        printfn "Please choose a game:"
-                        List.iteri (fun index (game :ProductInfo) -> printfn "%i: %s" index game.title) games
-                        let index = sscanf "%i" (Console.ReadLine ())
-                        games.[index]
-                let (installers, appData) = getAvailableInstallersForOs appData game
-                match installers with
-                | [] -> printfn "No installer for your os found. Sorry!"
-                | installers ->
-                    let installer =
-                        match installers with
-                        | [installer] -> installer
-                        | lst ->
-                            printfn "Please choose an installer:"
-                            List.head installers
-                    let (res, appData) = downloadGame appData installer
-                    match res with
-                    | true -> ()
-                    | false -> printfn "Game could not be installed. Reason unknown."
+            let appData =
+                match games with
+                | None ->
+                    printfn "No games found for search: %s" arg
+                    appData
+                | Some games ->
+                    let game =
+                        match games with
+                        | [game] ->
+                            printfn "Found \"%s\"" game.title
+                            game
+                        | games ->
+                            printfn "Please choose a game:"
+                            List.iteri (fun index (game :ProductInfo) -> printfn "%i: %s" index game.title) games
+                            let index = sscanf "%i" (Console.ReadLine ())
+                            games.[index]
+                    let (installers, appData) = getAvailableInstallersForOs appData game
+                    match installers with
+                    | [] ->
+                        printfn "No installer for your os found. Sorry!"
+                        appData
+                    | installers ->
+                        let installer =
+                            match installers with
+                            | [installer] -> installer
+                            | lst ->
+                                printfn "Please choose an installer:"
+                                List.head installers
+                        let (res, appData) = downloadGame appData installer
+                        match res with
+                        | true ->
+                            searchInstalled appData
+                        | false ->
+                            printfn "Game could not be installed. Reason unknown."
+                            appData
             nextRound appData
         | ("search-installed", None) ->
             let appData = searchInstalled appData
@@ -143,7 +151,7 @@ let rec mainloop start appData =
 
 [<EntryPoint>]
 let main _ =
-    printfn "Andromeda for GOG - v0.1.0"
+    printfn "Andromeda for GOG - v0.2.0-alpha.1"
 
     // Initialise Couchbase Lite
     Couchbase.Lite.Support.NetDesktop.Activate ()
