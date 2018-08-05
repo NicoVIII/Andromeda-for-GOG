@@ -3,9 +3,19 @@
     "tasks": [
         {
             "label": "build",
-            "command": "./fake.sh",
+            "command": "dotnet",
             "type": "process",
-            "args": [],
+            "args": [
+                "fake",
+                "build"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "./Andromeda.ConsoleApp"
+            }
         }
     ]
 }

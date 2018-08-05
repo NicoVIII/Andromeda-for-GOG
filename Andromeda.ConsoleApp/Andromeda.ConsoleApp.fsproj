@@ -12,5 +12,12 @@
   <ItemGroup>
     <ProjectReference Include="../Andromeda.Core/Andromeda.Core.fsproj" />
   </ItemGroup>
+  <Target Name="Build">
+    <Exec IgnoreStandardErrorWarningFormat="true" Command="dotnet fake build" WorkingDirectory="$(RepoRootDir)" />
+  </Target>
+  <Target Name="Pack">
+  </Target>
+  <Target Name="Test">
+  </Target>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>
