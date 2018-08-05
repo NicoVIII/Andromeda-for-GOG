@@ -1,6 +1,9 @@
-// [ FAKE GROUP ]
-group Build
-    source https://api.nuget.org/v3/index.json
-    nuget Fake.DotNet.Cli
-    nuget Fake.IO.FileSystem
-    nuget Fake.Core.Target
+source https://www.nuget.org/api/v2
+
+nuget FSharp.Core
+nuget Couchbase.Lite 2.0.3
+nuget Couchbase.Lite.Support.NetDesktop 2.0.3
+clitool dotnet-fake >= 5.0
+nuget FSharp.Json 0.3.3
+nuget Http.fs 5.3.0
+nuget Mono.Posix.NETStandard 1.0.0

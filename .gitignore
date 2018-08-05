@@ -288,7 +288,7 @@ node_modules/
 _Pvt_Extensions
 
 # Paket dependency manager
-.paket/paket.exe
+#.paket/paket.exe #paket.exe is needed and is only a bootstraper...
 paket-files/
 
 # FAKE - F# Make

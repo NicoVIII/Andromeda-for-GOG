@@ -3,13 +3,9 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet",
+            "command": "./fake.sh",
             "type": "process",
-            "args": [
-                "build",
-                "${workspaceFolder}/Andromeda.ConsoleApp/Andromeda.ConsoleApp.fsproj"
-            ],
-            "problemMatcher": "$msCompile"
+            "args": [],
         }
     ]
 }
