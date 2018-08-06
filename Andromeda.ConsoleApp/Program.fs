@@ -65,6 +65,8 @@ let rec mainloop start appData =
             printfn "- search-installed: Searches the default location for installed GOG games (only on linux for now)"
             printfn "- list-installed: Lists the installed and found GOG games. Run 'search-installed', if empty."
             printfn "- check-updates: Looks for which games GOG has a newer version online."
+            printfn "- install <name>: Trys to download and install a game by name. You can use spaces. Don't use \" for now. (Alpha)"
+            printfn ""
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
             nextRound appData

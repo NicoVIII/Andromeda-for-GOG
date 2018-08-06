@@ -7,7 +7,14 @@
 This project aims at providing a Galaxy-like client for GOG with the help of https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1 also for Linux systems.
 
 ## Dependencies
-TODO
+You need .NET Core 2.1 to run Andromeda. You can download it here:
+https://www.microsoft.com/net/download
+
+## Installation
+Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases and unpack it anywhere you want.
+
+## Usage
+Execute `start.sh` or `start.cmd` (untested) to run the program. You can type `help` to see, what you can do.
 
 ## Development
 ### Building

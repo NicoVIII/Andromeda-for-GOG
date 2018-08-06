@@ -16,12 +16,14 @@ cd "deploy"
   cp "../build/start.sh" "publish"
 
   cd "publish"
-    echo "Put files into .zip"
-    find . -print | zip "../publish" -@
+    echo "Put files into .zip .."
+    find . -print | zip -q "../publish" -@
 
-    echo "Put files into .tar"
-    tar -czvf "../publish.tar" *
-    echo "Compress .tar to .tar.xz"
+    echo "Put files into .tar .."
+    tar -czf "../publish.tar" *
+    echo "Compress .tar to .tar.gz .."
+    gzip -k "../publish.tar"
+    echo "Compress .tar to .tar.xz .."
     xz -e9 --threads=0 -f "../publish.tar"
 
     echo "Finished publishing."

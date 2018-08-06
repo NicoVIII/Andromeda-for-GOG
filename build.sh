@@ -5,4 +5,4 @@ cd Andromeda.ConsoleApp
   cd ..
 
 # If you don't want to run the project on building, comment this line out
-dotnet ./bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll
+dotnet ./Andromeda.ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll
