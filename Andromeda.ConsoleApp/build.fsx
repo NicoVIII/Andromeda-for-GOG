@@ -1,7 +1,8 @@
 #r "paket:
 nuget Fake.DotNet.Cli
 nuget Fake.IO.FileSystem
-nuget Fake.Core.Target //"
+nuget Fake.Core.Target
+//"
 #load "./.fake/build.fsx/intellisense.fsx"
 
 open Fake.Core
@@ -11,11 +12,12 @@ open Fake.IO
 open Fake.IO.Globbing.Operators //enables !! and globbing
 
 // *** Define Targets ***
-Target.create "Clean" ignore (*fun _ ->
-    !! "../*/bin"
-    ++ "../*/obj"
-    |> Shell.cleanDirs
-*)
+Target.create "Clean" (fun _ ->
+    !! "bin/*"
+    ++ "obj/*"
+    -- "bin/CouchbaseLite/*" // Exclude savedata from cleaning for now
+    |> File.deleteAll
+)
 
 Target.create "Build" (fun _ ->
     !! "*.*proj"

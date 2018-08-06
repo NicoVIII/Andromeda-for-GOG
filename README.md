@@ -11,6 +11,7 @@ TODO
 
 ## Development
 ### Building
+(The build scripts are just for linux. You have to build this on other platforms manually)
 To build this project, you can run build.sh. This will restore the whole solution (`dotnet restore`) and build the consoleapp using fake (`cd Andromeda.ConsoleApp && dotnet fake build`).
 The script will automatically start the build, you can comment the line out to avoid this.
 
