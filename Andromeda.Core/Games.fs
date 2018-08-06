@@ -1,13 +1,9 @@
 module Andromeda.Core.FSharp.Games
 
-open Hopac
 open HttpFs.Client
 open Mono.Unix.Native
-open System
 open System.IO
 open System.Net
-open System.Threading.Tasks
-open System.Timers
 
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Basics
@@ -24,26 +20,14 @@ let getOwnedGameIds (appData :AppData) =
     )
     |> exeFst (List.map GameId)
 
-let downloadFile (appData :AppData) url size =
-    let size = float(size) / 1000000.0
+let startFileDownload url =
     let filepath = Path.GetTempFileName ()
     let url = String.replace "http://" "https://" url
 
     use client = new WebClient()
-    use task = client.DownloadFileTaskAsync (url, filepath)
-    printf "Download started..."
-    use timer = new System.Timers.Timer(1000.0)
-    timer.AutoReset <- true
-    timer.Elapsed.Add (fun _ ->
-        let fileInfo = new FileInfo(filepath)
-        float(fileInfo.Length) / 1000000.0
-        |> printf "\rDownloading.. (%.1f MB of %.1f MB)    " <| size
-    )
-    timer.Start()
-    task.Wait()
-    timer.Stop()
-    printfn "\rDownload completed!                   "
+    (client.DownloadFileTaskAsync (url, filepath), filepath)
 
+let executeFile filepath =
     match getOS () with
     | Linux | MacOS ->
         Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
@@ -91,7 +75,7 @@ let downloadGame (appData :AppData) installer =
         | (info::_) ->
             let url = info.downlink
             let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
-            downloadFile appData secUrl.Value.downlink info.size
-            (true, appData)
+            let (task, filepath) = startFileDownload secUrl.Value.downlink
+            Some (task, filepath, info.size)
         | [] ->
-            (false, appData)
+            None

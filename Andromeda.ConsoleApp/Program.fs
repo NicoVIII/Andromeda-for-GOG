@@ -1,15 +1,16 @@
-﻿// Learn more about F# at http://fsharp.org
-
-open Andromeda.Core.FSharp.AppData
+﻿open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.Installed
+open Andromeda.Core.FSharp.Responses
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
+
 open Couchbase.Lite
-open System
 open Couchbase.Lite.Logging
-open Andromeda.Core.FSharp.Responses
+open System
+open System.IO
+open System.Timers
 
 let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
@@ -100,11 +101,25 @@ let rec mainloop start appData =
                             | lst ->
                                 printfn "Please choose an installer:"
                                 List.head installers
-                        let (res, appData) = downloadGame appData installer
+                        let res = downloadGame appData installer
                         match res with
-                        | true ->
+                        | Some (task, filepath, size) ->
+                            printf "Download started..."
+                            let size = float(size) / 1000000.0
+                            use timer = new System.Timers.Timer(1000.0)
+                            timer.AutoReset <- true
+                            timer.Elapsed.Add (fun _ ->
+                                let fileInfo = new FileInfo(filepath)
+                                float(fileInfo.Length) / 1000000.0
+                                |> printf "\rDownloading.. (%.1f MB of %.1f MB)" <| size
+                            )
+                            timer.Start()
+                            task.Wait()
+                            timer.Stop()
+                            printfn "\rDownload completed!"
+                            executeFile filepath
                             searchInstalled appData
-                        | false ->
+                        | None ->
                             printfn "Game could not be installed. Reason unknown."
                             appData
             nextRound appData
