@@ -42,7 +42,7 @@ type GameDetailsResponse = {
 
 type InstallerFileInfo = {
     id: string;
-    size: int;
+    size: int64;
     downlink: string;
 }
 

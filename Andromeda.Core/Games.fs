@@ -3,7 +3,11 @@ module Andromeda.Core.FSharp.Games
 open Hopac
 open HttpFs.Client
 open Mono.Unix.Native
+open System
 open System.IO
+open System.Net
+open System.Threading.Tasks
+open System.Timers
 
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Basics
@@ -20,33 +24,34 @@ let getOwnedGameIds (appData :AppData) =
     )
     |> exeFst (List.map GameId)
 
-let downloadFile (appData :AppData) url =
-    job {
-        let filepath = Path.GetTempFileName ()
-        let url = String.replace "http://" "https://" url
+let downloadFile (appData :AppData) url size =
+    let size = float(size) / 1000000.0
+    let filepath = Path.GetTempFileName ()
+    let url = String.replace "http://" "https://" url
 
-        printfn "Start downloading..."
-        use! resp =
-            setupBasicRequest Get appData.authentication [] url
-            |> getResponse
-        use fileStream = File.Create(filepath)
-        printfn "Size of download: %s" resp.headers.[ResponseHeader.ContentLength]
-        do! resp.body.CopyToAsync fileStream |> Job.awaitUnitTask
-        printfn "Download completed!"
-        fileStream.Close ()
+    use client = new WebClient()
+    use task = client.DownloadFileTaskAsync (url, filepath)
+    printf "Download started..."
+    use timer = new System.Timers.Timer(1000.0)
+    timer.AutoReset <- true
+    timer.Elapsed.Add (fun _ ->
+        let fileInfo = new FileInfo(filepath)
+        float(fileInfo.Length) / 1000000.0
+        |> printf "\rDownloading.. (%.1f MB of %.1f MB)    " <| size
+    )
+    timer.Start()
+    task.Wait()
+    timer.Stop()
+    printfn "\rDownload completed!                   "
 
-        let fileinfo = new FileInfo(filepath)
-        printfn "%i" fileinfo.Length
+    match getOS () with
+    | Linux | MacOS ->
+        Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
+    | Windows | Unknown ->
+        ()
 
-        match getOS () with
-        | Linux | MacOS ->
-            Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
-        | Windows | Unknown ->
-            ()
-
-        let prog = System.Diagnostics.Process.Start(filepath)
-        prog.WaitForExit() |> ignore
-    }
+    let prog = System.Diagnostics.Process.Start(filepath)
+    prog.WaitForExit() |> ignore
 
 let getAvailableGamesForSearch (appData :AppData) name =
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
@@ -86,8 +91,7 @@ let downloadGame (appData :AppData) installer =
         | (info::_) ->
             let url = info.downlink
             let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
-            downloadFile appData secUrl.Value.downlink
-            |> run
+            downloadFile appData secUrl.Value.downlink info.size
             (true, appData)
         | [] ->
             (false, appData)
