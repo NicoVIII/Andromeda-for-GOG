@@ -23,3 +23,9 @@ To build this project, you can run build.sh. This will restore the whole solutio
 The script will automatically start the build, you can comment the line out to avoid this.
 
 To start the program use dotnet and the build .dll: `dotnet ./bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll` or `dotnet ./Andromeda.ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll` depending on your location
+
+### Versioning
+I will try to stick to Semantic Versioning 2.0.0 (http://semver.org/spec/v2.0.0.html).
+
+### Used Tools
+I write the code in "Visual Studio Code" (https://code.visualstudio.com/).
