@@ -11,15 +11,15 @@ open Fake.IO
 open Fake.IO.Globbing.Operators //enables !! and globbing
 
 // *** Define Targets ***
-Target.create "Clean" (fun _ ->
-    !! "src/**/bin"
-    ++ "src/**/obj"
+Target.create "Clean" ignore (*fun _ ->
+    !! "../*/bin"
+    ++ "../*/obj"
     |> Shell.cleanDirs
-)
+*)
 
 Target.create "Build" (fun _ ->
     !! "*.*proj"
-    |> Seq.iter (DotNet.build id)
+    |> Seq.iter (DotNet.build (fun parameters -> { parameters with Configuration = DotNet.Debug }))
 )
 
 Target.create "Publish" (fun _ ->

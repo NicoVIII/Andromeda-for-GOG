@@ -24,17 +24,14 @@ let downloadFile (appData :AppData) url =
     job {
         let filepath = Path.GetTempFileName ()
         let url = String.replace "http://" "https://" url
-        printfn "%s" filepath
-        printfn "%s" url
 
         printfn "Start downloading..."
         use! resp =
             setupBasicRequest Get appData.authentication [] url
             |> getResponse
-        use fileStream = new FileStream(filepath, FileMode.Create)
+        use fileStream = File.Create(filepath)
         printfn "Size of download: %s" resp.headers.[ResponseHeader.ContentLength]
-        use task = resp.body.CopyToAsync fileStream
-        do task.Wait()
+        do! resp.body.CopyToAsync fileStream |> Job.awaitUnitTask
         printfn "Download completed!"
         fileStream.Close ()
 
