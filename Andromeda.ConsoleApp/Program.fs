@@ -168,7 +168,7 @@ let rec mainloop start appData =
 
 [<EntryPoint>]
 let main _ =
-    printfn "Andromeda for GOG - v0.2.0-alpha.1"
+    printfn "Andromeda for GOG - v0.2.0-alpha.2"
 
     // Initialise Couchbase Lite
     Couchbase.Lite.Support.NetDesktop.Activate ()
