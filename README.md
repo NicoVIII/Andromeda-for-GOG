@@ -5,7 +5,9 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/badge)](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog)
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/NicoVIII/Andromeda-for-GOG/master/LICENSE)
 
-This project aims at providing a Galaxy-like client for GOG with the help of https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1 also for Linux systems.
+This project aims at providing a Galaxy-like client for GOG with the help of https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1 also for Linux systems. It will focus the downloading, installing and updating of games at first.  
+If you need something to play Multiplayer over Galaxy on linux, have a look at the comet project from the brilliant guy who started the unofficial documentation:
+https://gitlab.com/Yepoleb/comet
 
 ## Dependencies
 You need .NET Core 2.1 to run Andromeda. You can download it here:
