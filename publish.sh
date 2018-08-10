@@ -16,6 +16,8 @@ mkdir -p "deploy"
   mv "../Andromeda.ConsoleApp/bin/Release/netcoreapp2.1/publish" "publish/bin"
   cp "../build/start.cmd" "publish"
   cp "../build/start.sh" "publish"
+  cp "../LICENSE" "publish"
+  cp "../README.md" "publish"
   (
     cd "publish" || exit
     echo "Put files into .zip .."
