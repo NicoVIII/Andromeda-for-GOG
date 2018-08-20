@@ -27,15 +27,6 @@ let setupBasicRequest method auth queries url =
     // Add query parameters
     |> List.fold (fun request query -> Request.queryStringItem query.name query.value request) <| queries
 
-(*let makeBasicFileRequest method auth queries url filepath =
-    job {
-        use! resp =
-            setupBasicRequest method auth queries url
-            |> getResponse
-        use fileStream = new FileStream(filepath, FileMode.Create)
-        do! resp.body.CopyToAsync fileStream
-    }*)
-
 let makeBasicJsonRequest<'T> method auth queries url :'T option =
     setupBasicRequest method auth queries url
     |> Request.responseAsString

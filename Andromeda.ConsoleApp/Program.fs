@@ -11,6 +11,7 @@ open Couchbase.Lite.Logging
 open System
 open System.IO
 open System.Timers
+open Andromeda.Core.FSharp
 
 let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
@@ -89,7 +90,7 @@ let rec mainloop start appData =
                             List.iteri (fun index (game :ProductInfo) -> printfn "%i: %s" index game.title) games
                             let index = sscanf "%i" (Console.ReadLine ())
                             games.[index]
-                    let (installers, appData) = getAvailableInstallersForOs appData game
+                    let (installers, appData) = getAvailableInstallersForOs appData (GameId game.id)
                     match installers with
                     | [] ->
                         printfn "No installer for your os found. Sorry!"
@@ -100,6 +101,7 @@ let rec mainloop start appData =
                             | [installer] -> installer
                             | lst ->
                                 printfn "Please choose an installer:"
+                                (* TODO: *)
                                 List.head installers
                         let res = downloadGame appData installer
                         match res with
@@ -155,6 +157,54 @@ let rec mainloop start appData =
                 ()
             | x ->
                 printfn "\n%i games are not updateable." x
+            nextRound appData
+        | ("update-all", None) ->
+            let (updates, appData) = checkAllForUpdates appData
+            let appData =
+                appData.installedGames
+                |> List.fold (fun appData game ->
+                    let update = List.tryFind (fun update -> update.game.id = game.id) updates
+                    match update with
+                    | Some update when update.newVersion <> game.version ->
+                        let (Version newVersion) = update.newVersion;
+                        let (Version version) = game.version;
+                        printfn "Update %s from %s to %s" game.name version newVersion
+                        let (installerInfo, appData) = getAvailableInstallersForOs appData game.id
+                        match installerInfo with
+                        | [] ->
+                            printfn "Sorry, something went wrong! No installer found :("
+                        | installers ->
+                            let installer =
+                                match installers with
+                                | [installer] -> installer
+                                | lst ->
+                                    printfn "Please choose an installer:"
+                                    (* TODO: *)
+                                    List.head lst
+                            let downloadTask = downloadGame appData installer
+                            match downloadTask with
+                            | Some (task, filepath, size) ->
+                                printf "Download started..."
+                                let size = float(size) / 1000000.0
+                                use timer = new System.Timers.Timer(1000.0)
+                                timer.AutoReset <- true
+                                timer.Elapsed.Add (fun _ ->
+                                    let fileInfo = new FileInfo(filepath)
+                                    float(fileInfo.Length) / 1000000.0
+                                    |> printf "\rDownloading.. (%.1f MB of %.1f MB)" <| size
+                                )
+                                timer.Start()
+                                task.Wait()
+                                timer.Stop()
+                                printfn "\rDownload completed!"
+                                executeFile filepath
+                                searchInstalled appData |> ignore
+                            | None ->
+                                printfn "Game could not be installed. Reason unknown."
+                            ()
+                        appData
+                    | _ -> appData
+                ) appData
             nextRound appData
         | ("logout", None) ->
             printfn "Logged out."

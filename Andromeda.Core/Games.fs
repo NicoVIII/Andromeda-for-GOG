@@ -10,8 +10,6 @@ open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Helpers
 open Andromeda.Core.FSharp.Responses
 
-type GameId = GameId of int
-
 let getOwnedGameIds (appData :AppData) =
     makeRequest<OwnedGamesResponse> Get appData [] "https://embed.gog.com/user/data/games"
     |> exeFst (function
@@ -47,8 +45,9 @@ let getAvailableGamesForSearch (appData :AppData) name =
             Some response.products
     (products, appData)
 
-let getAvailableInstallersForOs (appData :AppData) product =
-    sprintf "https://api.gog.com/products/%i" product.id
+let getAvailableInstallersForOs (appData :AppData) gameId =
+    let (GameId id) = gameId
+    sprintf "https://api.gog.com/products/%i" id
     |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
     |> function
         | (None, appData) ->
