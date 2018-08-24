@@ -68,6 +68,7 @@ let rec mainloop start appData =
             printfn "- list-installed: Lists the installed and found GOG games. Run 'search-installed', if empty."
             printfn "- check-updates: Looks for which games GOG has a newer version online."
             printfn "- install <name>: Trys to download and install a game by name. You can use spaces. Don't use \" for now. (Alpha)"
+            printfn "- update-all: Updates all games, for which an update is available. To update just one game, just install it again."
             printfn ""
             printfn "- logout: Logs you out. You have to reauthenticate after that."
             printfn "- quit: Close Andromeda."
@@ -113,15 +114,15 @@ let rec mainloop start appData =
                             timer.Elapsed.Add (fun _ ->
                                 let fileInfo = new FileInfo(filepath)
                                 float(fileInfo.Length) / 1000000.0
-                                |> printf "\rDownloading.. (%.1f MB of %.1f MB)" <| size
+                                |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
                             )
                             timer.Start()
                             task.Wait()
                             timer.Stop()
-                            printfn "\rDownload completed!"
-                            printfn "\rInstallation started...!"
+                            printfn "\rDownload completed!                                "
+                            printfn "Installation started..."
                             extractLibrary game.title filepath
-                            printfn "\rInstallation complete!"
+                            printf "\rInstallation completed!    "
                             searchInstalled appData
                         | None ->
                             printfn "Game could not be installed. Reason unknown."
@@ -193,13 +194,15 @@ let rec mainloop start appData =
                                 timer.Elapsed.Add (fun _ ->
                                     let fileInfo = new FileInfo(filepath)
                                     float(fileInfo.Length) / 1000000.0
-                                    |> printf "\rDownloading.. (%.1f MB of %.1f MB)" <| size
+                                    |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
                                 )
                                 timer.Start()
                                 task.Wait()
                                 timer.Stop()
-                                printfn "\rDownload completed!"
+                                printfn "\rDownload completed!                          "
+                                printfn "Installation started..."
                                 extractLibrary game.name filepath
+                                printf "\rInstallation completed!    "
                                 searchInstalled appData |> ignore
                             | None ->
                                 printfn "Game could not be installed. Reason unknown."

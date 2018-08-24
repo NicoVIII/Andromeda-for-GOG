@@ -48,7 +48,7 @@ let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs
         let temppath = Path.Combine(destDirName, file.Name)
 
         // Copy the file.
-        file.CopyTo(temppath, false) |> ignore
+        file.CopyTo(temppath, true) |> ignore
     )
 
     // If copySubDirs is true, copy the subdirectories.
@@ -85,7 +85,7 @@ let extractLibrary (gamename: string) filepath =
         // Unzip linux installer
         let folderName = generateRandomString 20
         let tmp = Path.Combine(Path.GetTempPath(), folderName);
-        let p = Process.Start("unzip", filepath+" -d \""+tmp+"\"");
+        let p = Process.Start("unzip", "-qq " + filepath + " -d \""+tmp+"\"");
         p.WaitForExit() |> ignore
 
         // Move files to install folder
