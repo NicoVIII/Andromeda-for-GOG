@@ -2,6 +2,8 @@ module Andromeda.Core.FSharp.Games
 
 open HttpFs.Client
 open Mono.Unix.Native
+open System
+open System.Diagnostics
 open System.IO
 open System.Net
 
@@ -25,15 +27,36 @@ let startFileDownload url =
     use client = new WebClient()
     (client.DownloadFileTaskAsync (url, filepath), filepath)
 
-let executeFile filepath =
+let extractLibrary (gamename: string) filepath =
+    //let gamename = gamename.Replace(" ", "\ ")
     match getOS () with
-    | Linux | MacOS ->
+    | Linux ->
         Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
-    | Windows | Unknown ->
-        ()
 
-    let prog = System.Diagnostics.Process.Start(filepath)
-    prog.WaitForExit() |> ignore
+        // Unzip linux installer
+        let tmp = Path.Combine(Path.GetTempPath(),gamename);
+        let p = Process.Start("unzip", filepath+" -d \""+tmp+"\"");
+        p.WaitForExit() |> ignore
+
+        // Move files to install folder
+        let folderPath = Path.Combine(tmp,"data","noarch")
+        Syscall.chmod (folderPath, FilePermissions.S_IRWXU) |> ignore
+        Syscall.chmod (folderPath, FilePermissions.S_IRWXG) |> ignore
+        Syscall.chmod (folderPath, FilePermissions.S_IRWXO) |> ignore
+        let folder = new DirectoryInfo(folderPath)
+        match folder.Exists with
+        | true ->
+            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),"GOG\ Games",gamename)
+            printfn "%s" target
+            Directory.Move(folderPath, target)
+        | false ->
+            failwith "Folder not found! :("
+    | MacOS ->
+        failwith "Not supported yet :/"
+    | Windows ->
+        failwith "Not supported yet :/"
+    | Unknown ->
+        failwith "Something strange happend! Couldn't recognise your os :O"
 
 let getAvailableGamesForSearch (appData :AppData) name =
     let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
