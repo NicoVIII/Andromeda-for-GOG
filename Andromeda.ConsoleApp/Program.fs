@@ -76,7 +76,7 @@ let rec mainloop start appData =
             let (games, appData) = getAvailableGamesForSearch appData arg
             let appData =
                 match games with
-                | None ->
+                | None | Some [] ->
                     printfn "No games found for search: %s" arg
                     appData
                 | Some games ->

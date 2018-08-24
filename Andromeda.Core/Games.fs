@@ -64,6 +64,18 @@ let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs
         )
     | false -> ()
 
+let generateRandomString length =
+    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+    let random = new Random();
+
+    let rec helper rest result =
+        let result = result + (string chars.[random.Next(chars.Length)]);
+        match rest with
+        | x when x > 1 -> helper (x-1) result
+        | x -> result
+
+    helper length ""
+
 let extractLibrary (gamename: string) filepath =
     //let gamename = gamename.Replace(" ", "\ ")
     match getOS () with
@@ -71,20 +83,20 @@ let extractLibrary (gamename: string) filepath =
         Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
 
         // Unzip linux installer
-        let tmp = Path.Combine(Path.GetTempPath(),gamename);
+        let folderName = generateRandomString 20
+        let tmp = Path.Combine(Path.GetTempPath(), folderName);
         let p = Process.Start("unzip", filepath+" -d \""+tmp+"\"");
         p.WaitForExit() |> ignore
 
         // Move files to install folder
         let folderPath = Path.Combine(tmp,"data","noarch")
-        Syscall.chmod (folderPath,FilePermissions.ALLPERMS) |> ignore
+        Syscall.chmod (folderPath, FilePermissions.ALLPERMS) |> ignore
         let folder = new DirectoryInfo(folderPath)
         match folder.Exists with
         | true ->
-            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),"GOG Games",gamename)
-            printfn "%s" target
+            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", gamename)
             copyDirectory folderPath target true
-            Directory.Delete (folderPath, true)
+            Directory.Delete (tmp, true)
         | false ->
             failwith "Folder not found! :("
     | MacOS ->
