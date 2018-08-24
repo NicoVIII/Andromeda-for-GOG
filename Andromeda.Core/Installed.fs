@@ -70,7 +70,7 @@ let getGameId appData name =
                 | l when l.Length = 1 ->
                     GameId x.products.Head.id
                     |> Some
-                | l when l.Length > 0 ->
+                | l when l.Length >= 0 ->
                     None
                 | _ -> failwith "Something went totally wrong! Gog reported a negative amount of products..."
     )

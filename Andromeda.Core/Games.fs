@@ -27,6 +27,43 @@ let startFileDownload url =
     use client = new WebClient()
     (client.DownloadFileTaskAsync (url, filepath), filepath)
 
+let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs:bool) =
+    let dir = new DirectoryInfo(sourceDirName)
+    let dirs = dir.GetDirectories();
+
+    match (dir.Exists, Directory.Exists(destDirName)) with
+    | (false, _) ->
+        // If the source directory does not exist, throw an exception.
+        raise (new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName))
+    | (true, false) ->
+        // If the destination directory does not exist, create it.
+        Directory.CreateDirectory(destDirName) |> ignore
+    | (true, true) -> ()
+
+    // Get the file contents of the directory to copy.
+    dir.GetFiles()
+    |> List.ofArray
+    |> List.iter (fun file ->
+        // Create the path to the new copy of the file.
+        let temppath = Path.Combine(destDirName, file.Name)
+
+        // Copy the file.
+        file.CopyTo(temppath, false) |> ignore
+    )
+
+    // If copySubDirs is true, copy the subdirectories.
+    match copySubDirs with
+    | true ->
+        List.ofArray dirs
+        |> List.iter (fun subdir ->
+            // Create the subdirectory.
+            let temppath = Path.Combine(destDirName, subdir.Name)
+
+            // Copy the subdirectories.
+            copyDirectory subdir.FullName temppath copySubDirs
+        )
+    | false -> ()
+
 let extractLibrary (gamename: string) filepath =
     //let gamename = gamename.Replace(" ", "\ ")
     match getOS () with
@@ -40,15 +77,14 @@ let extractLibrary (gamename: string) filepath =
 
         // Move files to install folder
         let folderPath = Path.Combine(tmp,"data","noarch")
-        Syscall.chmod (folderPath, FilePermissions.S_IRWXU) |> ignore
-        Syscall.chmod (folderPath, FilePermissions.S_IRWXG) |> ignore
-        Syscall.chmod (folderPath, FilePermissions.S_IRWXO) |> ignore
+        Syscall.chmod (folderPath,FilePermissions.ALLPERMS) |> ignore
         let folder = new DirectoryInfo(folderPath)
         match folder.Exists with
         | true ->
-            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),"GOG\ Games",gamename)
+            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal),"GOG Games",gamename)
             printfn "%s" target
-            Directory.Move(folderPath, target)
+            copyDirectory folderPath target true
+            Directory.Delete (folderPath, true)
         | false ->
             failwith "Folder not found! :("
     | MacOS ->
