@@ -120,9 +120,9 @@ let rec mainloop start appData =
                             task.Wait()
                             timer.Stop()
                             printfn "\rDownload completed!                                "
-                            printfn "Installation started..."
+                            printf "Installation started..."
                             extractLibrary game.title filepath
-                            printf "\rInstallation completed!    "
+                            printfn "\rInstallation completed!    "
                             searchInstalled appData
                         | None ->
                             printfn "Game could not be installed. Reason unknown."
@@ -200,9 +200,9 @@ let rec mainloop start appData =
                                 task.Wait()
                                 timer.Stop()
                                 printfn "\rDownload completed!                          "
-                                printfn "Installation started..."
+                                printf "Installation started..."
                                 extractLibrary game.name filepath
-                                printf "\rInstallation completed!    "
+                                printfn "\rInstallation completed!    "
                                 searchInstalled appData |> ignore
                             | None ->
                                 printfn "Game could not be installed. Reason unknown."
