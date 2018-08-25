@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="Helpers.fs" />
     <Compile Include="Responses.fs" />
@@ -13,10 +13,5 @@
     <Compile Include="User.fs" />
     <Compile Include="Installed.fs" />
   </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Couchbase.Lite" Version="2.0.3" />
-    <PackageReference Include="FSharp.Json" Version="0.3.3" />
-    <PackageReference Include="Http.fs" Version="5.3.0" />
-  </ItemGroup>
+  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

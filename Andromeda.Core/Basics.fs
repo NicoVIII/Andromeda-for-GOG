@@ -14,8 +14,9 @@ type QueryString = {
 }
 
 let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
+let config = JsonConfig.create(allowUntyped = true)
 
-let makeBasicRequest<'T> method auth queries url :'T option =
+let setupBasicRequest method auth queries url =
     (Request.createUrl method url, auth)
     // Add auth data
     |> function
@@ -25,9 +26,12 @@ let makeBasicRequest<'T> method auth queries url :'T option =
             Request.setHeader (Authorization ("Bearer " + token)) r
     // Add query parameters
     |> List.fold (fun request query -> Request.queryStringItem query.name query.value request) <| queries
+
+let makeBasicJsonRequest<'T> method auth queries url :'T option =
+    setupBasicRequest method auth queries url
     |> Request.responseAsString
     |> run
-    |> Json.deserialize<'T>
+    |> Json.deserializeEx<'T> config
     |> Some
 
 let createQuery name value = { name = name; value = value }
@@ -51,20 +55,20 @@ module Token =
         |> List.append [ createQuery "grant_type" "authorization_code" ]
         |> List.append [ createQuery "code" code ]
         |> List.append [ createQuery "redirect_uri" redirectUri ]
-        |> makeBasicRequest<TokenResponse> Get NoAuth <| "https://auth.gog.com/token"
+        |> makeBasicJsonRequest<TokenResponse> Get NoAuth <| "https://auth.gog.com/token"
         |> createAuth false
 
     let refresh auth =
         getBasicQueries ()
         |> List.append [ createQuery "grant_type" "refresh_token" ]
         |> List.append [ createQuery "refresh_token" auth.refreshToken ]
-        |> makeBasicRequest<TokenResponse> Get NoAuth <| "https://auth.gog.com/token"
+        |> makeBasicJsonRequest<TokenResponse> Get NoAuth <| "https://auth.gog.com/token"
         |> createAuth true
 
 let rec makeRequest<'T> method appData queries url :'T option * AppData =
     let auth = appData.authentication
     try
-        (makeBasicRequest method auth queries url, appData)
+        (makeBasicJsonRequest method auth queries url, appData)
     with
     | ex ->
         match auth with

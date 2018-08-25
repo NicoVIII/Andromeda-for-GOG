@@ -6,10 +6,16 @@
             "command": "dotnet",
             "type": "process",
             "args": [
-                "build",
-                "${workspaceFolder}/Andromeda.ConsoleApp/Andromeda.ConsoleApp.fsproj"
+                "fake",
+                "build"
             ],
-            "problemMatcher": "$msCompile"
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "options": {
+                "cwd": "./Andromeda.ConsoleApp"
+            }
         }
     ]
 }
