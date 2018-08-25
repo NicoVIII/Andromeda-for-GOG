@@ -6,5 +6,6 @@ nuget Couchbase.Lite.Support.NetDesktop 2.0.3
 nuget FSharp.Json 0.3.3
 nuget Http.fs 5.3.0
 nuget Mono.Posix.NETStandard 1.0.0
+nuget SharpZipLib 1.0.0
 
 clitool dotnet-fake >= 5.0

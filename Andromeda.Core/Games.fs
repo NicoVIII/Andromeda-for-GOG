@@ -1,6 +1,7 @@
 module Andromeda.Core.FSharp.Games
 
 open HttpFs.Client
+open ICSharpCode.SharpZipLib.Zip
 open Mono.Unix.Native
 open System
 open System.Diagnostics
@@ -77,16 +78,16 @@ let generateRandomString length =
     helper length ""
 
 let extractLibrary (gamename: string) filepath =
-    //let gamename = gamename.Replace(" ", "\ ")
+    let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", gamename)
     match getOS () with
     | Linux ->
         Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
 
         // Unzip linux installer
         let folderName = generateRandomString 20
-        let tmp = Path.Combine(Path.GetTempPath(), folderName);
-        let p = Process.Start("unzip", "-qq " + filepath + " -d \""+tmp+"\"");
-        p.WaitForExit() |> ignore
+        let tmp = Path.Combine(Path.GetTempPath(), folderName)
+        let fastZip = new FastZip()
+        fastZip.ExtractZip (filepath, tmp, null)
 
         // Move files to install folder
         let folderPath = Path.Combine(tmp,"data","noarch")
@@ -94,14 +95,14 @@ let extractLibrary (gamename: string) filepath =
         let folder = new DirectoryInfo(folderPath)
         match folder.Exists with
         | true ->
-            let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", gamename)
             copyDirectory folderPath target true
             Directory.Delete (tmp, true)
         | false ->
             failwith "Folder not found! :("
-    | MacOS ->
-        failwith "Not supported yet :/"
     | Windows ->
+        let p = Process.Start(filepath, "/SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR=\"" + target+"\"")
+        p.WaitForExit() |> ignore
+    | MacOS ->
         failwith "Not supported yet :/"
     | Unknown ->
         failwith "Something strange happend! Couldn't recognise your os :O"
