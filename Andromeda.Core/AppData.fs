@@ -1,16 +1,11 @@
 module Andromeda.Core.FSharp.AppData
 
 open Couchbase.Lite
+open GogApi.DotNet.FSharp.Base
+open System
+open System.IO
 
 open Andromeda.Core.FSharp.Helpers
-
-type AuthenticationData = {
-    accessToken: string;
-    refreshToken: string;
-    refreshed: bool;
-}
-
-type Authentication = NoAuth | Auth of AuthenticationData
 
 type GameId = GameId of int
 type Version = Version of string
@@ -31,6 +26,9 @@ type AppData = {
 }
 
 let createBasicAppData () = { authentication = NoAuth; installedGames = [] }
+
+let dbConfig = new DatabaseConfiguration()
+dbConfig.Directory <- Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
 
 let saveAppData appData =
     use db = new Database("andromeda")

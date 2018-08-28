@@ -1,6 +1,4 @@
 Couchbase.Lite
-FSharp.Json
-Http.fs
-Mono.Posix.NETStandard
 FSharp.Core
+Mono.Posix.NETStandard
 SharpZipLib

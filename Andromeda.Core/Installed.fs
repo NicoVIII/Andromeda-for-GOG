@@ -1,31 +1,25 @@
 module Andromeda.Core.FSharp.Installed
 
-open HttpFs.Client
+open GogApi.DotNet.FSharp.GalaxyApi
+open GogApi.DotNet.FSharp.Listing
 open System
 open System.IO
 
 open Andromeda.Core.FSharp.AppData
-open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Helpers
-open Andromeda.Core.FSharp.Responses
 
 type UpdateData = {
     game: InstalledGame;
     newVersion: Version;
 }
 
-let getGameInfo (GameId id) auth =
-    makeRequest<GameDetailsResponse> Get auth [ ] (sprintf "https://embed.gog.com/account/gameDetails/%i.json" id)
-
-let checkForUpdates appData (GameId id) =
-    sprintf "https://api.gog.com/products/%i" id
-    |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
-
 let checkAllForUpdates appData =
     appData.installedGames
     |> List.filter (fun game -> game.updateable)
     |> List.fold (fun (lst, appData) game ->
-        let (update, appData) = checkForUpdates appData game.id
+        let (GameId id) = game.id
+        let (update, auth) = askForProductInfo appData.authentication { id = id }
+        let appData = { appData with authentication = auth }
         match update with
         | None ->
             (lst, appData)
@@ -56,11 +50,7 @@ let checkAllForUpdates appData =
     ) ([], appData)
 
 let getGameId appData name =
-    let queries = [
-        createQuery "search" name;
-        createQuery "mediaType" "1";
-    ]
-    makeRequest<FilteredProductsResponse> Get appData queries "https://embed.gog.com/account/getFilteredProducts"
+    askForFilteredProducts appData.authentication { search = name }
     |> exeFst (
         function
         | None -> None
@@ -73,6 +63,9 @@ let getGameId appData name =
                 | l when l.Length >= 0 ->
                     None
                 | _ -> failwith "Something went totally wrong! Gog reported a negative amount of products..."
+    )
+    |> exeSnd (
+        fun auth -> { appData with authentication = auth }
     )
 
 let searchInstalled (appData :AppData) =
