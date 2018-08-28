@@ -20,6 +20,7 @@ Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases a
 Execute `start.sh` or `start.cmd` (untested) to run the program. You can type `help` to see, what you can do.
 
 ## Development
+[![pipeline status](https://gitlab.com/NicoVIII/Andromeda-for-GOG/badges/develop/pipeline.svg)](https://gitlab.com/NicoVIII/Andromeda-for-GOG/commits/develop)
 [![CodeFactor](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/badge/develop)](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/overview/develop)
 
 ### Building
