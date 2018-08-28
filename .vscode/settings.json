@@ -4,5 +4,8 @@
         "**/.git/subtree-cache/**": true,
         "**/node_modules/**": true,
         "**/packages/**": true
-    }
+    },
+    "FSharp.fsacRuntime": "netcore",
+    "FSharp.logLanguageServiceRequests": "both",
+    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "INFO"
 }

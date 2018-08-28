@@ -11,10 +11,7 @@ trim_trailing_whitespace = true
 [*.{c,f}sproj]
 indent_size = 2
 
-[*.sh]
-indent_size = 2
-
-[*.yml]
+[*.{sh,yml,xaml}]
 indent_size = 2
 
 [*.md]

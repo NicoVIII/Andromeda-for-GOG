@@ -1,5 +1,6 @@
 module Andromeda.Core.FSharp.Installed
 
+open FSharp.Json
 open GogApi.DotNet.FSharp.GalaxyApi
 open GogApi.DotNet.FSharp.Listing
 open System
@@ -9,16 +10,21 @@ open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Helpers
 
 type UpdateData = {
-    game: InstalledGame;
-    newVersion: Version;
+    game: InstalledGame.T;
+    newVersion: string;
+}
+
+type WindowsGameInfoFile = {
+    gameId: string;
+    name: string;
+    version: int option;
 }
 
 let checkAllForUpdates appData =
     appData.installedGames
     |> List.filter (fun game -> game.updateable)
     |> List.fold (fun (lst, appData) game ->
-        let (GameId id) = game.id
-        let (update, auth) = askForProductInfo appData.authentication { id = id }
+        let (update, auth) = askForProductInfo appData.authentication { id = game.id }
         let appData = { appData with authentication = auth }
         match update with
         | None ->
@@ -40,11 +46,10 @@ let checkAllForUpdates appData =
                 | None ->
                     (lst, appData)
                 | Some installer ->
-                    let (Version version) = game.version
-                    if version = installer.version then
+                    if game.version = installer.version then
                         (lst, appData)
                     else
-                        ({ newVersion = Version installer.version; game = game }::lst, appData)
+                        ({ newVersion = installer.version; game = game }::lst, appData)
             | None ->
                 failwith "OS is invalid for some reason!"
     ) ([], appData)
@@ -58,7 +63,7 @@ let getGameId appData name =
             List.filter (fun p -> p.title = name) x.products
             |>  function
                 | l when l.Length = 1 ->
-                    GameId x.products.Head.id
+                    x.products.Head.id
                     |> Some
                 | l when l.Length >= 0 ->
                     None
@@ -68,14 +73,71 @@ let getGameId appData name =
         fun auth -> { appData with authentication = auth }
     )
 
+let getInstalledOnLinux (appData: AppData) gameDir =
+    // Internal functions
+    let readGameinfo path :string[] option =
+        let gameinfoPath = sprintf "%s/gameinfo" path
+        match File.Exists gameinfoPath with
+        | true ->
+            gameinfoPath
+            |> File.ReadAllLines
+            |> Some
+        | false ->
+            None
+
+    // Code
+    match readGameinfo gameDir with
+    | None ->
+        appData
+    | Some lines when lines.Length > 3 ->
+        let game =
+            InstalledGame.create ((int)lines.[4]) lines.[0] gameDir lines.[1]
+            |> InstalledGame.setUpdateable true
+        let installed = game::appData.installedGames
+        { appData with installedGames = installed }
+    | Some lines ->
+        let idData =
+            Path.GetFileName gameDir
+            |> getGameId appData
+        match idData with
+        | (None, appData) ->
+            appData
+        | (Some id, appData) ->
+            let game =
+                InstalledGame.create id lines.[0] gameDir lines.[1]
+            let installed = game::appData.installedGames
+            { appData with installedGames = installed }
+
+let getInstalledOnWindows (appData: AppData) gameDir =
+    let extractGameInfo file =
+        let gameInfo =
+            File.ReadAllLines file
+            |> Seq.fold (+) ""
+            |> Json.deserialize<WindowsGameInfoFile>
+        // TODO: determine version and updateability
+        InstalledGame.create ((int)gameInfo.gameId) gameInfo.name gameDir "1"
+        |> InstalledGame.setIcon (Some (gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
+
+    // Find info file of game
+    let files = Directory.GetFiles (gameDir, "goggame-*.info")
+    match files.Length with
+    | 1 ->
+        let game = extractGameInfo files.[0]
+        let installed = game::appData.installedGames
+        { appData with installedGames = installed }
+    | _ ->
+        appData
+
 let searchInstalled (appData :AppData) =
+    // Code
+    // TODO: Replace with appdata configuration
     let path =
         match os with
         | Linux ->
             Environment.GetEnvironmentVariable "HOME"
             |> sprintf "%s/GOG Games"
         | Windows ->
-            "" // TODO:
+            "D:/Spiele"
         | MacOS ->
             "" // TODO:
         | Unknown ->
@@ -85,24 +147,23 @@ let searchInstalled (appData :AppData) =
     Directory.EnumerateDirectories(path)
     |> List.ofSeq
     |> List.fold (fun appData gameDir ->
-        let lines =
-            sprintf "%s/gameinfo" gameDir
-            |> File.ReadAllLines
-        match lines with
-        | lines when lines.Length > 3 ->
-            let game = { id = GameId ((int)lines.[4]); name = lines.[0]; path = GamePath gameDir; version = Version lines.[1]; updateable = true }
-            let installed = game::appData.installedGames
-            { appData with installedGames = installed }
-        | lines ->
-            let idData =
-                Path.GetFileName gameDir
-                |> getGameId appData
-            match idData with
-            | (None, appData) ->
-                appData
-            | (Some id, appData) ->
-                let game = { id = id; name = lines.[0]; path = GamePath gameDir; version = Version lines.[1]; updateable = false }
-                let installed = game::appData.installedGames
-                { appData with installedGames = installed }
+        // Ignore folders starting with '!'
+        match gameDir with
+        | dir when dir |> Path.GetFileName |> String.startsWith "!" ->
+            appData
+        | gameDir ->
+            let fnc =
+                match os with
+                | Linux ->
+                    Some getInstalledOnLinux
+                | Windows ->
+                    Some getInstalledOnWindows
+                | MacOS ->
+                    None // TODO: implement
+                | Unknown ->
+                    None
+            match fnc with
+            | Some fnc -> fnc appData gameDir
+            | None -> appData
     ) appData
     |> fluent (saveAppData)

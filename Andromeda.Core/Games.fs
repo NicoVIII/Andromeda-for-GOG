@@ -20,7 +20,6 @@ let getOwnedGameIds auth =
         | Some { owned = owned } -> owned
         | None -> []
     )
-    |> exeFst (List.map GameId)
 
 let startFileDownload url gameName version =
     let dir = Path.Combine(cachePath, "installers")
@@ -90,8 +89,8 @@ let extractLibrary (gamename: string) filepath =
     | Linux ->
         Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
 
-        let folderName = generateRandomString 20
-        let tmp = Path.Combine(Path.GetTempPath(), folderName)
+        let tmp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", ".tmp", gamename)
+        Directory.CreateDirectory(tmp) |> ignore
         try
             // Unzip linux installer with ZipLibrary
             let fastZip = new FastZip()
@@ -131,8 +130,7 @@ let getAvailableGamesForSearch (appData :AppData) name =
     (products, { appData with authentication = auth })
 
 let getAvailableInstallersForOs (appData :AppData) gameId =
-    let (GameId id) = gameId
-    askForProductInfo appData.authentication { ProductInfoRequest.id = id }
+    askForProductInfo appData.authentication { ProductInfoRequest.id = gameId }
     |> function
         | (None, auth) ->
             ([], { appData with authentication = auth })

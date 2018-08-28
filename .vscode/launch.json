@@ -5,10 +5,38 @@
    "version": "0.2.0",
    "configurations": [
         {
+            "name": "AvaloniaApp",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildAvaloniaApp",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Andromeda.AvaloniaApp",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
+            "name": "AvaloniaApp (F#)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "buildAvaloniaAppFSharp",
+            // If you have changed target frameworks, make sure to update the program path.
+            "program": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.FSharp.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp",
+            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "internalConsoleOptions": "openOnSessionStart"
+        },
+        {
             "name": "ConsoleApp",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "buildConsoleApp",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Andromeda.ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll",
             "args": [],
@@ -18,5 +46,5 @@
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
         }
-    ,]
+    ]
 }

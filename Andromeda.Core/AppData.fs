@@ -7,22 +7,28 @@ open System.IO
 
 open Andromeda.Core.FSharp.Helpers
 
-type GameId = GameId of int
-type Version = Version of string
+module InstalledGame =
+    type T = {
+        id: int;
+        name: string;
+        path: string;
+        version: string;
+        updateable: bool;
+        icon: string option;
+    }
 
-type GamePath = GamePath of string
+    let create id name path version =
+        { T.id = id; name = name; path = path; version = version; updateable = false; icon = None }
 
-type InstalledGame = {
-    id: GameId;
-    name: string;
-    path: GamePath;
-    version: Version;
-    updateable: bool;
-}
+    let setUpdateable value game =
+        { game with updateable = value}
+
+    let setIcon iconpath game =
+        { game with icon = iconpath }
 
 type AppData = {
     authentication: Authentication;
-    installedGames: InstalledGame list;
+    installedGames: InstalledGame.T list;
 }
 
 let createBasicAppData () = { authentication = NoAuth; installedGames = [] }
@@ -49,14 +55,18 @@ let saveAppData appData =
 
     // Installed games
     let gamesArray = new MutableArrayObject ()
-    List.fold (fun _ info ->
-        let { id = GameId id; name = name; path = GamePath path; version = Version version; updateable = updateable } = info
+    List.fold (fun _ (info: InstalledGame.T) ->
         let dict = new MutableDictionaryObject ()
-        dict.SetInt ("id", id) |> ignore
-        dict.SetString ("name", name) |> ignore
-        dict.SetString ("path", path) |> ignore
-        dict.SetString ("version", version) |> ignore
-        dict.SetBoolean ("updateable", updateable) |> ignore
+        dict.SetInt ("id", info.id) |> ignore
+        dict.SetString ("name", info.name) |> ignore
+        dict.SetString ("path", info.path) |> ignore
+        dict.SetString ("version", info.version) |> ignore
+        dict.SetBoolean ("updateable", info.updateable) |> ignore
+        let icon =
+            match info.icon with
+            | Some icon -> icon
+            | None -> ""
+        dict.SetString ("icon", icon) |> ignore
         gamesArray.AddDictionary dict |> ignore
     ) () appData.installedGames
     doc.SetArray ("installed", gamesArray) |> ignore
@@ -76,11 +86,14 @@ let loadAppData () =
             // Authentication
             let auth =
                 let dict = doc.GetDictionary "authentication"
-                Auth {
-                    accessToken = dict.GetString "accesscode";
-                    refreshToken = dict.GetString "refreshcode";
-                    refreshed = false;
-                }
+                match dict with
+                | null -> NoAuth
+                | dict ->
+                    Auth {
+                        accessToken = dict.GetString "accesscode";
+                        refreshToken = dict.GetString "refreshcode";
+                        refreshed = false;
+                    }
 
             // Installed games
             let installed =
@@ -89,13 +102,13 @@ let loadAppData () =
                     array.GetDictionary index
                 )
                 |> List.map (fun dict ->
-                    {
-                        id = dict.GetInt "id" |> GameId;
-                        name = dict.GetString "name";
-                        path = dict.GetString "path" |> GamePath;
-                        version = dict.GetString "version" |> Version;
-                        updateable = dict.GetBoolean "updateable";
-                    }
+                    InstalledGame.create (dict.GetInt "id") (dict.GetString "name") (dict.GetString "path") (dict.GetString "version")
+                    |> InstalledGame.setUpdateable (dict.GetBoolean "updateable")
+                    |> InstalledGame.setIcon (
+                        match dict.GetString "icon" with
+                        | "" -> None
+                        | icon -> Some icon
+                    )
                 )
             { authentication = auth; installedGames = installed }
     db.Close ()

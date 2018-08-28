@@ -8,9 +8,12 @@ let exeFst fnc (a, b) = (fnc a, b)
 
 let exeSnd fnc (a, b) = (a, fnc b)
 
-let fluent fnc a =
-    fnc a |> ignore
-    a
+/// <summary>Execute function and return input instead of output.</summary>
+/// <param name="fnc">Function to execute</param>
+/// <param name="input">Input to function and output of helper</param>
+let fluent fnc input =
+    fnc input |> ignore
+    input
 
 let convertFromArrayObject fnc array  =
     let rec helper lst index fnc (array: ArrayObject)  =

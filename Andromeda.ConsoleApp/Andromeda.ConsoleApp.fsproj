@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -10,7 +10,14 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../Andromeda.Core/Andromeda.Core.fsproj" />
+    <ProjectReference Include="../Andromeda.Core/Andromeda.Core.fsproj">
+      <Name>Andromeda.Core.fsproj</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Couchbase.Lite.Support.NetDesktop" Version="2.1.1" />
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
+    <DotNetCliToolReference Include="dotnet-fake" Version="5.9.3" />
   </ItemGroup>
   <Target Name="Build">
     <Exec IgnoreStandardErrorWarningFormat="true" Command="dotnet fake build" WorkingDirectory="$(RepoRootDir)" />
@@ -19,5 +26,4 @@
   </Target>
   <Target Name="Test">
   </Target>
-  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

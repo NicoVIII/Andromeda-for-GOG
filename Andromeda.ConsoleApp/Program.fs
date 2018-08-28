@@ -90,7 +90,7 @@ let rec mainloop start appData =
                             |> List.iteri (fun index game -> printfn "%i: %s" index game.title)
                             let index = sscanf "%i" (Console.ReadLine ())
                             games.[index]
-                    let (installers, appData) = getAvailableInstallersForOs appData (GameId game.id)
+                    let (installers, appData) = getAvailableInstallersForOs appData game.id
                     match installers with
                     | [] ->
                         printfn "No installer for your os found. Sorry!"
@@ -137,7 +137,7 @@ let rec mainloop start appData =
         | ("list-installed", None) ->
             appData.installedGames
             |> List.iter (fun game ->
-                let (Version version) = game.version
+                let version = game.version
                 let updates =
                     match game.updateable with
                     | true -> ""
@@ -150,8 +150,8 @@ let rec mainloop start appData =
             match updates with
             | updates when updates.Length > 0 ->
                 List.iter (fun update ->
-                    let (Version oldVersion) = update.game.version
-                    let (Version newVersion) = update.newVersion
+                    let oldVersion = update.game.version
+                    let newVersion = update.newVersion
                     printfn "There is another version of '%s' available: %s -> %s" update.game.name oldVersion newVersion
                 ) updates
             | _ ->
@@ -172,8 +172,8 @@ let rec mainloop start appData =
                     let update = List.tryFind (fun update -> update.game.id = game.id) updates
                     match update with
                     | Some update when update.newVersion <> game.version ->
-                        let (Version newVersion) = update.newVersion;
-                        let (Version version) = game.version;
+                        let newVersion = update.newVersion;
+                        let version = game.version;
                         printfn "Update %s from %s to %s" game.name version newVersion
                         let (installerInfo, appData) = getAvailableInstallersForOs appData game.id
                         match installerInfo with

@@ -1,9 +1,15 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netcoreapp2.1</TargetFrameworks>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="FSharp.Core" Version="4.5.2" />
+    <PackageReference Include="Couchbase.Lite" Version="2.1.1" />
+    <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
+    <PackageReference Include="SharpZipLib" Version="1.0.0" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../GogApi.DotNet/GogApi.DotNet.fsproj" />
   </ItemGroup>
@@ -16,5 +22,4 @@
     <Compile Include="Installed.fs" />
     <Compile Include="User.fs" />
   </ItemGroup>
-  <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

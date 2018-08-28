@@ -1,0 +1,5 @@
+<Window xmlns="https://github.com/avaloniaui" MinWidth="600" MinHeight="400"
+        Title="Andromeda"
+        xmlns:cef="clr-namespace:CefGlue.Avalonia;assembly=CefGlue.Avalonia">
+  <cef:AvaloniaCefBrowser StartUrl="http://www.google.com" Name="browserCtrl" />
+</Window>

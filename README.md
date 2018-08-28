@@ -23,6 +23,9 @@ Execute `start.sh` or `start.cmd` (untested) to run the program. You can type `h
 [![pipeline status](https://gitlab.com/NicoVIII/Andromeda-for-GOG/badges/develop/pipeline.svg)](https://gitlab.com/NicoVIII/Andromeda-for-GOG/commits/develop)
 [![CodeFactor](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/badge/develop)](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/overview/develop)
 
+### Setup (VSCode)
+TBD
+
 ### Building
 (The build scripts are just for linux. You have to build this on other platforms manually)
 To build this project, you can run build.sh. This will restore the whole solution (`dotnet restore`) and build the consoleapp using fake (`cd Andromeda.ConsoleApp && dotnet fake build`).

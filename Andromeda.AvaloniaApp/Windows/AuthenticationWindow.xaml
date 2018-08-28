@@ -1,0 +1,16 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Name="AuthenticationWindow"
+        Title="Authenticate"
+        Height="260" Width="700">
+  <StackPanel Orientation="Vertical" Spacing="5">
+    <TextBlock>Please go to</TextBlock>
+    <TextBox Background="Transparent" BorderThickness="0" IsReadOnly="True" TextWrapping="Wrap">
+      https://auth.gog.com/auth?client_id=46899977096215655&amp;redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&amp;response_type=code&amp;layout=client2
+    </TextBox>
+    <TextBlock>and log in.</TextBlock>
+    <TextBlock>Enter Code from url (..code=[code]) here:"</TextBlock>
+    <TextBox Text="{Binding Code}"/>
+    <Button Command="{Binding AuthenticateCommand}" CommandParameter="{Binding ElementName=AuthenticationWindow}">Authenticate</Button>
+  </StackPanel>
+</Window>
