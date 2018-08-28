@@ -1,7 +1,9 @@
 module Andromeda.Core.FSharp.Games
 
-open HttpFs.Client
 open ICSharpCode.SharpZipLib.Zip
+open GogApi.DotNet.FSharp.GamesMovies
+open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp.GalaxyApi
 open Mono.Unix.Native
 open System
 open System.Diagnostics
@@ -9,12 +11,10 @@ open System.IO
 open System.Net
 
 open Andromeda.Core.FSharp.AppData
-open Andromeda.Core.FSharp.Basics
 open Andromeda.Core.FSharp.Helpers
-open Andromeda.Core.FSharp.Responses
 
-let getOwnedGameIds (appData :AppData) =
-    makeRequest<OwnedGamesResponse> Get appData [] "https://embed.gog.com/user/data/games"
+let getOwnedGameIds auth =
+    askForOwnedGameIds auth
     |> exeFst (function
         | Some { owned = owned } -> owned
         | None -> []
@@ -108,23 +108,22 @@ let extractLibrary (gamename: string) filepath =
         failwith "Something strange happend! Couldn't recognise your os :O"
 
 let getAvailableGamesForSearch (appData :AppData) name =
-    let (response, appData) = makeRequest<FilteredProductsResponse> Get appData [ createQuery "mediaType" "1"; createQuery "search" name ] "https://embed.gog.com/account/getFilteredProducts"
+    let (response, auth) = askForFilteredProducts appData.authentication { search = name }
     let products =
         match response with
         | None ->
             None
         | Some response ->
             Some response.products
-    (products, appData)
+    (products, { appData with authentication = auth })
 
 let getAvailableInstallersForOs (appData :AppData) gameId =
     let (GameId id) = gameId
-    sprintf "https://api.gog.com/products/%i" id
-    |> makeRequest<ProductsResponse> Get appData [ createQuery "expand" "downloads" ]
+    askForProductInfo appData.authentication { ProductInfoRequest.id = id }
     |> function
-        | (None, appData) ->
-            ([], appData)
-        | (Some response, appData) ->
+        | (None, auth) ->
+            ([], { appData with authentication = auth })
+        | (Some response, auth) ->
             let installers = response.downloads.installers
             let installers' =
                 installers
@@ -138,14 +137,13 @@ let getAvailableInstallersForOs (appData :AppData) gameId =
                         List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
                     | Unknown ->
                         []
-            (installers', appData)
+            (installers', { appData with authentication = auth })
 
 let downloadGame (appData :AppData) installer =
     installer.files
     |> function
         | (info::_) ->
-            let url = info.downlink
-            let secUrl = makeBasicJsonRequest<SecureUrlResponse> Get appData.authentication [] url
+            let (secUrl, auth) = askForSecureDownlink appData.authentication { downlink = info.downlink }
             let (task, filepath) = startFileDownload secUrl.Value.downlink
             Some (task, filepath, info.size)
         | [] ->

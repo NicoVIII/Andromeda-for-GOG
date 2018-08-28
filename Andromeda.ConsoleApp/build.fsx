@@ -15,7 +15,6 @@ open Fake.IO.Globbing.Operators //enables !! and globbing
 Target.create "Clean" (fun _ ->
     !! "bin/*"
     ++ "obj/*"
-    -- "bin/CouchbaseLite/*" // Exclude savedata from cleaning for now
     |> File.deleteAll
 )
 

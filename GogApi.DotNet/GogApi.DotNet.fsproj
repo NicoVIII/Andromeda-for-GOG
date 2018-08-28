@@ -2,18 +2,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="../GogApi.DotNet/GogApi.DotNet.fsproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="Helpers.fs" />
     <Compile Include="Base.fs" />
-    <Compile Include="AppData.fs" />
-    <Compile Include="Games.fs" />
-    <Compile Include="Installed.fs" />
+    <Compile Include="Authentication.fs" />
+    <Compile Include="Request.fs" />
+    <Compile Include="GamesMovies.fs" />
+    <Compile Include="Listing.fs" />
     <Compile Include="User.fs" />
+    <Compile Include="GalaxyApi.fs" />
   </ItemGroup>
   <Import Project="..\.paket\Paket.Restore.targets" />
 </Project>

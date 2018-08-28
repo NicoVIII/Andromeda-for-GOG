@@ -1,17 +1,15 @@
-﻿open Andromeda.Core.FSharp.AppData
-open Andromeda.Core.FSharp.Basics
-open Andromeda.Core.FSharp.Games
-open Andromeda.Core.FSharp.Installed
-open Andromeda.Core.FSharp.Responses
-open Andromeda.Core.FSharp.User
-open Andromeda.ConsoleApp
-
-open Couchbase.Lite
+﻿open Couchbase.Lite
 open Couchbase.Lite.Logging
+open GogApi.DotNet.FSharp.Base
+open GogApi.DotNet.FSharp.Authentication
 open System
 open System.IO
-open System.Timers
-open Andromeda.Core.FSharp
+
+open Andromeda.Core.FSharp.AppData
+open Andromeda.Core.FSharp.Games
+open Andromeda.Core.FSharp.Installed
+open Andromeda.Core.FSharp.User
+open Andromeda.ConsoleApp
 
 let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
@@ -19,7 +17,7 @@ let authenticate () =
 
     System.Console.ReadLine ()
     |> sscanf "%s"
-    |> Token.newToken
+    |> newToken
 
 let rec mainloop start appData =
     let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames }
@@ -44,7 +42,7 @@ let rec mainloop start appData =
         | true -> saveAppData appData
         | false -> ()
 
-        getUserData appData
+        getUserData appData.authentication
         |> fst
         |> function
             | Some r ->
@@ -88,7 +86,8 @@ let rec mainloop start appData =
                             game
                         | games ->
                             printfn "Please choose a game:"
-                            List.iteri (fun index (game :ProductInfo) -> printfn "%i: %s" index game.title) games
+                            games
+                            |> List.iteri (fun index game -> printfn "%i: %s" index game.title)
                             let index = sscanf "%i" (Console.ReadLine ())
                             games.[index]
                     let (installers, appData) = getAvailableInstallersForOs appData (GameId game.id)
