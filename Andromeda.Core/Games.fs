@@ -90,11 +90,17 @@ let extractLibrary (gamename: string) filepath =
     | Linux ->
         Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
 
-        // Unzip linux installer
         let folderName = generateRandomString 20
         let tmp = Path.Combine(Path.GetTempPath(), folderName)
-        let fastZip = new FastZip()
-        fastZip.ExtractZip (filepath, tmp, null)
+        try
+            // Unzip linux installer with ZipLibrary
+            let fastZip = new FastZip()
+            fastZip.ExtractZip (filepath, tmp, null)
+        with
+        | :? ZipException ->
+            let p = Process.Start("unzip", "-qq \"" + filepath + "\" -d \""+tmp+"\"");
+            p.WaitForExit()
+
 
         // Move files to install folder
         let folderPath = Path.Combine(tmp,"data","noarch")
