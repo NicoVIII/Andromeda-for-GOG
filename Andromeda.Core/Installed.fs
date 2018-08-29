@@ -25,7 +25,7 @@ let checkAllForUpdates appData =
             (lst, appData)
         | Some update ->
             let os =
-                match getOS () with
+                match os with
                 | Linux -> Some "linux"
                 | Windows -> Some "windows"
                 | MacOS -> Some "mac"
@@ -70,7 +70,7 @@ let getGameId appData name =
 
 let searchInstalled (appData :AppData) =
     let path =
-        match getOS () with
+        match os with
         | Linux ->
             Environment.GetEnvironmentVariable "HOME"
             |> sprintf "%s/GOG Games"

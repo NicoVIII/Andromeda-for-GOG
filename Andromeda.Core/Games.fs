@@ -12,6 +12,7 @@ open System.Net
 
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Helpers
+open Andromeda.Core.FSharp.Path
 
 let getOwnedGameIds auth =
     askForOwnedGameIds auth
@@ -21,12 +22,18 @@ let getOwnedGameIds auth =
     )
     |> exeFst (List.map GameId)
 
-let startFileDownload url =
-    let filepath = Path.GetTempFileName ()
-    let url = String.replace "http://" "https://" url
-
-    use client = new WebClient()
-    (client.DownloadFileTaskAsync (url, filepath), filepath)
+let startFileDownload url gameName version =
+    let dir = Path.Combine(cachePath, "installers")
+    let filepath = Path.Combine(dir, sprintf "%s-%s.%s" gameName version installerEnding)
+    Directory.CreateDirectory(dir) |> ignore
+    let file = new FileInfo(filepath)
+    match not file.Exists with
+    | true ->
+        let url = String.replace "http://" "https://" url
+        use client = new WebClient()
+        (client.DownloadFileTaskAsync (url, filepath) |> Some, filepath)
+    | false ->
+        (None, filepath)
 
 let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs:bool) =
     let dir = new DirectoryInfo(sourceDirName)
@@ -79,9 +86,9 @@ let generateRandomString length =
 
 let extractLibrary (gamename: string) filepath =
     let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", gamename)
-    match getOS () with
+    match os with
     | Linux ->
-        Syscall.chmod (filepath, FilePermissions.S_IRWXU) |> ignore
+        Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
 
         // Unzip linux installer
         let folderName = generateRandomString 20
@@ -128,7 +135,7 @@ let getAvailableInstallersForOs (appData :AppData) gameId =
             let installers' =
                 installers
                 |> fun info ->
-                    match getOS () with
+                    match os with
                     | Linux ->
                         List.filter (fun (i :InstallerInfo) -> i.os = "linux") info
                     | Windows ->
@@ -139,12 +146,12 @@ let getAvailableInstallersForOs (appData :AppData) gameId =
                         []
             (installers', { appData with authentication = auth })
 
-let downloadGame (appData :AppData) installer =
+let downloadGame (appData :AppData) gameName installer =
     installer.files
     |> function
         | (info::_) ->
             let (secUrl, auth) = askForSecureDownlink appData.authentication { downlink = info.downlink }
-            let (task, filepath) = startFileDownload secUrl.Value.downlink
+            let (task, filepath) = startFileDownload secUrl.Value.downlink gameName installer.version
             Some (task, filepath, info.size)
         | [] ->
             None

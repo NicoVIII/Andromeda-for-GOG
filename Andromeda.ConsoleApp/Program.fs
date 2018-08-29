@@ -103,22 +103,26 @@ let rec mainloop start appData =
                                 printfn "Please choose an installer:"
                                 (* TODO: *)
                                 List.head installers
-                        let res = downloadGame appData installer
+                        let res = downloadGame appData game.title installer
                         match res with
                         | Some (task, filepath, size) ->
-                            printf "Download started..."
-                            let size = float(size) / 1000000.0
-                            use timer = new System.Timers.Timer(1000.0)
-                            timer.AutoReset <- true
-                            timer.Elapsed.Add (fun _ ->
-                                let fileInfo = new FileInfo(filepath)
-                                float(fileInfo.Length) / 1000000.0
-                                |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
-                            )
-                            timer.Start()
-                            task.Wait()
-                            timer.Stop()
-                            printfn "\rDownload completed!                                "
+                            match task with
+                            | Some task ->
+                                printf "Download started..."
+                                let size = float(size) / 1000000.0
+                                use timer = new System.Timers.Timer(1000.0)
+                                timer.AutoReset <- true
+                                timer.Elapsed.Add (fun _ ->
+                                    let fileInfo = new FileInfo(filepath)
+                                    float(fileInfo.Length) / 1000000.0
+                                    |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
+                                )
+                                timer.Start()
+                                task.Wait()
+                                timer.Stop()
+                                printfn "\rDownload completed!                                "
+                            | None ->
+                                printfn "Use installer file from cache"
                             printf "Installation started..."
                             extractLibrary game.title filepath
                             printfn "\rInstallation completed!    "
@@ -183,22 +187,26 @@ let rec mainloop start appData =
                                     printfn "Please choose an installer:"
                                     (* TODO: *)
                                     List.head lst
-                            let downloadTask = downloadGame appData installer
+                            let downloadTask = downloadGame appData game.name installer
                             match downloadTask with
                             | Some (task, filepath, size) ->
-                                printf "Download started..."
-                                let size = float(size) / 1000000.0
-                                use timer = new System.Timers.Timer(1000.0)
-                                timer.AutoReset <- true
-                                timer.Elapsed.Add (fun _ ->
-                                    let fileInfo = new FileInfo(filepath)
-                                    float(fileInfo.Length) / 1000000.0
-                                    |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
-                                )
-                                timer.Start()
-                                task.Wait()
-                                timer.Stop()
-                                printfn "\rDownload completed!                          "
+                                match task with
+                                | Some task ->
+                                    printf "Download started..."
+                                    let size = float(size) / 1000000.0
+                                    use timer = new System.Timers.Timer(1000.0)
+                                    timer.AutoReset <- true
+                                    timer.Elapsed.Add (fun _ ->
+                                        let fileInfo = new FileInfo(filepath)
+                                        float(fileInfo.Length) / 1000000.0
+                                        |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
+                                    )
+                                    timer.Start()
+                                    task.Wait()
+                                    timer.Stop()
+                                    printfn "\rDownload completed!                                "
+                                | None ->
+                                    printfn "Use installer file from cache"
                                 printf "Installation started..."
                                 extractLibrary game.name filepath
                                 printfn "\rInstallation completed!    "

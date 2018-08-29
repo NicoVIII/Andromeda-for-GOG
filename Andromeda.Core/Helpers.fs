@@ -23,7 +23,7 @@ let convertFromArrayObject fnc array  =
 
 type OS = Linux | MacOS | Windows | Unknown
 
-let getOS () =
+let os =
     let isOS = RuntimeInformation.IsOSPlatform
     if isOS OSPlatform.Linux then Linux
     elif isOS OSPlatform.Windows then Windows
