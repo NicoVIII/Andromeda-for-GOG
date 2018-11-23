@@ -16,8 +16,6 @@ let cachePath =
             failwith "Not supported yet :("
         | Windows ->
             failwith "Not supported yet :("
-        | Unknown ->
-            failwith "Something went wrong while determining on which system we are..."
     Directory.CreateDirectory(path) |> ignore
     path
 
@@ -31,6 +29,4 @@ let installerEnding =
         "dmg"
     | Windows ->
         "exe"
-    | Unknown ->
-        failwith "Something went wrong while determining on which system we are..."
 

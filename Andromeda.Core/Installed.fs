@@ -35,7 +35,6 @@ let checkAllForUpdates appData =
                 | Linux -> Some "linux"
                 | Windows -> Some "windows"
                 | MacOS -> Some "mac"
-                | Unknown -> None
             match os with
             | Some os ->
                 let installer =
@@ -140,8 +139,6 @@ let searchInstalled (appData :AppData) =
             "D:/Spiele"
         | MacOS ->
             "" // TODO:
-        | Unknown ->
-            failwith "Something went wrong while determining the system os!"
 
     let appData = { appData with installedGames = [] }
     Directory.EnumerateDirectories(path)
@@ -160,8 +157,6 @@ let searchInstalled (appData :AppData) =
                     Some getInstalledOnWindows
                 | MacOS ->
                     None // TODO: implement
-                | Unknown ->
-                    None
             match fnc with
             | Some fnc -> fnc appData gameDir
             | None -> appData

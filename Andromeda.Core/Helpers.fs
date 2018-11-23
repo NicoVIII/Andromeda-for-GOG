@@ -24,11 +24,11 @@ let convertFromArrayObject fnc array  =
             lst
     helper [] 0 fnc array
 
-type OS = Linux | MacOS | Windows | Unknown
+type OS = Linux | MacOS | Windows
 
 let os =
     let isOS = RuntimeInformation.IsOSPlatform
     if isOS OSPlatform.Linux then Linux
     elif isOS OSPlatform.Windows then Windows
     elif isOS OSPlatform.OSX then MacOS
-    else Unknown
+    else failwith "I couldn't determine your OS? :O"

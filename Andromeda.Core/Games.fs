@@ -116,8 +116,6 @@ let extractLibrary (gamename: string) filepath =
         p.WaitForExit() |> ignore
     | MacOS ->
         failwith "Not supported yet :/"
-    | Unknown ->
-        failwith "Something strange happend! Couldn't recognise your os :O"
 
 let getAvailableGamesForSearch (appData :AppData) name =
     let (response, auth) = askForFilteredProducts appData.authentication { search = name }
@@ -146,8 +144,6 @@ let getAvailableInstallersForOs (appData :AppData) gameId =
                         List.filter (fun (i :InstallerInfo) -> i.os = "windows") info
                     | MacOS ->
                         List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
-                    | Unknown ->
-                        []
             (installers', { appData with authentication = auth })
 
 let downloadGame (appData :AppData) gameName installer =

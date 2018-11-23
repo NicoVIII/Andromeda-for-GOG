@@ -18,6 +18,11 @@
               <Grid.Resources>
                 <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
               </Grid.Resources>
+              <Grid.ContextMenu>
+                <ContextMenu>
+                  <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
+                </ContextMenu>
+              </Grid.ContextMenu>
               <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
               <TextBlock Grid.Column="1" Text="{Binding name}"/>
             </Grid>
