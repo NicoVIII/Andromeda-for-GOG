@@ -27,11 +27,10 @@ Execute `start.sh` or `start.cmd` (untested) to run the program. You can type `h
 TBD
 
 ### Building
-(The build scripts are just for linux. You have to build this on other platforms manually)
-To build this project, you can run build.sh. This will restore the whole solution (`dotnet restore`) and build the consoleapp using fake (`cd Andromeda.ConsoleApp && dotnet fake build`).
-The script will automatically start the build, you can comment the line out to avoid this.
+To build the program use dotnet: `dotnet build`
 
-To start the program use dotnet and the build .dll: `dotnet ./bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll` or `dotnet ./Andromeda.ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll` depending on your location
+To start the program use dotnet and the build `.dll`:  
+`dotnet ./bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.dll` or `dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.dll` depending on your location
 
 ### Versioning
 I will try to stick to Semantic Versioning 2.0.0 (http://semver.org/spec/v2.0.0.html).

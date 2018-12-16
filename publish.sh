@@ -2,8 +2,8 @@
 echo "Start publishing by building:"
 dotnet restore
 (
-  cd Andromeda.ConsoleApp || exit
-  dotnet fake build --target publish
+  cd Andromeda.AvaloniaApp || exit
+  dotnet publish -c Release
 )
 
 rm -fr "deploy"
@@ -13,11 +13,12 @@ mkdir -p "deploy"
   cd "deploy" || exit
   # Move files to publish folder
   mkdir "publish"
-  mv "../Andromeda.ConsoleApp/bin/Release/netcoreapp2.1/publish" "publish/bin"
+  mv "../Andromeda.AvaloniaApp/bin/Release/netcoreapp2.1/publish" "publish/bin"
   cp "../build/start.cmd" "publish"
   cp "../build/start.sh" "publish"
   cp "../LICENSE" "publish"
   cp "../README.md" "publish"
+  cp "../CHANGELOG.md" "publish"
   (
     cd "publish" || exit
     echo "Put files into .zip .."
