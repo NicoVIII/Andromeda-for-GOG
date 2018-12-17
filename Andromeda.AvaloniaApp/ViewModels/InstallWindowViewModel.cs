@@ -18,7 +18,7 @@ using static GogApi.DotNet.FSharp.Listing;
 
 namespace Andromeda.AvaloniaApp.ViewModels
 {
-    public class InstallWindowViewModel : ViewModelBase
+    public class InstallWindowViewModel : SubViewModelBase
     {
         private string gameSearchTerm = "";
 
@@ -38,7 +38,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
 
         public ReactiveCommand<Unit, Unit> SearchGameCommand { get; }
 
-        public InstallWindowViewModel(AppDataWrapper appDataWrapper) : base(appDataWrapper)
+        public InstallWindowViewModel(ViewModelBase parent) : base(parent)
         {
             SearchGameCommand = ReactiveCommand.Create(SearchGame);
         }
@@ -61,30 +61,10 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     {
                         var installerInfo = list2.First();
 
-                        var downloadWindow = new DownloadWindow();
-                        var downloadViewModel = new DownloadWindowViewModel(installerInfo, game.title, this.AppDataWrapper);
-                        downloadWindow.DataContext = downloadViewModel;
-                        if (downloadViewModel.DownloadTask != null)
-                        {
-                            downloadWindow.Show();
-                        }
-                        Task.Factory.StartNew(() =>
-                        {
-                            if (downloadViewModel.DownloadTask != null)
-                            {
-                                downloadViewModel.DownloadTask.Wait();
-                            }
-
-                            if (downloadViewModel.FilePath != null) {
-                                Console.WriteLine("Unpack " + game.title + " from " + downloadViewModel.FilePath);
-                                extractLibrary(game.title, downloadViewModel.FilePath);
-                                Console.WriteLine(game.title + " unpacked successfully!");
-                            } else {
-                                Console.WriteLine("Filepath to installer is empty! Something went wrong...");
-                            }
-                            this.AppData = searchInstalled(this.AppData);
-                        });
+                        ((MainWindowViewModel) this.Parent).AddDownload(new InstallationInfos(game.title, installerInfo));
                     }
+                } else {
+                    Console.WriteLine("Found no matching game for search term!");
                 }
             }
         }

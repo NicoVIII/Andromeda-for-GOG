@@ -12,8 +12,8 @@ namespace Andromeda.AvaloniaApp.ViewModels
 {
     public class ViewModelBase : ReactiveObject
     {
-        protected AppDataWrapper AppDataWrapper { get; private set; }
-        protected AppData AppData
+        public AppDataWrapper AppDataWrapper { get; private set; }
+        protected virtual AppData AppData
         {
             get
             {
@@ -23,6 +23,10 @@ namespace Andromeda.AvaloniaApp.ViewModels
             {
                 this.AppDataWrapper.AppData = value;
             }
+        }
+
+        protected ViewModelBase Parent {
+            set; get;
         }
 
         public ViewModelBase(AppDataWrapper appDataWrapper = null)

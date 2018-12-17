@@ -30,7 +30,16 @@
         </ItemsControl.DataTemplates>
       </ItemsControl>
       <TextBlock Grid.Row="2" IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
-      <TextBlock Grid.Row="3">Downloads</TextBlock>
+      <ItemsControl Grid.Row="3" Items="{Binding Downloads}">
+        <ItemsControl.DataTemplates>
+          <DataTemplate>
+            <Grid ColumnDefinitions="Auto" Margin="0, 5">
+              <TextBlock Grid.Column="1" Text="{Binding GameTitle}"/>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.DataTemplates>
+      </ItemsControl>
+      <TextBlock Grid.Row="3" IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
     </Grid>
     <!-- Right page -->
     <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
