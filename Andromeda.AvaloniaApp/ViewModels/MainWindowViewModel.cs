@@ -7,6 +7,7 @@ using ReactiveUI;
 using ReactiveUI.Legacy;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -121,8 +122,8 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     Console.WriteLine("Use cached installer for " + info.GameTitle + ".");
                 }
 
-                var installTask = Task.Factory.StartNew(() =>
-                {
+                var worker = new BackgroundWorker();
+                worker.DoWork += (arg, arg2) => {
                     if (downloadTask != null)
                         downloadTask.Wait();
 
@@ -141,10 +142,13 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     {
                         Console.WriteLine("Filepath to installer is empty! Something went wrong...");
                     }
-                });
-                // TODO: come back to main thread and remove download info from Downloads after install thread finished
-                //this.AppData = searchInstalled(this.AppData);
-                //this.Downloads.Remove(downloadInfo);
+                };
+                worker.RunWorkerCompleted += (arg, arg2) => {
+                    this.AppData = searchInstalled(this.AppData);
+                    this.Downloads.Remove(downloadInfo);
+                    Console.WriteLine("Cleaned up after install.");
+                };
+                worker.RunWorkerAsync();
             }
         }
 
