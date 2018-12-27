@@ -30,18 +30,20 @@
         </ItemsControl.DataTemplates>
       </ItemsControl>
       <TextBlock Grid.Row="2" IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
-      <ItemsControl Grid.Row="3" Items="{Binding Downloads}">
-        <ItemsControl.DataTemplates>
-          <DataTemplate>
-            <Grid ColumnDefinitions="Auto" Margin="0, 5" RowDefinitions="Auto, Auto">
-              <TextBlock Grid.Row="0" Text="{Binding GameTitle}"/>
-              <ProgressBar Grid.Row="1" IsVisible="{Binding !Installing}" Maximum="{Binding FileSize}" Value="{Binding Downloaded}"/>
-              <TextBlock Grid.Row="1" IsVisible="{Binding Installing}" Text="Installing..."/>
-            </Grid>
-          </DataTemplate>
-        </ItemsControl.DataTemplates>
-      </ItemsControl>
-      <TextBlock Grid.Row="3" IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
+      <StackPanel Grid.Row="3" Orientation="Vertical" Margin="12, 12">
+        <ItemsControl Items="{Binding Downloads}">
+          <ItemsControl.DataTemplates>
+            <DataTemplate>
+              <Grid ColumnDefinitions="Auto" Margin="0, 5" RowDefinitions="Auto, Auto">
+                <TextBlock Grid.Row="0" Text="{Binding GameTitle}"/>
+                <ProgressBar Grid.Row="1" IsVisible="{Binding !Installing}" Maximum="{Binding FileSize}" Value="{Binding Downloaded}"/>
+                <TextBlock Grid.Row="1" IsVisible="{Binding Installing}" Text="Installing..."/>
+              </Grid>
+            </DataTemplate>
+          </ItemsControl.DataTemplates>
+        </ItemsControl>
+        <TextBlock IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
+      </StackPanel>
     </Grid>
     <!-- Right page -->
     <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
