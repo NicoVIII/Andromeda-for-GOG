@@ -82,7 +82,6 @@ namespace Andromeda.AvaloniaApp.ViewModels
             this.AppData = result.Item2;
 
             var list = result.Item1.ToList();
-            var count = list.Count();
             Logger.LogInfo("Found " + list.Count() + " games to update.");
             foreach (var updateInfo in list)
             {
