@@ -13,7 +13,7 @@ mkdir -p "deploy"
   cd "deploy" || exit
   # Move files to publish folder
   mkdir "publish"
-  mv "../Andromeda.AvaloniaApp/bin/Release/netcoreapp2.1/publish" "publish/bin"
+  mv "../Andromeda.AvaloniaApp/bin/Release/netcoreapp2.2/publish" "publish/bin"
   cp "../build/start.cmd" "publish"
   cp "../build/start.sh" "publish"
   cp "../LICENSE" "publish"

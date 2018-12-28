@@ -1,7 +1,7 @@
 # Changelog of Andromeda for GOG
 
-## v0.3.0
-- implement GUI and replace console UI
+## v0.3.0 (Alpha)
+- implement basic GUI and replace console UI
 
 ## v0.2.0
 - add automatic downloading and installing of games

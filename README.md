@@ -10,14 +10,26 @@ If you need something to play Multiplayer over Galaxy on linux, have a look at t
 https://gitlab.com/Yepoleb/comet
 
 ## Dependencies
-You need .NET Core 2.1 to run Andromeda. You can download it here:
+You need .NET Core 2.2 to run Andromeda. You can download it here:
 https://www.microsoft.com/net/download
 
 ## Installation
 Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases and unpack it anywhere you want.
 
 ## Usage
-Execute `start.sh` or `start.cmd` (untested) to run the program. You can type `help` to see, what you can do.
+Execute `start.sh` or `start.cmd` (untested) to run the program.
+
+For now I sadly did not find a way to make the browsery stuff work, so for now you have to live with some workarounds.
+
+### Install game
+Press the workaround "Install game" button. Type the name of the game or a part of it. Try to type something, which matches only the one game you want to install.  
+If it worked, you should see a status indicator of the download and installation.
+
+### Upgrade games
+To upgrade all of your installed games, press the "Upgrade games" button. If Andromeda finds updates, it will install them. There is for now no indication, if it does not find some.
+
+### Start game
+This does not work all the time, but you can try to right click the game in the left bar and click "Start" to start the game.
 
 ## Development
 [![pipeline status](https://gitlab.com/NicoVIII/Andromeda-for-GOG/badges/develop/pipeline.svg)](https://gitlab.com/NicoVIII/Andromeda-for-GOG/commits/develop)

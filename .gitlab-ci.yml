@@ -1,4 +1,4 @@
-image: arleyschrock/dotnetcore-mono
+image: microsoft/dotnet
 stages:
   - build
 before_script:
