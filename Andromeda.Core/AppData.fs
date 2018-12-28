@@ -34,10 +34,12 @@ type AppData = {
 let createBasicAppData () = { authentication = NoAuth; installedGames = [] }
 
 let dbConfig = new DatabaseConfiguration()
-dbConfig.Directory <- Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
+let savePath = Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
+Directory.CreateDirectory(savePath) |> ignore
+dbConfig.Directory <- savePath
 
 let saveAppData appData =
-    use db = new Database("andromeda")
+    use db = new Database("andromeda", dbConfig)
     use doc =
         match db.GetDocument "appdata" with
         | null -> new MutableDocument("appdata")
@@ -75,7 +77,7 @@ let saveAppData appData =
     db.Close ()
 
 let loadAppData () =
-    use db = new Database ("andromeda")
+    use db = new Database ("andromeda", dbConfig)
     use doc = db.GetDocument("appdata")
 
     let appData =
