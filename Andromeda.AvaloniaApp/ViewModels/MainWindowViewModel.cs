@@ -54,6 +54,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
         private Queue<InstallationInfos> downloadQueue;
 
         public ReactiveCommand<Unit, Unit> OpenInstallWindowCommand { get; }
+        public ReactiveCommand<Unit, Unit> UpgradeAllGamesCommand { get; }
         public ReactiveCommand<string, Unit> StartGameCommand { get; }
 
         public MainWindowViewModel() : base()
@@ -64,6 +65,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
 
             // Initialize commands
             OpenInstallWindowCommand = ReactiveCommand.Create(OpenInstallWindow);
+            UpgradeAllGamesCommand = ReactiveCommand.Create(UpgradeAllGames);
             StartGameCommand = ReactiveCommand.Create<string>(StartGame);
         }
 
@@ -72,6 +74,26 @@ namespace Andromeda.AvaloniaApp.ViewModels
             var installWindow = new InstallWindow();
             installWindow.DataContext = new InstallWindowViewModel(this);
             installWindow.ShowDialog();
+        }
+
+        private void UpgradeAllGames()
+        {
+            var result = Installed.checkAllForUpdates(this.AppData);
+            this.AppData = result.Item2;
+
+            var list = result.Item1.ToList();
+            foreach (var updateInfo in list)
+            {
+                var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
+                Debug.Assert(game != null);
+                if (updateInfo.newVersion != game.version) {
+                    var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
+                    this.AppData = result2.Item2;
+
+                    var installerInfo = result2.Item1.ToList().First();
+                    AddDownload(new InstallationInfos(game.name, installerInfo));
+                }
+            }
         }
 
         public void AddDownload(InstallationInfos info)
@@ -108,7 +130,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 {
                     Console.WriteLine("Download installer for " + info.GameTitle + ".");
                     downloadTask = res.Value.Item1.Value;
-                    timer = new Timer(1000.0);
+                    timer = new Timer(500.0);
                     timer.AutoReset = true;
                     timer.Elapsed += (a, b) =>
                     {
@@ -123,7 +145,8 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 }
 
                 var worker = new BackgroundWorker();
-                worker.DoWork += (arg, arg2) => {
+                worker.DoWork += (arg, arg2) =>
+                {
                     if (downloadTask != null)
                         downloadTask.Wait();
 
@@ -143,7 +166,8 @@ namespace Andromeda.AvaloniaApp.ViewModels
                         Console.WriteLine("Filepath to installer is empty! Something went wrong...");
                     }
                 };
-                worker.RunWorkerCompleted += (arg, arg2) => {
+                worker.RunWorkerCompleted += (arg, arg2) =>
+                {
                     this.AppData = searchInstalled(this.AppData);
                     this.Downloads.Remove(downloadInfo);
                     Console.WriteLine("Cleaned up after install.");

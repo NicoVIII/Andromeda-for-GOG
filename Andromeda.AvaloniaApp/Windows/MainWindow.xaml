@@ -50,7 +50,7 @@
       <TextBlock Grid.Row="0">Aktionsleiste</TextBlock>
       <StackPanel Grid.Row="1" Margin="10" Orientation="Horizontal" Spacing="5">
         <Button Command="{Binding OpenInstallWindowCommand}">Install game</Button>
-        <!--<Button Command="{Binding OpenInstallWindowCommand}">Upgrade games</Button>-->
+        <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
       </StackPanel>
       <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
     </Grid>
