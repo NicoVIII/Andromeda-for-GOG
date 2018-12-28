@@ -7,9 +7,9 @@ namespace Andromeda.AvaloniaApp.Helpers
         public enum LogLevel { Info = 0, Warning, Error }
 
 #if DEBUG
-        public static LogLevel logLevel = LogLevel.Info;
+        private static readonly LogLevel logLevel = LogLevel.Info;
 #else
-        public static LogLevel logLevel = LogLevel.Warning;
+        private static readonly LogLevel logLevel = LogLevel.Warning;
 #endif
 
         public static void Log(LogLevel level, string message)

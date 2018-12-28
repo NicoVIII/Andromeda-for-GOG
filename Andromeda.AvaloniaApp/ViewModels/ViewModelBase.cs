@@ -25,11 +25,13 @@ namespace Andromeda.AvaloniaApp.ViewModels
             }
         }
 
-        protected ViewModelBase Parent {
+        protected ViewModelBase Parent
+        {
             set; get;
         }
 
-        public ViewModelBase(AppDataWrapper appDataWrapper = null)
+        public ViewModelBase() : this(null) { }
+        public ViewModelBase(AppDataWrapper appDataWrapper)
         {
             if (appDataWrapper != null)
             {

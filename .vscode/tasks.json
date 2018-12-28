@@ -40,6 +40,6 @@
             "options": {
                 "cwd": "./Andromeda.ConsoleApp"
             }
-        },
+        }
     ]
 }

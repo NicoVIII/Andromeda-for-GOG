@@ -51,13 +51,13 @@ namespace Andromeda.AvaloniaApp.ViewModels
             private set { this.RaiseAndSetIfChanged(ref this.downloads, value); }
         }
 
-        private Queue<InstallationInfos> downloadQueue;
+        private readonly Queue<InstallationInfos> downloadQueue;
 
         public ReactiveCommand<Unit, Unit> OpenInstallWindowCommand { get; }
         public ReactiveCommand<Unit, Unit> UpgradeAllGamesCommand { get; }
         public ReactiveCommand<string, Unit> StartGameCommand { get; }
 
-        public MainWindowViewModel() : base()
+        public MainWindowViewModel()
         {
             this.InstalledGames = new ReactiveList<AppData.InstalledGame.T>(this.AppData.installedGames.ToList());
             this.Downloads = new ReactiveList<DownloadStatus>();
@@ -149,11 +149,13 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 var worker = new BackgroundWorker();
                 worker.DoWork += (arg, arg2) =>
                 {
-                    if (downloadTask != null)
+                    if (downloadTask != null) {
                         downloadTask.Wait();
+                    }
 
-                    if (timer != null)
+                    if (timer != null) {
                         timer.Stop();
+                    }
 
                     // Install game
                     downloadInfo.IndicateInstalling();
@@ -178,7 +180,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
             }
         }
 
-        private void StartGame(string path)
+        private static void StartGame(string path)
         {
             if (Core.FSharp.Helpers.os.IsLinux)
             {

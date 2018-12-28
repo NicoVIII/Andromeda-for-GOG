@@ -10,7 +10,7 @@ using Andromeda.AvaloniaApp.Windows;
 
 namespace Andromeda.AvaloniaApp
 {
-    class Program
+    static class Program
     {
         static void Main(string[] args)
         {
