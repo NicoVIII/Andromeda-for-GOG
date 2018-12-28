@@ -82,11 +82,14 @@ namespace Andromeda.AvaloniaApp.ViewModels
             this.AppData = result.Item2;
 
             var list = result.Item1.ToList();
+            var count = list.Count();
+            Logger.LogInfo("Found " + list.Count() + " games to update.");
             foreach (var updateInfo in list)
             {
                 var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
                 Debug.Assert(game != null);
-                if (updateInfo.newVersion != game.version) {
+                if (updateInfo.newVersion != game.version)
+                { // Just to be sure
                     var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
                     this.AppData = result2.Item2;
 
@@ -99,7 +102,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
         public void AddDownload(InstallationInfos info)
         {
             this.downloadQueue.Enqueue(info);
-            Console.WriteLine("Added download of " + info.GameTitle + " to download queue.");
+            Logger.LogInfo("Added download of " + info.GameTitle + " to download queue.");
 
             this.CheckForNewDownload();
         }
@@ -115,7 +118,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
 
         private void StartDownload(InstallationInfos info)
         {
-            Console.WriteLine("Get download info for " + info.GameTitle + " to download queue.");
+            Logger.LogInfo("Get download info for " + info.GameTitle + " to download queue.");
             var res = Games.downloadGame(this.AppData, info.GameTitle, info.InstallerInfo);
             if (res != null)
             {
@@ -128,7 +131,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 // File not found in cache
                 if (res.Value.Item1 != null)
                 {
-                    Console.WriteLine("Download installer for " + info.GameTitle + ".");
+                    Logger.LogInfo("Download installer for " + info.GameTitle + ".");
                     downloadTask = res.Value.Item1.Value;
                     timer = new Timer(500.0);
                     timer.AutoReset = true;
@@ -141,7 +144,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 }
                 else
                 {
-                    Console.WriteLine("Use cached installer for " + info.GameTitle + ".");
+                    Logger.LogInfo("Use cached installer for " + info.GameTitle + ".");
                 }
 
                 var worker = new BackgroundWorker();
@@ -157,20 +160,20 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     downloadInfo.IndicateInstalling();
                     if (downloadInfo.FilePath != null)
                     {
-                        Console.WriteLine("Unpack " + downloadInfo.GameTitle + " from " + downloadInfo.FilePath);
+                        Logger.LogInfo("Unpack " + downloadInfo.GameTitle + " from " + downloadInfo.FilePath);
                         extractLibrary(downloadInfo.GameTitle, downloadInfo.FilePath);
-                        Console.WriteLine(downloadInfo.GameTitle + " unpacked successfully!");
+                        Logger.LogInfo(downloadInfo.GameTitle + " unpacked successfully!");
                     }
                     else
                     {
-                        Console.WriteLine("Filepath to installer is empty! Something went wrong...");
+                        Logger.LogError("Filepath to installer is empty! Something went wrong...");
                     }
                 };
                 worker.RunWorkerCompleted += (arg, arg2) =>
                 {
                     this.AppData = searchInstalled(this.AppData);
                     this.Downloads.Remove(downloadInfo);
-                    Console.WriteLine("Cleaned up after install.");
+                    Logger.LogInfo("Cleaned up after install.");
                 };
                 worker.RunWorkerAsync();
             }
