@@ -18,6 +18,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
 
         public SubViewModelBase(ViewModelBase parent) : base(parent.AppDataWrapper)
         {
+            parent.children.Add(this);
             this.Parent = parent;
         }
     }

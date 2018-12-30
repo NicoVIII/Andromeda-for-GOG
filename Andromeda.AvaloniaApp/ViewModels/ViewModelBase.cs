@@ -1,8 +1,11 @@
 using Andromeda.AvaloniaApp.Helpers;
+using Andromeda.AvaloniaApp.ViewModels.Windows;
 using Andromeda.AvaloniaApp.Windows;
+
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 using static Andromeda.Core.FSharp.AppData;
@@ -25,10 +28,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
             }
         }
 
-        protected ViewModelBase Parent
-        {
-            set; get;
-        }
+        public readonly IList<SubViewModelBase> children = new List<SubViewModelBase>();
 
         public ViewModelBase() : this(null) { }
         public ViewModelBase(AppDataWrapper appDataWrapper)
@@ -50,6 +50,14 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     window.ShowDialog();
                 }
             }
+        }
+
+        public IList<T> GetChildrenOfType<T>()
+        {
+            return this.children
+                .Where(child => typeof(T).IsInstanceOfType(child))
+                .Cast<T>()
+                .ToList();
         }
     }
 }

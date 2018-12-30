@@ -1,8 +1,4 @@
-using Andromeda.AvaloniaApp.Helpers;
-using Andromeda.AvaloniaApp.Windows;
-
 using Andromeda.Core.FSharp;
-using Mono.Unix.Native;
 using ReactiveUI;
 using ReactiveUI.Legacy;
 using System;
@@ -15,68 +11,22 @@ using System.Reactive;
 using System.Threading.Tasks;
 using System.Timers;
 
-using static Andromeda.Core.FSharp.Games;
-using static Andromeda.Core.FSharp.Installed;
+using Andromeda.AvaloniaApp.Helpers;
 
-namespace Andromeda.AvaloniaApp.ViewModels
+namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 {
-    public class MainWindowViewModel : ViewModelBase
+    public class DownloadWidgetViewModel : SubViewModelBase
     {
-        // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
-        protected override AppData.AppData AppData
+        private readonly Queue<InstallationInfos> downloadQueue = new Queue<InstallationInfos>();
+
+        public readonly IReactiveList<DownloadStatus> Downloads = new ReactiveList<DownloadStatus>();
+
+
+        public DownloadWidgetViewModel(ViewModelBase parent) : base(parent)
         {
-            set
-            {
-                base.AppData = value;
-                if (this.InstalledGames != null)
-                {
-                    this.InstalledGames.Clear();
-                    this.InstalledGames.AddRange(value.installedGames.ToList());
-                }
-            }
         }
 
-        private IReactiveList<AppData.InstalledGame.T> installedGames;
-
-        public IReactiveList<AppData.InstalledGame.T> InstalledGames
-        {
-            get => this.installedGames;
-            private set { this.RaiseAndSetIfChanged(ref this.installedGames, value); }
-        }
-
-        private IReactiveList<DownloadStatus> downloads;
-        public IReactiveList<DownloadStatus> Downloads
-        {
-            get => this.downloads;
-            private set { this.RaiseAndSetIfChanged(ref this.downloads, value); }
-        }
-
-        private readonly Queue<InstallationInfos> downloadQueue;
-
-        public ReactiveCommand<Unit, Unit> OpenInstallWindowCommand { get; }
-        public ReactiveCommand<Unit, Unit> UpgradeAllGamesCommand { get; }
-        public ReactiveCommand<string, Unit> StartGameCommand { get; }
-
-        public MainWindowViewModel()
-        {
-            this.InstalledGames = new ReactiveList<AppData.InstalledGame.T>(this.AppData.installedGames.ToList());
-            this.Downloads = new ReactiveList<DownloadStatus>();
-            this.downloadQueue = new Queue<InstallationInfos>();
-
-            // Initialize commands
-            OpenInstallWindowCommand = ReactiveCommand.Create(OpenInstallWindow);
-            UpgradeAllGamesCommand = ReactiveCommand.Create(UpgradeAllGames);
-            StartGameCommand = ReactiveCommand.Create<string>(StartGame);
-        }
-
-        private void OpenInstallWindow()
-        {
-            var installWindow = new InstallWindow();
-            installWindow.DataContext = new InstallWindowViewModel(this);
-            installWindow.ShowDialog();
-        }
-
-        private void UpgradeAllGames()
+        public void UpgradeAllGames()
         {
             var result = Installed.checkAllForUpdates(this.AppData);
             this.AppData = result.Item2;
@@ -162,7 +112,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     if (downloadInfo.FilePath != null)
                     {
                         Logger.LogInfo("Unpack " + downloadInfo.GameTitle + " from " + downloadInfo.FilePath);
-                        extractLibrary(downloadInfo.GameTitle, downloadInfo.FilePath);
+                        Games.extractLibrary(downloadInfo.GameTitle, downloadInfo.FilePath);
                         Logger.LogInfo(downloadInfo.GameTitle + " unpacked successfully!");
                     }
                     else
@@ -172,29 +122,11 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 };
                 worker.RunWorkerCompleted += (arg, arg2) =>
                 {
-                    this.AppData = searchInstalled(this.AppData);
+                    this.AppData = Installed.searchInstalled(this.AppData);
                     this.Downloads.Remove(downloadInfo);
                     Logger.LogInfo("Cleaned up after install.");
                 };
                 worker.RunWorkerAsync();
-            }
-        }
-
-        private static void StartGame(string path)
-        {
-            if (Core.FSharp.Helpers.os.IsLinux)
-            {
-                var filepath = System.IO.Path.Combine(path, "start.sh");
-                Syscall.chmod(filepath, FilePermissions.ALLPERMS);
-                Process.Start(filepath);
-            }
-            else if (Core.FSharp.Helpers.os.IsWindows)
-            {
-                // TBD:
-            }
-            else if (Core.FSharp.Helpers.os.IsMacOS)
-            {
-                // TBD:
             }
         }
     }

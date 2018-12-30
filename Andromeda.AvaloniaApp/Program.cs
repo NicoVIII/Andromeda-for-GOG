@@ -5,7 +5,7 @@ using Couchbase.Lite;
 using Couchbase.Lite.Logging;
 using System;
 
-using Andromeda.AvaloniaApp.ViewModels;
+using Andromeda.AvaloniaApp.ViewModels.Windows;
 using Andromeda.AvaloniaApp.Windows;
 
 namespace Andromeda.AvaloniaApp

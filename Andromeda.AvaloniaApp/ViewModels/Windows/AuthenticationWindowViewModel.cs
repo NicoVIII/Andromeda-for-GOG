@@ -14,7 +14,7 @@ using static Andromeda.Core.FSharp.AppData;
 using static GogApi.DotNet.FSharp.Authentication;
 using static GogApi.DotNet.FSharp.Listing;
 
-namespace Andromeda.AvaloniaApp.ViewModels
+namespace Andromeda.AvaloniaApp.ViewModels.Windows
 {
     public class AuthenticationWindowViewModel : ViewModelBase
     {
