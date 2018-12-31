@@ -39,10 +39,11 @@ This does not work all the time, but you can try to right click the game in the 
 TBD
 
 ### Building
-To build the program use dotnet: `dotnet build`
+To build the program use dotnet in the root folder: `dotnet build`
+This will build the while solution.
 
-To start the program use dotnet and the build `.dll`:  
-`dotnet ./bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.dll` or `dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.dll` depending on your location
+To start the program use dotnet and the built `.dll`:  
+`dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll`
 
 ### Versioning
 I will try to stick to Semantic Versioning 2.0.0 (http://semver.org/spec/v2.0.0.html).
