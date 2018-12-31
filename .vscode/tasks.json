@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "buildAvaloniaApp",
+            "label": "build",
             "command": "dotnet",
             "type": "process",
             "args": [
@@ -13,32 +13,6 @@
                 "isDefault": true
             },
             "options": {
-                "cwd": "./Andromeda.AvaloniaApp"
-            }
-        },
-        {
-            "label": "buildAvaloniaAppFSharp",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build"
-            ],
-            "group": "build",
-            "options": {
-                "cwd": "./Andromeda.AvaloniaApp.FSharp"
-            }
-        },
-        {
-            "label": "buildConsoleApp",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "fake",
-                "build"
-            ],
-            "group": "build",
-            "options": {
-                "cwd": "./Andromeda.ConsoleApp"
             }
         }
     ]

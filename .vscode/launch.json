@@ -8,7 +8,7 @@
             "name": "AvaloniaApp",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "buildAvaloniaApp",
+            "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll",
             "args": [],
@@ -22,7 +22,7 @@
             "name": "AvaloniaApp (F#)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "buildAvaloniaAppFSharp",
+            "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.FSharp.dll",
             "args": [],
@@ -36,7 +36,7 @@
             "name": "ConsoleApp",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "buildConsoleApp",
+            "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/Andromeda.ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll",
             "args": [],
