@@ -21,9 +21,14 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 
         public readonly IReactiveList<DownloadStatus> Downloads = new ReactiveList<DownloadStatus>();
 
-
         public DownloadWidgetViewModel(ViewModelBase parent) : base(parent)
         {
+            // Search regularly for upgrades
+            this.UpgradeAllGames();
+            var timer = new Timer(1 * 3600 * 1000);
+            timer.AutoReset = true;
+            timer.Elapsed += (a, b) => this.UpgradeAllGames();
+            timer.Start();
         }
 
         public void UpgradeAllGames()
