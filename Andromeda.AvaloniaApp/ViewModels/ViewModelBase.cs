@@ -1,12 +1,12 @@
-using Andromeda.AvaloniaApp.Helpers;
-using Andromeda.AvaloniaApp.ViewModels.Windows;
-using Andromeda.AvaloniaApp.Windows;
-
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+
+using Andromeda.AvaloniaApp.Helpers;
+using Andromeda.AvaloniaApp.ViewModels.Windows;
+using Andromeda.AvaloniaApp.Windows;
 
 using static Andromeda.Core.FSharp.AppData;
 using static Andromeda.Core.FSharp.Installed;
@@ -25,6 +25,7 @@ namespace Andromeda.AvaloniaApp.ViewModels
             set
             {
                 this.AppDataWrapper.AppData = value;
+                saveAppData(this.AppData);
             }
         }
 

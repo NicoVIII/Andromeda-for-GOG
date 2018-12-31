@@ -24,15 +24,17 @@ let getOwnedGameIds auth =
 let startFileDownload url gameName version =
     let dir = Path.Combine(cachePath, "installers")
     let filepath = Path.Combine(dir, sprintf "%s-%s.%s" gameName version installerEnding)
-    Directory.CreateDirectory(dir) |> ignore
+    let tmppath = Path.Combine(dir, "tmp", sprintf "%s-%s.%s" gameName version installerEnding)
+    Directory.CreateDirectory(Path.Combine(dir, "tmp")) |> ignore
     let file = new FileInfo(filepath)
     match not file.Exists with
     | true ->
         let url = String.replace "http://" "https://" url
         use client = new WebClient()
-        (client.DownloadFileTaskAsync (url, filepath) |> Some, filepath)
+        let task = client.DownloadFileTaskAsync (url, tmppath)
+        (task |> Some, filepath, tmppath)
     | false ->
-        (None, filepath)
+        (None, filepath, tmppath)
 
 let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs:bool) =
     let dir = new DirectoryInfo(sourceDirName)
@@ -151,7 +153,7 @@ let downloadGame (appData :AppData) gameName installer =
     |> function
         | (info::_) ->
             let (secUrl, auth) = askForSecureDownlink appData.authentication { downlink = info.downlink }
-            let (task, filepath) = startFileDownload secUrl.Value.downlink gameName installer.version
-            Some (task, filepath, info.size)
+            let (task, filepath, tmppath) = startFileDownload secUrl.Value.downlink gameName installer.version
+            Some (task, filepath, tmppath, info.size)
         | [] ->
             None

@@ -33,6 +33,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 
         public void UpgradeAllGames()
         {
+            this.AppData = Installed.searchInstalled(this.AppData);
             var result = Installed.checkAllForUpdates(this.AppData);
             this.AppData = result.Item2;
 
@@ -42,8 +43,8 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
             {
                 var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
                 Debug.Assert(game != null);
-                if (updateInfo.newVersion != game.version)
-                { // Just to be sure
+                if (updateInfo.newVersion != game.version) // Just to be sure
+                {
                     var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
                     this.AppData = result2.Item2;
 
@@ -74,9 +75,10 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
         {
             Logger.LogInfo("Get download info for " + info.GameTitle + " to download queue.");
             var res = Games.downloadGame(this.AppData, info.GameTitle, info.InstallerInfo);
+            // TODO: This is installation stuff, this should be moved to core
             if (res != null)
             {
-                var downloadInfo = new DownloadStatus(info.GameTitle, res.Value.Item2, res.Value.Item3 / 1000000.0f);
+                var downloadInfo = new DownloadStatus(info.GameTitle, res.Value.Item3, res.Value.Item4 / 1000000.0f);
                 this.Downloads.Add(downloadInfo);
 
                 Timer timer = null;
@@ -106,6 +108,10 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 {
                     if (downloadTask != null) {
                         downloadTask.Wait();
+                        var filepath = res.Value.Item2;
+                        var tmppath = res.Value.Item3;
+                        File.Move(tmppath, filepath);
+                        downloadInfo.FilePath = filepath;
                     }
 
                     if (timer != null) {

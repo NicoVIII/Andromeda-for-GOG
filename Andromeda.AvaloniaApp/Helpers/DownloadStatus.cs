@@ -10,7 +10,7 @@ namespace Andromeda.AvaloniaApp.Helpers
         private bool installing;
 
         public string GameTitle { get; private set; }
-        public string FilePath { get; private set; }
+        public string FilePath { get; set; }
         public float FileSize { get; private set; }
 
         public float Downloaded {

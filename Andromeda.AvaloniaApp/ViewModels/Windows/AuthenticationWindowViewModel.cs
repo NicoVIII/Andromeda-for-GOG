@@ -36,7 +36,6 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
         void Authenticate(Window window)
         {
             this.AppData = new AppData(newToken(this.Code), this.AppData.installedGames);
-            saveAppData(this.AppData);
             window.Close();
         }
     }
