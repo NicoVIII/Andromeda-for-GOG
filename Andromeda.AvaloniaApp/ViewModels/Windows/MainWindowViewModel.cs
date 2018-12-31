@@ -16,20 +16,6 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
-        protected override AppData.AppData AppData
-        {
-            set
-            {
-                base.AppData = value;
-                if (this.InstalledGames != null)
-                {
-                    this.InstalledGames.Clear();
-                    this.InstalledGames.AddRange(value.installedGames.ToList());
-                }
-            }
-        }
-
         private IReactiveList<AppData.InstalledGame.T> installedGames;
         public IReactiveList<AppData.InstalledGame.T> InstalledGames
         {

@@ -12,11 +12,26 @@ using System.Threading.Tasks;
 using System.Timers;
 
 using Andromeda.AvaloniaApp.Helpers;
+using Andromeda.AvaloniaApp.ViewModels.Windows;
 
 namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 {
     public class DownloadWidgetViewModel : SubViewModelBase
     {
+        // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
+        protected override AppData.AppData AppData
+        {
+            set
+            {
+                base.AppData = value;
+                if (((MainWindowViewModel)this.Parent).InstalledGames != null)
+                {
+                    ((MainWindowViewModel)this.Parent).InstalledGames.Clear();
+                    ((MainWindowViewModel)this.Parent).InstalledGames.AddRange(value.installedGames);
+                }
+            }
+        }
+
         private readonly Queue<InstallationInfos> downloadQueue = new Queue<InstallationInfos>();
 
         public readonly IReactiveList<DownloadStatus> Downloads = new ReactiveList<DownloadStatus>();
@@ -78,7 +93,9 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
             // TODO: This is installation stuff, this should be moved to core
             if (res != null)
             {
-                var downloadInfo = new DownloadStatus(info.GameTitle, res.Value.Item3, res.Value.Item4 / 1000000.0f);
+                var filepath = res.Value.Item2;
+                var tmppath = res.Value.Item3;
+                var downloadInfo = new DownloadStatus(info.GameTitle, tmppath, res.Value.Item4 / 1000000.0f);
                 this.Downloads.Add(downloadInfo);
 
                 Timer timer = null;
@@ -108,11 +125,9 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 {
                     if (downloadTask != null) {
                         downloadTask.Wait();
-                        var filepath = res.Value.Item2;
-                        var tmppath = res.Value.Item3;
                         File.Move(tmppath, filepath);
-                        downloadInfo.FilePath = filepath;
                     }
+                    downloadInfo.FilePath = filepath;
 
                     if (timer != null) {
                         timer.Stop();
