@@ -46,7 +46,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
         void SearchGame()
         {
             var result = Andromeda.Core.FSharp.Games.getAvailableGamesForSearch(this.AppData, GameSearchTerm);
-            this.AppData = result.Item2;
+            this.SetAppData(result.Item2);
             if (result.Item1 != null)
             {
                 var list = result.Item1.Value.ToList();
@@ -55,7 +55,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
                 {
                     var game = list.First();
                     var installersTuple = Games.getAvailableInstallersForOs(this.AppData, game.id);
-                    this.AppData = installersTuple.Item2;
+                    this.SetAppData(installersTuple.Item2);
                     var list2 = installersTuple.Item1.ToList();
                     if (list2.Count() > 0)
                     {

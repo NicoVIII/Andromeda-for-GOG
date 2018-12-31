@@ -16,20 +16,13 @@ namespace Andromeda.AvaloniaApp.ViewModels
     public class ViewModelBase : ReactiveObject
     {
         public AppDataWrapper AppDataWrapper { get; private set; }
-        protected virtual AppData AppData
+        protected AppData AppData
         {
-            get
-            {
-                return this.AppDataWrapper.AppData;
-            }
-            set
-            {
-                this.AppDataWrapper.AppData = value;
-                saveAppData(this.AppData);
-            }
+            get => this.AppDataWrapper.AppData;
         }
 
-        public readonly IList<SubViewModelBase> children = new List<SubViewModelBase>();
+        private readonly IList<SubViewModelBase> children = new List<SubViewModelBase>();
+        public IList<SubViewModelBase> Children { get => this.children; }
 
         public ViewModelBase() : this(null) { }
         public ViewModelBase(AppDataWrapper appDataWrapper)
@@ -41,8 +34,8 @@ namespace Andromeda.AvaloniaApp.ViewModels
             else
             {
                 this.AppDataWrapper = new AppDataWrapper();
-                this.AppData = loadAppData();
-                this.AppData = searchInstalled(this.AppData);
+                this.SetAppData(loadAppData());
+                this.SetAppData(searchInstalled(this.AppData));
                 if (this.AppData.authentication.IsNoAuth)
                 {
                     // Authenticate
@@ -51,6 +44,12 @@ namespace Andromeda.AvaloniaApp.ViewModels
                     window.ShowDialog();
                 }
             }
+        }
+
+        protected virtual void SetAppData(AppData appData)
+        {
+            this.AppDataWrapper.AppData = appData;
+            saveAppData(this.AppData);
         }
 
         public IList<T> GetChildrenOfType<T>()

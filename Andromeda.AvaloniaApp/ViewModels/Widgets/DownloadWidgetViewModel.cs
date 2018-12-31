@@ -18,23 +18,10 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 {
     public class DownloadWidgetViewModel : SubViewModelBase
     {
-        // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
-        protected override AppData.AppData AppData
-        {
-            set
-            {
-                base.AppData = value;
-                if (((MainWindowViewModel)this.Parent).InstalledGames != null)
-                {
-                    ((MainWindowViewModel)this.Parent).InstalledGames.Clear();
-                    ((MainWindowViewModel)this.Parent).InstalledGames.AddRange(value.installedGames);
-                }
-            }
-        }
-
         private readonly Queue<InstallationInfos> downloadQueue = new Queue<InstallationInfos>();
 
-        public readonly IReactiveList<DownloadStatus> Downloads = new ReactiveList<DownloadStatus>();
+        private readonly IReactiveList<DownloadStatus> downloads = new ReactiveList<DownloadStatus>();
+        public IReactiveList<DownloadStatus> Downloads { get => this.downloads; }
 
         public DownloadWidgetViewModel(ViewModelBase parent) : base(parent)
         {
@@ -46,11 +33,22 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
             timer.Start();
         }
 
+        // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
+        protected override void SetAppData(AppData.AppData appData)
+        {
+            base.SetAppData(appData);
+            if (((MainWindowViewModel)this.Parent).InstalledGames != null)
+            {
+                ((MainWindowViewModel)this.Parent).InstalledGames.Clear();
+                ((MainWindowViewModel)this.Parent).InstalledGames.AddRange(appData.installedGames);
+            }
+        }
+
         public void UpgradeAllGames()
         {
-            this.AppData = Installed.searchInstalled(this.AppData);
+            this.SetAppData(Installed.searchInstalled(this.AppData));
             var result = Installed.checkAllForUpdates(this.AppData);
-            this.AppData = result.Item2;
+            this.SetAppData(result.Item2);
 
             var list = result.Item1.ToList();
             Logger.LogInfo("Found " + list.Count() + " games to update.");
@@ -61,7 +59,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 if (updateInfo.newVersion != game.version) // Just to be sure
                 {
                     var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
-                    this.AppData = result2.Item2;
+                    this.SetAppData(result2.Item2);
 
                     var installerInfo = result2.Item1.ToList().First();
                     AddDownload(new InstallationInfos(game.name, installerInfo));
@@ -123,13 +121,15 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 var worker = new BackgroundWorker();
                 worker.DoWork += (arg, arg2) =>
                 {
-                    if (downloadTask != null) {
+                    if (downloadTask != null)
+                    {
                         downloadTask.Wait();
                         File.Move(tmppath, filepath);
                     }
                     downloadInfo.FilePath = filepath;
 
-                    if (timer != null) {
+                    if (timer != null)
+                    {
                         timer.Stop();
                     }
 
@@ -148,7 +148,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 };
                 worker.RunWorkerCompleted += (arg, arg2) =>
                 {
-                    this.AppData = Installed.searchInstalled(this.AppData);
+                    this.SetAppData(Installed.searchInstalled(this.AppData));
                     this.Downloads.Remove(downloadInfo);
                     Logger.LogInfo("Cleaned up after install.");
                 };
