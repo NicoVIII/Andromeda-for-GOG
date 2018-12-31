@@ -24,7 +24,11 @@ namespace Andromeda.AvaloniaApp.ViewModels
         private readonly IList<SubViewModelBase> children = new List<SubViewModelBase>();
         public IList<SubViewModelBase> Children { get => this.children; }
 
-        public ViewModelBase() : this(null) { }
+        public ViewModelBase() : this(null)
+        {
+            // Nothing to do here
+        }
+
         public ViewModelBase(AppDataWrapper appDataWrapper)
         {
             if (appDataWrapper != null)
