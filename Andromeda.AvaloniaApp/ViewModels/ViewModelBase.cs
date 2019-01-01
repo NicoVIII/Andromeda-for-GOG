@@ -1,3 +1,4 @@
+using Avalonia.Controls;
 using ReactiveUI;
 using System;
 using System.Collections.Generic;
@@ -24,13 +25,17 @@ namespace Andromeda.AvaloniaApp.ViewModels
         private readonly IList<SubViewModelBase> children = new List<SubViewModelBase>();
         public IList<SubViewModelBase> Children { get => this.children; }
 
-        public ViewModelBase() : this(null)
+        public Control Control { get; }
+
+        public ViewModelBase(Control control) : this(control, null)
         {
             // Nothing to do here
         }
 
-        public ViewModelBase(AppDataWrapper appDataWrapper)
+        public ViewModelBase(Control control, AppDataWrapper appDataWrapper)
         {
+            this.Control = control;
+
             if (appDataWrapper != null)
             {
                 this.AppDataWrapper = appDataWrapper;
@@ -44,10 +49,15 @@ namespace Andromeda.AvaloniaApp.ViewModels
                 {
                     // Authenticate
                     var window = new AuthenticationWindow();
-                    window.DataContext = new AuthenticationWindowViewModel(this.AppDataWrapper);
-                    window.ShowDialog();
+                    window.DataContext = new AuthenticationWindowViewModel(window, this.AppDataWrapper);
+                    window.ShowDialog(this.GetParentWindow());
                 }
             }
+        }
+
+        public virtual Window GetParentWindow()
+        {
+            return this.Control is Window ? (Window)this.Control : null;
         }
 
         protected virtual void SetAppData(AppData appData)

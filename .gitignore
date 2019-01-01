@@ -338,3 +338,8 @@ ASALocalRun/
 
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
+
+# AppImage
+AppDir/.DirIcon
+AppDir/usr/bin
+appimagetool-x86_64.AppImage

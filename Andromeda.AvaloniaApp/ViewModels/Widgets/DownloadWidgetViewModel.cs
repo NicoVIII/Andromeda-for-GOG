@@ -1,4 +1,5 @@
 using Andromeda.Core.FSharp;
+using Avalonia.Controls;
 using ReactiveUI;
 using ReactiveUI.Legacy;
 using System;
@@ -23,7 +24,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
         private readonly IReactiveList<DownloadStatus> downloads = new ReactiveList<DownloadStatus>();
         public IReactiveList<DownloadStatus> Downloads { get => this.downloads; }
 
-        public DownloadWidgetViewModel(ViewModelBase parent) : base(parent)
+        public DownloadWidgetViewModel(Control control, ViewModelBase parent) : base(control, parent)
         {
             // Search regularly for upgrades
             this.UpgradeAllGames();

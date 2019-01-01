@@ -1,5 +1,3 @@
-using Andromeda.AvaloniaApp.Helpers;
-using Andromeda.AvaloniaApp.Windows;
 using Avalonia.Controls;
 using DynamicData;
 using ReactiveUI;
@@ -9,6 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Text;
+
+using Andromeda.AvaloniaApp.Helpers;
+using Andromeda.AvaloniaApp.Windows;
 
 using static Andromeda.Core.FSharp.AppData;
 using static GogApi.DotNet.FSharp.Authentication;
@@ -28,7 +29,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 
         public ReactiveCommand<Window, Unit> AuthenticateCommand { get; }
 
-        public AuthenticationWindowViewModel(AppDataWrapper appDataWrapper) : base(appDataWrapper)
+        public AuthenticationWindowViewModel(Control control, AppDataWrapper appDataWrapper) : base(control, appDataWrapper)
         {
             AuthenticateCommand = ReactiveCommand.Create<Window>(Authenticate);
         }

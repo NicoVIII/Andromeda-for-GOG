@@ -1,4 +1,5 @@
 using Andromeda.Core.FSharp;
+using Avalonia.Controls;
 using DynamicData;
 using Mono.Unix.Native;
 using ReactiveUI;
@@ -36,10 +37,10 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 
         public DownloadWidgetViewModel DownloadWidgetVM { get; }
 
-        public MainWindowViewModel() : base()
+        public MainWindowViewModel(Control control) : base(control)
         {
             // Initialize subviewmodels
-            this.DownloadWidgetVM = new DownloadWidgetViewModel(this);
+            this.DownloadWidgetVM = new DownloadWidgetViewModel(this.GetParentWindow(), this);
 
             // Add installed games to list
             this.InstalledGames = new ReactiveList<AppData.InstalledGame.T>(this.AppData.installedGames);
@@ -53,8 +54,8 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
         private void OpenInstallWindow()
         {
             var installWindow = new InstallWindow();
-            installWindow.DataContext = new InstallWindowViewModel(this);
-            installWindow.ShowDialog();
+            installWindow.DataContext = new InstallWindowViewModel(installWindow, this);
+            installWindow.ShowDialog(this.GetParentWindow());
         }
 
         private static void StartGame(string path)

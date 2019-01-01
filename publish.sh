@@ -1,13 +1,14 @@
 #!/bin/bash
-echo "Start publishing by building:"
+echo "Clear deploy folder."
+rm -fr "deploy"
+mkdir -p "deploy"
+
+echo "Start publishing as archive by building."
 dotnet restore
 (
   cd Andromeda.AvaloniaApp || exit
-  dotnet publish -c Release
+  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 | grep error --color=never
 )
-
-rm -fr "deploy"
-mkdir -p "deploy"
 
 (
   cd "deploy" || exit
@@ -31,6 +32,27 @@ mkdir -p "deploy"
     echo "Compress .tar to .tar.xz .."
     xz -e9 --threads=0 -f "../publish.tar"
 
-    echo "Finished publishing."
+    echo "Finished publishing as archives."
   )
+)
+
+echo "Start publishing as AppImage by building."
+(
+  cd "Andromeda.AvaloniaApp"
+  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 | grep error --color=never
+  rm -r "AppDir/usr/bin"
+  mv "bin/Release/netcoreapp2.2/ubuntu.16.04-x64/publish" "AppDir/usr"
+  mv "AppDir/usr/publish" "AppDir/usr/bin"
+)
+if ! [ -f "./appimagetool-x86_64.AppImage" ]
+then
+  wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
+  chmod a+x appimagetool-x86_64.AppImage
+fi
+(
+  cd "Andromeda.AvaloniaApp"
+  ./../appimagetool-x86_64.AppImage ./AppDir
+  mv "Andromeda-x86_64.AppImage" "../deploy"
+
+  echo "Finished publishing as archives."
 )

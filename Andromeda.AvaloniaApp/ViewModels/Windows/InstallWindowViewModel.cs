@@ -38,7 +38,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 
         public ReactiveCommand<Unit, Unit> SearchGameCommand { get; }
 
-        public InstallWindowViewModel(ViewModelBase parent) : base(parent)
+        public InstallWindowViewModel(Control control, ViewModelBase parent) : base(control, parent)
         {
             SearchGameCommand = ReactiveCommand.Create(SearchGame);
         }

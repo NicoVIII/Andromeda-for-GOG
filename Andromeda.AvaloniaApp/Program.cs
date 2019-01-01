@@ -18,7 +18,11 @@ namespace Andromeda.AvaloniaApp
             Couchbase.Lite.Support.NetDesktop.Activate();
             Database.SetLogLevel(LogDomain.All, LogLevel.None);
 
-            BuildAvaloniaApp(args).Start<MainWindow>(() => new MainWindowViewModel());
+            BuildAvaloniaApp(args).Start((app, arg) => {
+                var window = new MainWindow();
+                window.DataContext = new MainWindowViewModel(window);
+                app.Run(window);
+            }, args);
         }
 
         public static AppBuilder BuildAvaloniaApp(string[] args) {

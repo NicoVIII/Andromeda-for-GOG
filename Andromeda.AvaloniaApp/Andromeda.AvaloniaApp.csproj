@@ -2,7 +2,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
     <RuntimeIdentifiers>win7-x64;ubuntu.14.04-x64;debian.8-x64;osx.10.12-x64</RuntimeIdentifiers>
     <AssemblyName>Andromeda.AvaloniaApp</AssemblyName>
     <RootNamespace>Andromeda.AvaloniaApp</RootNamespace>
@@ -18,8 +18,8 @@
     <EmbeddedResource Include="Assets\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.7.0-build445-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.0-build445-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-build1077-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.1-build1077-beta" />
     <PackageReference Include="DynamicData" Version="6.6.1.2507" />
     <PackageReference Include="DynamicData.ReactiveUI" Version="6.6.1.2507" />
     <PackageReference Include="ReactiveUI" Version="9.1.4" />
