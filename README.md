@@ -2,7 +2,7 @@
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![GitHub Release](https://img.shields.io/github/release/NicoVIII/Andromeda-for-GOG.svg)](https://github.com/NicoVIII/Andromeda-for-GOG/releases/latest)
 [![Github Pre-Release](https://img.shields.io/github/release/NicoVIII/Andromeda-for-GOG/all.svg?label=prerelease)](https://github.com/NicoVIII/Andromeda-for-GOG/releases)
-[![CodeFactor](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/badge)](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6264734ca94e494c87a6420a56aa4ebf)](https://www.codacy.com/app/NicoVIII/Andromeda-for-GOG?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=NicoVIII/Andromeda-for-GOG&amp;utm_campaign=Badge_Grade)
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/NicoVIII/Andromeda-for-GOG/master/LICENSE)
 
 This project aims at providing a Galaxy-like client for GOG with the help of https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1 also for Linux systems. It will focus the downloading, installing and updating of games at first.  
@@ -33,7 +33,7 @@ This does not work all the time, but you can try to right click the game in the 
 
 ## Development
 [![pipeline status](https://gitlab.com/NicoVIII/Andromeda-for-GOG/badges/develop/pipeline.svg)](https://gitlab.com/NicoVIII/Andromeda-for-GOG/commits/develop)
-[![CodeFactor](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/badge/develop)](https://www.codefactor.io/repository/github/nicoviii/andromeda-for-gog/overview/develop)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/6264734ca94e494c87a6420a56aa4ebf?branch=develop)](https://www.codacy.com/app/NicoVIII/Andromeda-for-GOG?utm_source=gitlab.com&amp;utm_medium=referral&amp;utm_content=NicoVIII/Andromeda-for-GOG&amp;utm_campaign=Badge_Grade)
 
 ### Setup (VSCode)
 TBD
