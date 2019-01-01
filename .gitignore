@@ -340,6 +340,6 @@ ASALocalRun/
 .mfractor/
 
 # AppImage
-AppDir/.DirIcon
+**/AppDir/.DirIcon
 AppDir/usr/bin
 appimagetool-x86_64.AppImage
