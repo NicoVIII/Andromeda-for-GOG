@@ -2,11 +2,10 @@ image: microsoft/dotnet
 stages:
   - build
 before_script:
-  - 'dotnet restore'
+  - 'dotnet restore -s "https://www.myget.org/F/avalonia-ci/api/v2"'
 build:
   stage: build
   script:
-    - 'dotnet restore -s "https://www.myget.org/F/avalonia-ci/api/v2"'
     - 'dotnet build --no-restore'
   only:
     - master
