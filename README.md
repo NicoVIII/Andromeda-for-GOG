@@ -10,8 +10,8 @@ If you need something to play Multiplayer over Galaxy on linux, have a look at t
 https://gitlab.com/Yepoleb/comet
 
 ## Dependencies
-You need .NET Core 2.2 to run Andromeda. You can download it here:
-https://www.microsoft.com/net/download
+If you do not use the AppImage for Linux, you need .NET Core 2.2 to run Andromeda.  
+You can download it here: https://www.microsoft.com/net/download
 
 ## Installation
 Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases and unpack it anywhere you want.
@@ -39,8 +39,8 @@ This does not work all the time, but you can try to right click the game in the 
 TBD
 
 ### Building
-To build the program use dotnet in the root folder: `dotnet build`
-This will build the while solution.
+You need .NET Core 2.2 to build Andromeda.
+To build the program use `build.sh` or `build.cmd` in the root folder. This will build the whole solution.
 
 To start the program use dotnet and the built `.dll`:  
 `dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll`

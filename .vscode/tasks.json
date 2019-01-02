@@ -3,17 +3,15 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "build"
-            ],
+            "command": "dotnet restore -s \"https://www.myget.org/F/avalonia-ci/api/v2\" -s \"https://api.nuget.org/v3/index.json\" && dotnet build --no-restore",
+            "type": "shell",
+            "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
             "options": {
-            }
+            },
         }
     ]
 }
