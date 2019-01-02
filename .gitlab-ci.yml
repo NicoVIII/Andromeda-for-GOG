@@ -2,7 +2,7 @@ image: microsoft/dotnet
 stages:
   - build
 before_script:
-  - 'dotnet restore -s "https://www.myget.org/F/avalonia-ci/api/v2"'
+  - 'dotnet restore -s "https://www.myget.org/F/avalonia-ci/api/v2" -s "https://api.nuget.org/v3/index.json"'
 build:
   stage: build
   script:
