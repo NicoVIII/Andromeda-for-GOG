@@ -3,18 +3,21 @@ module GogApi.DotNet.FSharp.Request
 open System.IO
 
 open GogApi.DotNet.FSharp.Base
+open GogApi.DotNet.FSharp.Helpers
 
 let rec makeRequest<'T> method auth queries url :'T option * Authentication =
-    try
-        (makeBasicJsonRequest method auth queries url, auth)
-    with
-    | ex ->
+    let result = makeBasicJsonRequest method auth queries url
+    match result with
+    | Success parsed ->
+        (Some parsed, auth)
+    | Failure (raw, message) ->
         match auth with
         | Auth x ->
             match x with
             | { refreshed = true } ->
                 printfn "Returned Json is not valid! Refreshing the authentication did not work."
-                File.WriteAllText ("log.txt", ex.Message)
+                printfn "%A" raw
+                printfn "%A - %A" message url
                 (None, Auth { x with refreshed = false})
             | { refreshed = false } ->
                 // Refresh authentication

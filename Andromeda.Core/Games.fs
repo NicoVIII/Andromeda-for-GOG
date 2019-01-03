@@ -22,9 +22,13 @@ let getOwnedGameIds auth =
     )
 
 let startFileDownload url gameName version =
+    let version =
+        match version with
+        | Some v -> "-v"
+        | None -> ""
     let dir = Path.Combine(cachePath, "installers")
-    let filepath = Path.Combine(dir, sprintf "%s-%s.%s" gameName version installerEnding)
-    let tmppath = Path.Combine(dir, "tmp", sprintf "%s-%s.%s" gameName version installerEnding)
+    let filepath = Path.Combine(dir, sprintf "%s%s.%s" gameName version installerEnding)
+    let tmppath = Path.Combine(dir, "tmp", sprintf "%s%s.%s" gameName version installerEnding)
     Directory.CreateDirectory(Path.Combine(dir, "tmp")) |> ignore
     let file = new FileInfo(filepath)
     match not file.Exists with

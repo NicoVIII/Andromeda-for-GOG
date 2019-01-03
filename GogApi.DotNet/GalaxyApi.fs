@@ -18,7 +18,7 @@ type InstallerFileInfo = {
 type InstallerInfo = {
     id: string;
     os: string;
-    version: string;
+    version: string option;
     files: InstallerFileInfo list;
 }
 

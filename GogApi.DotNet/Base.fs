@@ -4,6 +4,8 @@ open FSharp.Json
 open Hopac
 open HttpFs.Client
 
+open GogApi.DotNet.FSharp.Helpers
+
 type QueryString = {
     name: QueryStringName;
     value: QueryStringValue;
@@ -32,9 +34,16 @@ let setupBasicRequest method auth queries url =
     // Add query parameters
     |> List.fold (fun request query -> Request.queryStringItem query.name query.value request) <| queries
 
-let makeBasicJsonRequest<'T> method auth queries url :'T option =
-    setupBasicRequest method auth queries url
-    |> Request.responseAsString
-    |> run
-    |> Json.deserializeEx<'T> config
-    |> Some
+let makeBasicJsonRequest<'T> method auth queries url =
+    let rawJson =
+        setupBasicRequest method auth queries url
+        |> Request.responseAsString
+        |> run
+    let parsedJson =
+        try
+            Json.deserializeEx<'T> config rawJson
+            |> Success
+        with
+        | ex ->
+            Failure (rawJson, ex.Message)
+    parsedJson

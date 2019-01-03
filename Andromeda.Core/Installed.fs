@@ -45,10 +45,11 @@ let checkAllForUpdates appData =
                 | None ->
                     (lst, appData)
                 | Some installer ->
-                    if game.version = installer.version then
+                    match (game.version, installer.version) with
+                    | (a, Some b) when a <> b ->
+                        ({ newVersion = b; game = game }::lst, appData)
+                    | (_, _) ->
                         (lst, appData)
-                    else
-                        ({ newVersion = installer.version; game = game }::lst, appData)
             | None ->
                 failwith "OS is invalid for some reason!"
     ) ([], appData)
