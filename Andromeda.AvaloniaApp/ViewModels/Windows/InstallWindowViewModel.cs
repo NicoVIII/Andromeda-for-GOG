@@ -66,8 +66,10 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
                         downloadWidgetVM.AddDownload(new InstallationInfos(game.title, installerInfo));
                     }
                 } else {
+                    ((MainWindowViewModel)this.Parent).AddNotification("Found no matching game to install.");
                     Logger.LogWarning("Found no matching game for search term!");
                 }
+                ((Window)this.Control).Close();
             }
         }
     }

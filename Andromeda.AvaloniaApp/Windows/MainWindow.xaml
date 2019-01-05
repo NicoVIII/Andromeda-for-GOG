@@ -6,58 +6,69 @@
         xmlns:cef="clr-namespace:CefGlue.Avalonia;assembly=CefGlue.Avalonia"
         Title="Andromeda"
         Height="660" Width="1024">
-  <Grid ColumnDefinitions="Auto, 1*">
-    <!-- Left column -->
-    <Grid Classes="dark" Grid.Column="0" RowDefinitions="Auto, 1*, Auto, Auto">
-      <StackPanel Grid.Row="0" Orientation="Vertical">
-        <TextBlock>Menu</TextBlock>
-        <TextBlock>Search Bar</TextBlock>
-      </StackPanel>
-      <StackPanel Grid.Row="1" Orientation="Vertical">
-        <ItemsControl Items="{Binding InstalledGames}">
-          <ItemsControl.DataTemplates>
-            <DataTemplate>
-              <Grid ColumnDefinitions="Auto, 1*" Margin="0, 5">
-                <Grid.Resources>
-                  <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
-                </Grid.Resources>
-                <Grid.ContextMenu>
-                  <ContextMenu>
-                    <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
-                  </ContextMenu>
-                </Grid.ContextMenu>
-                <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
-                <TextBlock Grid.Column="1" Text="{Binding name}"/>
-              </Grid>
-            </DataTemplate>
-          </ItemsControl.DataTemplates>
-        </ItemsControl>
-        <TextBlock IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
-      </StackPanel>
-      <StackPanel Grid.Row="2" Orientation="Vertical" Margin="12, 12">
-        <ItemsControl Items="{Binding Downloads}">
-          <ItemsControl.DataTemplates>
-            <DataTemplate>
-              <Grid ColumnDefinitions="Auto" Margin="0, 5" RowDefinitions="Auto, Auto">
-                <TextBlock Grid.Row="0" Text="{Binding GameTitle}"/>
-                <ProgressBar Grid.Row="1" IsVisible="{Binding !Installing}" Maximum="{Binding FileSize}" Value="{Binding Downloaded}"/>
-                <TextBlock Grid.Row="1" IsVisible="{Binding Installing}" Text="Installing..."/>
-              </Grid>
-            </DataTemplate>
-          </ItemsControl.DataTemplates>
-        </ItemsControl>
-        <TextBlock IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
-      </StackPanel>
-      <TextBlock Grid.Row="3" Text="{Binding Version}" FontSize="10" />
-    </Grid>
-    <!-- Right page -->
-    <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
-      <TextBlock Grid.Row="0">Aktionsleiste</TextBlock>
-      <StackPanel Grid.Row="1" Margin="10" Orientation="Horizontal" Spacing="5">
-        <Button Command="{Binding OpenInstallWindowCommand}">Install game</Button>
-        <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
-      </StackPanel>
-      <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
+  <Grid RowDefinitions="Auto, 1*">
+    <ItemsControl Grid.Row="0" Items="{Binding Notifications}">
+      <ItemsControl.DataTemplates>
+        <DataTemplate>
+          <Grid ColumnDefinitions="1*, Auto" Margin="6">
+            <TextBlock Grid.Column="0" Text="{Binding Message}" />
+          </Grid>
+        </DataTemplate>
+      </ItemsControl.DataTemplates>
+    </ItemsControl>
+    <Grid Grid.Row="1" ColumnDefinitions="Auto, 1*">
+      <!-- Left column -->
+      <Grid Classes="dark" Grid.Column="0" RowDefinitions="Auto, 1*, Auto, Auto">
+        <StackPanel Grid.Row="0" Orientation="Vertical">
+          <TextBlock>Menu</TextBlock>
+          <TextBlock>Search Bar</TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+          <ItemsControl Items="{Binding InstalledGames}">
+            <ItemsControl.DataTemplates>
+              <DataTemplate>
+                <Grid ColumnDefinitions="Auto, 1*" Margin="0, 5">
+                  <Grid.Resources>
+                    <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
+                  </Grid.Resources>
+                  <Grid.ContextMenu>
+                    <ContextMenu>
+                      <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
+                    </ContextMenu>
+                  </Grid.ContextMenu>
+                  <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
+                  <TextBlock Grid.Column="1" Text="{Binding name}"/>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.DataTemplates>
+          </ItemsControl>
+          <TextBlock IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="12, 12">
+          <ItemsControl Items="{Binding Downloads}">
+            <ItemsControl.DataTemplates>
+              <DataTemplate>
+                <Grid ColumnDefinitions="Auto" Margin="0, 5" RowDefinitions="Auto, Auto">
+                  <TextBlock Grid.Row="0" Text="{Binding GameTitle}"/>
+                  <ProgressBar Grid.Row="1" IsVisible="{Binding !Installing}" Maximum="{Binding FileSize}" Value="{Binding Downloaded}"/>
+                  <TextBlock Grid.Row="1" IsVisible="{Binding Installing}" Text="Installing..."/>
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.DataTemplates>
+          </ItemsControl>
+          <TextBlock IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
+        </StackPanel>
+        <TextBlock Grid.Row="3" Text="{Binding Version}" FontSize="10" />
+      </Grid>
+      <!-- Right page -->
+      <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
+        <TextBlock Grid.Row="0">Aktionsleiste</TextBlock>
+        <StackPanel Grid.Row="1" Margin="10" Orientation="Horizontal" Spacing="5">
+          <Button Command="{Binding OpenInstallWindowCommand}">Install game</Button>
+          <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
+        </StackPanel>
+        <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
+      </Grid>
     </Grid>
   </Grid>
 </Window>

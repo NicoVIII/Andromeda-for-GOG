@@ -52,7 +52,9 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
             this.SetAppData(result.Item2);
 
             var list = result.Item1.ToList();
-            Logger.LogInfo("Found " + list.Count() + " games to update.");
+            var message = "Found " + list.Count() + " games to update.";
+            Logger.LogInfo(message);
+            ((MainWindowViewModel) this.Parent).AddNotification(message);
             foreach (var updateInfo in list)
             {
                 var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
