@@ -20,7 +20,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public string Version { get => "v0.3.0-alpha.3"; }
+        public string Version { get => "v0.3.0-alpha.4"; }
 
         private IReactiveList<AppData.InstalledGame.T> installedGames;
         public IReactiveList<AppData.InstalledGame.T> InstalledGames
