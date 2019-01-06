@@ -23,27 +23,29 @@
           <TextBlock>Menu</TextBlock>
           <TextBlock>Search Bar</TextBlock>
         </StackPanel>
-        <StackPanel Grid.Row="1" Orientation="Vertical">
-          <ItemsControl Items="{Binding InstalledGames}">
-            <ItemsControl.DataTemplates>
-              <DataTemplate>
-                <Grid ColumnDefinitions="Auto, 1*" Margin="0, 5">
-                  <Grid.Resources>
-                    <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
-                  </Grid.Resources>
-                  <Grid.ContextMenu>
-                    <ContextMenu>
-                      <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
-                    </ContextMenu>
-                  </Grid.ContextMenu>
-                  <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
-                  <TextBlock Grid.Column="1" Text="{Binding name}"/>
-                </Grid>
-              </DataTemplate>
-            </ItemsControl.DataTemplates>
-          </ItemsControl>
-          <TextBlock IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
-        </StackPanel>
+        <ScrollViewer Grid.Row="1">
+          <StackPanel Orientation="Vertical">
+            <ItemsControl Items="{Binding InstalledGames}">
+              <ItemsControl.DataTemplates>
+                <DataTemplate>
+                  <Grid ColumnDefinitions="Auto, 1*" Margin="0, 5">
+                    <Grid.Resources>
+                      <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
+                    </Grid.Resources>
+                    <Grid.ContextMenu>
+                      <ContextMenu>
+                        <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
+                      </ContextMenu>
+                    </Grid.ContextMenu>
+                    <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
+                    <TextBlock Grid.Column="1" Text="{Binding name}"/>
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.DataTemplates>
+            </ItemsControl>
+            <TextBlock IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
+          </StackPanel>
+        </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Vertical" Margin="12, 12">
           <ItemsControl Items="{Binding Downloads}">
             <ItemsControl.DataTemplates>
