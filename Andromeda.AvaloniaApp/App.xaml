@@ -9,8 +9,18 @@
     <StyleInclude Source="resm:Avalonia.Themes.Default.DefaultTheme.xaml?assembly=Avalonia.Themes.Default"/>
     <StyleInclude Source="resm:Avalonia.Themes.Default.Accents.BaseLight.xaml?assembly=Avalonia.Themes.Default"/>
 
-    <Style Selector="Grid.dark">
+    <Style Selector=":is(TextBlock)">
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+    <Style Selector=":is(TextBox)">
+      <Setter Property="FontSize" Value="14" />
+    </Style>
+
+    <Style Selector=":is(Panel).dark">
       <Setter Property="Background" Value="Gray" />
+    </Style>
+    <Style Selector=":is(Panel).info">
+      <Setter Property="Background" Value="#cce5ff" />
     </Style>
   </Application.Styles>
 </Application>
