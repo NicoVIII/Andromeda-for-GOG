@@ -26,7 +26,7 @@
           </StackPanel>
         </StackPanel>
         <ScrollViewer Grid.Row="1">
-          <StackPanel Orientation="Vertical">
+          <StackPanel Orientation="Vertical" Margin="6, 0">
             <ItemsControl Items="{Binding FilteredInstalledGames}">
               <ItemsControl.DataTemplates>
                 <DataTemplate>
@@ -39,13 +39,13 @@
                         <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
                       </ContextMenu>
                     </Grid.ContextMenu>
-                    <Image Grid.Column="0" Height="30" Width="30" Source="{Binding icon, Converter={StaticResource bitmapConverter}}"/>
+                    <Image Grid.Column="0" Height="30" Width="30" IsVisible="{Binding !!icon}" Source="{Binding icon, Converter={StaticResource bitmapConverter}}" />
                     <TextBlock Grid.Column="1" Text="{Binding name}"/>
                   </Grid>
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
-            <TextBlock IsVisible="{Binding !InstalledGames.Count}">Du hast noch keine Spiele installiert</TextBlock>
+            <TextBlock IsVisible="{Binding !InstalledGames.Count}">You have no games installed.</TextBlock>
           </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Vertical" Margin="12, 12">
@@ -60,16 +60,19 @@
               </DataTemplate>
             </ItemsControl.DataTemplates>
           </ItemsControl>
-          <TextBlock IsVisible="{Binding !Downloads.Count}">Keine Downloads</TextBlock>
+          <TextBlock IsVisible="{Binding !Downloads.Count}">No downloads</TextBlock>
         </StackPanel>
         <TextBlock Grid.Row="3" Text="{Binding Version}" FontSize="10" />
       </Grid>
       <!-- Right page -->
-      <Grid Grid.Column="1" RowDefinitions="Auto, Auto">
+      <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto">
         <!--<TextBlock Grid.Row="0">Aktionsleiste</TextBlock>-->
         <StackPanel Grid.Row="1" Margin="10" Orientation="Horizontal" Spacing="5">
           <Button Command="{Binding OpenInstallWindowCommand}">Install game</Button>
           <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="10">
+          <TextBlock TextWrapping="Wrap">Because I could not make a browser control for Avalonia work, we have to live for now without the grafical stuff from GOG Galaxy and use some workaround buttons (and later menus).</TextBlock>
         </StackPanel>
         <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
       </Grid>

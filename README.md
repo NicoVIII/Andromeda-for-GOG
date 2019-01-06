@@ -38,6 +38,9 @@ This does not work all the time, but you can try to right click the game in the 
 ### Setup (VSCode)
 TBD
 
+For some reason the used build of Avalonia makes problems with Omnisharp. To make code completion work again, you have to comment out the first "UsingTask"-Element in `AvaloniaBuildTasks.targets` in NuGet-Download.  
+For me this is located at `~/.nuget/packages/avalonia/[version]/build/AvaloniaBuildTasks.targets`. You have to reverse the change to publish Andromeda as self-contained version (e.g. AppImage via publish script).
+
 ### Building
 You need .NET Core 2.2 to build Andromeda.
 To build the program use `build.sh` or `build.cmd` in the root folder. This will build the whole solution.
