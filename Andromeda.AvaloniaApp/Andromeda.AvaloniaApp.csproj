@@ -18,8 +18,8 @@
     <EmbeddedResource Include="Assets\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-build1087-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.1-build1087-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-build1097-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.1-build1097-beta" />
     <PackageReference Include="DynamicData" Version="6.6.1.2507" />
     <PackageReference Include="DynamicData.ReactiveUI" Version="6.6.1.2507" />
     <PackageReference Include="ReactiveUI" Version="9.1.4" />
