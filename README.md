@@ -48,6 +48,12 @@ To build the program use `build.sh` or `build.cmd` in the root folder. This will
 To start the program use dotnet and the built `.dll`:  
 `dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll`
 
+### Publishing
+Publishing only works on a linux system. I personally use Manjaro Linux or Ubuntu 18.10 (depending on the machine I use).  
+You need additionally to building dependencies, zsyncmake (in the zsync package I guess).
+
+There is a bash script which bundles Andromeda in all the designated forms. Run `publish.sh` for that.
+
 ### Versioning
 I will try to stick to Semantic Versioning 2.0.0 (http://semver.org/spec/v2.0.0.html).
 

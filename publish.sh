@@ -3,6 +3,8 @@ echo "Clear deploy folder."
 rm -fr "deploy"
 mkdir -p "deploy"
 
+DEPLOYNAME="Andromeda-v0.0.0-x86_64"
+
 echo "Start publishing as archive by building."
 dotnet restore
 (
@@ -25,13 +27,14 @@ dotnet restore
     cd "publish" || exit
     echo "Put files into .zip .."
     find . -print | zip -q "../publish" -@
+    mv "../publish.zip" "../$DEPLOYNAME.zip"
 
     echo "Put files into .tar .."
-    tar -czf "../publish.tar" -- *
+    tar -czf "../$DEPLOYNAME.tar" -- *
     echo "Compress .tar to .tar.gz .."
-    gzip -k "../publish.tar"
+    gzip -k "../$DEPLOYNAME.tar"
     echo "Compress .tar to .tar.xz .."
-    xz -e9 --threads=0 -f "../publish.tar"
+    xz -e9 --threads=0 -f "../$DEPLOYNAME.tar"
 
     echo "Finished publishing as archives."
   )
@@ -39,8 +42,8 @@ dotnet restore
 
 echo "Start publishing as AppImage by building."
 (
-  cd "Andromeda.AvaloniaApp"
-  dotnet restore -s "https://www.myget.org/F/avalonia-ci/api/v2" -s "https://api.nuget.org/v3/index.json"
+  cd "Andromeda.AvaloniaApp" || exit
+  dotnet restore --runtime ubuntu.16.04-x64 -s "https://www.myget.org/F/avalonia-ci/api/v2" -s "https://api.nuget.org/v3/index.json"
   dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 --no-restore | grep error --color=never
   rm -r "AppDir/usr/bin"
   mv "bin/Release/netcoreapp2.2/ubuntu.16.04-x64/publish" "AppDir/usr"
@@ -52,9 +55,10 @@ then
   chmod a+x appimagetool-x86_64.AppImage
 fi
 (
-  cd "Andromeda.AvaloniaApp"
-  ./../appimagetool-x86_64.AppImage ./AppDir
-  mv "Andromeda-x86_64.AppImage" "../deploy"
+  cd "Andromeda.AvaloniaApp" || exit
+  ./../appimagetool-x86_64.AppImage ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
+  mv "Andromeda-x86_64.AppImage" "../deploy/$DEPLOYNAME.AppImage"
+  mv "Andromeda-x86_64.AppImage.zsync" "../deploy/$DEPLOYNAME.AppImage.zsync"
 
   echo "Finished publishing as archives."
 )
