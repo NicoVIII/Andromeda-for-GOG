@@ -5,10 +5,9 @@
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="FSharp.Core" Version="4.5.2" />
-    <PackageReference Include="Couchbase.Lite" Version="2.1.1" />
+    <PackageReference Include="Couchbase.Lite" Version="2.1.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
-    <PackageReference Include="SharpZipLib" Version="1.0.0" />
+    <PackageReference Include="SharpZipLib" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="../GogApi.DotNet/GogApi.DotNet.fsproj" />

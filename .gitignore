@@ -340,7 +340,10 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 
-# AppImage
+# AppImage building
 **/AppDir/.DirIcon
 AppDir/usr/bin
 appimagetool-x86_64.AppImage
+
+# Ionide Plugin VSCode
+.ionide
