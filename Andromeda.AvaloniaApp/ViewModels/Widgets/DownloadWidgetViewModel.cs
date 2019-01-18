@@ -47,25 +47,27 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
 
         public void UpgradeAllGames()
         {
-            this.SetAppData(Installed.searchInstalled(this.AppData));
-            var result = Installed.checkAllForUpdates(this.AppData);
-            this.SetAppData(result.Item2);
+            if (this.AppData.authentication.IsAuth) {
+                this.SetAppData(Installed.searchInstalled(this.AppData));
+                var result = Installed.checkAllForUpdates(this.AppData);
+                this.SetAppData(result.Item2);
 
-            var list = result.Item1.ToList();
-            var message = "Found " + list.Count() + " games to update.";
-            Logger.LogInfo(message);
-            ((MainWindowViewModel) this.Parent).AddNotification(message);
-            foreach (var updateInfo in list)
-            {
-                var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
-                Debug.Assert(game != null);
-                if (updateInfo.newVersion != game.version) // Just to be sure
+                var list = result.Item1.ToList();
+                var message = "Found " + list.Count() + " games to update.";
+                Logger.LogInfo(message);
+                ((MainWindowViewModel) this.Parent).AddNotification(message);
+                foreach (var updateInfo in list)
                 {
-                    var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
-                    this.SetAppData(result2.Item2);
+                    var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
+                    Debug.Assert(game != null);
+                    if (updateInfo.newVersion != game.version) // Just to be sure
+                    {
+                        var result2 = Games.getAvailableInstallersForOs(this.AppData, game.id);
+                        this.SetAppData(result2.Item2);
 
-                    var installerInfo = result2.Item1.ToList().First();
-                    AddDownload(new InstallationInfos(game.name, installerInfo));
+                        var installerInfo = result2.Item1.ToList().First();
+                        AddDownload(new InstallationInfos(game.name, installerInfo));
+                    }
                 }
             }
         }
