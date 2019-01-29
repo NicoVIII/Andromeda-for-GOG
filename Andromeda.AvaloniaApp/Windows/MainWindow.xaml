@@ -81,14 +81,20 @@
           <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
         </StackPanel>
         <StackPanel Grid.Row="2" Orientation="Vertical" Margin="25" Spacing="2">
-          <TextBlock TextWrapping="Wrap">Because I could not make a browser control for Avalonia work,</TextBlock>
+          <TextBlock TextWrapping="Wrap">Because I couldn't make a browser control for Avalonia work,</TextBlock>
           <TextBlock TextWrapping="Wrap">we have to live for now without the graphical stuff from GOG Galaxy</TextBlock>
           <TextBlock TextWrapping="Wrap">and use some workaround buttons (and later menus).</TextBlock>
           <TextBlock TextWrapping="Wrap"> </TextBlock>
           <TextBlock TextWrapping="Wrap">You can start games by right clicking on the game in the list on the left side.</TextBlock>
-          <TextBlock TextWrapping="Wrap">If a game does not start, run Andromeda from console and have a look at the console output.</TextBlock>
+          <TextBlock TextWrapping="Wrap"> </TextBlock>
+          <TextBlock TextWrapping="Wrap">If a game does not start on linux, run Andromeda from console and have a look at the console output.</TextBlock>
           <TextBlock TextWrapping="Wrap">This happens normally, because the execution rights are not set correctly for some files.</TextBlock>
-          <TextBlock TextWrapping="Wrap">Working on a solution for that problem!</TextBlock>
+          <TextBlock TextWrapping="Wrap"> </TextBlock>
+          <TextBlock TextWrapping="Wrap">On windows many games crash after start for some reason.</TextBlock>
+          <TextBlock TextWrapping="Wrap">You have to start it manually from outside Andromeda for now.</TextBlock>
+          <TextBlock TextWrapping="Wrap">Upgrading will not work on windows as well. This will hopefully be fixed for v0.4.0.</TextBlock>
+          <TextBlock TextWrapping="Wrap"> </TextBlock>
+          <TextBlock TextWrapping="Wrap">Working on a solution for those problems!</TextBlock>
         </StackPanel>
         <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
       </Grid>

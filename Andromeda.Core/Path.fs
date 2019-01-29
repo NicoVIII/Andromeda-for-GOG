@@ -27,7 +27,7 @@ let gamePath =
         Environment.GetEnvironmentVariable "HOME"
         |> sprintf "%s/GOG Games"
     | Windows ->
-        "d:\\Spiele" // TODO: tmp for debugging purposes
+        "D:\\Spiele" // TODO: tmp for debugging purposes
 
 let savePath =
     match os with
