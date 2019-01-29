@@ -143,7 +143,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                     if (downloadInfo.FilePath != null)
                     {
                         Logger.LogInfo("Unpack " + downloadInfo.GameTitle + " from " + downloadInfo.FilePath);
-                        Games.extractLibrary(downloadInfo.GameTitle, downloadInfo.FilePath);
+                        Games.extractLibrary(this.AppData, downloadInfo.GameTitle, downloadInfo.FilePath);
                         Logger.LogInfo(downloadInfo.GameTitle + " unpacked successfully!");
                     }
                     else

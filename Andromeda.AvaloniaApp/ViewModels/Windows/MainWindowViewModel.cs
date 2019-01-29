@@ -103,20 +103,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 
         private static void StartGame(string path)
         {
-            if (Core.FSharp.Helpers.os.IsLinux)
-            {
-                var filepath = System.IO.Path.Combine(path, "start.sh");
-                Syscall.chmod(filepath, FilePermissions.ALLPERMS);
-                Process.Start(filepath);
-            }
-            else if (Core.FSharp.Helpers.os.IsWindows)
-            {
-                // TBD:
-            }
-            else if (Core.FSharp.Helpers.os.IsMacOS)
-            {
-                // TBD:
-            }
+            Games.startGame(path);
         }
     }
 }

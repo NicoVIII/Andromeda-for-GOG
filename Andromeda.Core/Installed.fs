@@ -129,20 +129,8 @@ let getInstalledOnWindows (appData: AppData) gameDir =
         appData
 
 let searchInstalled (appData :AppData) =
-    // Code
-    // TODO: Replace with appdata configuration
-    let path =
-        match os with
-        | Linux ->
-            Environment.GetEnvironmentVariable "HOME"
-            |> sprintf "%s/GOG Games"
-        | Windows ->
-            "D:/Spiele"
-        | MacOS ->
-            "" // TODO:
-
     let appData = { appData with installedGames = [] }
-    Directory.EnumerateDirectories(path)
+    Directory.EnumerateDirectories(appData.gamePath)
     |> List.ofSeq
     |> List.fold (fun appData gameDir ->
         // Ignore folders starting with '!'

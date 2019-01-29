@@ -30,7 +30,7 @@ let startFileDownload url gameName version =
     let filepath = Path.Combine(dir, sprintf "%s%s.%s" gameName version installerEnding)
     let tmppath = Path.Combine(dir, "tmp", sprintf "%s%s.%s" gameName version installerEnding)
     Directory.CreateDirectory(Path.Combine(dir, "tmp")) |> ignore
-    let file = new FileInfo(filepath)
+    let file = FileInfo(filepath)
     match not file.Exists with
     | true ->
         let url = String.replace "http://" "https://" url
@@ -40,14 +40,42 @@ let startFileDownload url gameName version =
     | false ->
         (None, filepath, tmppath)
 
+let startGame path =
+    match os with
+    | Linux
+    | MacOS ->
+        let filepath = Path.Combine(path, "start.sh")
+        Syscall.chmod(filepath, FilePermissions.ALLPERMS) |> ignore
+        Process.Start filepath |> ignore
+    | Windows ->
+        let file =
+            Directory.GetFiles(path)
+            |> List.ofArray
+            |> List.filter (fun path ->
+                let fileName = Path.GetFileName path
+                fileName.StartsWith "Launch " && fileName.EndsWith ".lnk"
+            )
+            |> List.first
+        match file with
+        | Some file ->
+            let target = getShortcutTarget file |> String.trim
+            printfn "%s" target
+            use p = new Process()
+            p.StartInfo.FileName <- target
+            p.StartInfo.UseShellExecute <- true
+            p.StartInfo.Verb <- "runas"
+            p.Start() |> ignore
+        | None ->
+            () // TODO: better error handling
+
 let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs:bool) =
-    let dir = new DirectoryInfo(sourceDirName)
+    let dir = DirectoryInfo(sourceDirName)
     let dirs = dir.GetDirectories();
 
     match (dir.Exists, Directory.Exists(destDirName)) with
     | (false, _) ->
         // If the source directory does not exist, throw an exception.
-        raise (new DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName))
+        raise (DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName))
     | (true, false) ->
         // If the destination directory does not exist, create it.
         Directory.CreateDirectory(destDirName) |> ignore
@@ -79,7 +107,7 @@ let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs
 
 let generateRandomString length =
     let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    let random = new Random();
+    let random = Random();
 
     let rec helper rest result =
         let result = result + (string chars.[random.Next(chars.Length)]);
@@ -89,8 +117,9 @@ let generateRandomString length =
 
     helper length ""
 
-let extractLibrary (gamename: string) filepath =
-    let target = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", gamename)
+let extractLibrary appData (gamename: string) filepath =
+    let target = Path.Combine(appData.gamePath, gamename)
+    printfn "%s" target
     match os with
     | Linux ->
         Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
@@ -99,7 +128,7 @@ let extractLibrary (gamename: string) filepath =
         Directory.CreateDirectory(tmp) |> ignore
         try
             // Unzip linux installer with ZipLibrary
-            let fastZip = new FastZip()
+            let fastZip = FastZip()
             fastZip.ExtractZip (filepath, tmp, null)
         with
         | :? ZipException ->
@@ -108,9 +137,9 @@ let extractLibrary (gamename: string) filepath =
 
 
         // Move files to install folder
-        let folderPath = Path.Combine(tmp,"data","noarch")
+        let folderPath = Path.Combine(tmp, "data", "noarch")
         Syscall.chmod (folderPath, FilePermissions.ALLPERMS) |> ignore
-        let folder = new DirectoryInfo(folderPath)
+        let folder = DirectoryInfo(folderPath)
         match folder.Exists with
         | true ->
             copyDirectory folderPath target true
@@ -118,8 +147,16 @@ let extractLibrary (gamename: string) filepath =
         | false ->
             failwith "Folder not found! :("
     | Windows ->
-        let p = Process.Start(filepath, "/SILENT /LANG=en /SP- /NOCANCEL /SUPPRESSMSGBOXES /NOGUI /DIR=\"" + target+"\"")
-        p.WaitForExit() |> ignore
+        let p = Process.Start(filepath, "/DIR=\"" + target+"\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+        p.WaitForExit()
+        match p.ExitCode with
+        | 0 ->
+            // Nothing to do
+            ()
+        | _ ->
+            // Try again with non-silent install
+            let p = Process.Start(filepath, "/DIR=\"" + target+"\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+            p.WaitForExit()
     | MacOS ->
         failwith "Not supported yet :/"
 
