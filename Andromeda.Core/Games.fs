@@ -58,13 +58,21 @@ let startGame path =
             |> List.first
         match file with
         | Some file ->
-            let target = getShortcutTarget file |> String.trim
-            printfn "%s" target
-            use p = new Process()
-            p.StartInfo.FileName <- target
-            p.StartInfo.UseShellExecute <- true
-            p.StartInfo.Verb <- "runas"
-            p.Start() |> ignore
+            let target = getShortcutTarget file
+            try
+                Process.Start target |> ignore
+            with
+            | _ ->
+                try
+                    // Try again with admin rights
+                    let p = new Process()
+                    p.StartInfo.FileName <- target
+                    p.StartInfo.UseShellExecute <- true
+                    p.StartInfo.Verb <- "runas"
+                    p.Start() |> ignore
+                with
+                | _ ->
+                    ()
         | None ->
             () // TODO: better error handling
 
