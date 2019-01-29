@@ -44,7 +44,7 @@ echo "Start publishing as AppImage by building."
 (
   cd "Andromeda.AvaloniaApp" || exit
   dotnet restore --runtime ubuntu.16.04-x64 -s "https://www.myget.org/F/avalonia-ci/api/v2" -s "https://api.nuget.org/v3/index.json"
-  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 --no-restore | grep error --color=never
+  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 | grep error --color=never
   rm -r "AppDir/usr/bin"
   mv "bin/Release/netcoreapp2.2/ubuntu.16.04-x64/publish" "AppDir/usr"
   mv "AppDir/usr/publish" "AppDir/usr/bin"
@@ -60,5 +60,5 @@ fi
   mv "Andromeda-x86_64.AppImage" "../deploy/$DEPLOYNAME.AppImage"
   mv "Andromeda-x86_64.AppImage.zsync" "../deploy/$DEPLOYNAME.AppImage.zsync"
 
-  echo "Finished publishing as archives."
+  echo "Finished publishing as AppImage."
 )

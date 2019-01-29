@@ -22,7 +22,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        public string Version { get => "v0.3.0-alpha.4"; }
+        public string Version { get => "v0.3.0-alpha.5"; }
 
         private string searchTerm = "";
         public string SearchTerm { get => this.searchTerm; set => this.RaiseAndSetIfChanged(ref this.searchTerm, value); }
