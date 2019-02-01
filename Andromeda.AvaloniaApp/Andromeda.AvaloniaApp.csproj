@@ -18,18 +18,18 @@
     <EmbeddedResource Include="Assets\*" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-build1128-beta" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.1-build1128-beta" />
-    <PackageReference Include="DynamicData" Version="6.6.1.2507" />
-    <PackageReference Include="DynamicData.ReactiveUI" Version="6.6.1.2507" />
-    <PackageReference Include="ReactiveUI" Version="9.1.4" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.7.1-cibuild0001342-beta" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.7.1-cibuild0001342-beta" />
+    <PackageReference Include="DynamicData" Version="6.7.1.2534" />
+    <PackageReference Include="DynamicData.ReactiveUI" Version="6.7.1.2534" />
+    <PackageReference Include="ReactiveUI" Version="9.9.1" />
     <PackageReference Include="System.Reactive.Core" Version="4.1.2" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.1.2" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.2" />
-    <PackageReference Include="VitalElement.CefGlue.Core" Version="0.9.0-build30-alpha" />
-    <PackageReference Include="VitalElement.CefGlue.Core.Avalonia" Version="0.9.0-build30-alpha" />
-    <!--PackageReference Include="VitalElement.CefGlue.Core.OSX" Version="0.9.0-build30-alpha" /-->
-    <!--PackageReference Include="VitalElement.CefGlue.Core.Win-x64" Version="0.9.0-build30-alpha" /-->
+    <PackageReference Include="VitalElement.CefGlue.Core" Version="0.9.0-build32-alpha" />
+    <PackageReference Include="VitalElement.CefGlue.Core.Avalonia" Version="0.9.0-build32-alpha" />
+    <!--PackageReference Include="VitalElement.CefGlue.Core.OSX" Version="0.9.0-build32-alpha" /-->
+    <!--PackageReference Include="VitalElement.CefGlue.Core.Win-x64" Version="0.9.0-build32-alpha" /-->
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Andromeda.Core\Andromeda.Core.fsproj" />
