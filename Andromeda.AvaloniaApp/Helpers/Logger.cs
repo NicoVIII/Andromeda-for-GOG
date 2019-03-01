@@ -1,9 +1,7 @@
 using System;
 
-namespace Andromeda.AvaloniaApp.Helpers
-{
-    static class Logger
-    {
+namespace Andromeda.AvaloniaApp.Helpers {
+    static class Logger {
         public enum LogLevel { Info = 0, Warning, Error }
 
 #if DEBUG
@@ -12,10 +10,8 @@ namespace Andromeda.AvaloniaApp.Helpers
         private static readonly LogLevel logLevel = LogLevel.Warning;
 #endif
 
-        public static void Log(LogLevel level, string message)
-        {
-            if (Logger.logLevel <= level)
-            {
+        public static void Log(LogLevel level, string message) {
+            if (Logger.logLevel <= level) {
                 Console.WriteLine("[" + level.ToString() + "] " + message);
             }
         }

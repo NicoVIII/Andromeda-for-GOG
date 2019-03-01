@@ -2,10 +2,8 @@ using ReactiveUI;
 
 using static GogApi.DotNet.FSharp.GalaxyApi;
 
-namespace Andromeda.AvaloniaApp.Helpers
-{
-    public class DownloadStatus : ReactiveObject
-    {
+namespace Andromeda.AvaloniaApp.Helpers {
+    public class DownloadStatus : ReactiveObject {
         private float downloaded;
         private bool installing;
 
@@ -26,8 +24,7 @@ namespace Andromeda.AvaloniaApp.Helpers
             }
         }
 
-        public DownloadStatus(string gameTitle, string path, float fileSize)
-        {
+        public DownloadStatus(string gameTitle, string path, float fileSize) {
             this.GameTitle = gameTitle;
             this.FilePath = path;
             this.FileSize = fileSize;
@@ -35,13 +32,11 @@ namespace Andromeda.AvaloniaApp.Helpers
             this.Installing = false;
         }
 
-        public void UpdateDownloaded(float downloaded)
-        {
+        public void UpdateDownloaded(float downloaded) {
             this.Downloaded = downloaded;
         }
 
-        public void IndicateInstalling()
-        {
+        public void IndicateInstalling() {
             this.Installing = true;
         }
     }

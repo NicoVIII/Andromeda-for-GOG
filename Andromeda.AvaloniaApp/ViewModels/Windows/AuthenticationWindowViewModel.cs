@@ -15,27 +15,22 @@ using static Andromeda.Core.FSharp.AppData;
 using static GogApi.DotNet.FSharp.Authentication;
 using static GogApi.DotNet.FSharp.Listing;
 
-namespace Andromeda.AvaloniaApp.ViewModels.Windows
-{
-    public class AuthenticationWindowViewModel : ViewModelBase
-    {
+namespace Andromeda.AvaloniaApp.ViewModels.Windows {
+    public class AuthenticationWindowViewModel : ViewModelBase {
         private string code = "";
 
-        public string Code
-        {
+        public string Code {
             get => this.code;
             private set { this.RaiseAndSetIfChanged(ref this.code, value); }
         }
 
         public ReactiveCommand<Window, Unit> AuthenticateCommand { get; }
 
-        public AuthenticationWindowViewModel(Control control, AppDataWrapper appDataWrapper) : base(control, appDataWrapper)
-        {
+        public AuthenticationWindowViewModel(Control control, AppDataWrapper appDataWrapper) : base(control, appDataWrapper) {
             AuthenticateCommand = ReactiveCommand.Create<Window>(Authenticate);
         }
 
-        void Authenticate(Window window)
-        {
+        void Authenticate(Window window) {
             this.SetAppData(withNewToken(this.AppData, this.Code));
             window.Close();
         }

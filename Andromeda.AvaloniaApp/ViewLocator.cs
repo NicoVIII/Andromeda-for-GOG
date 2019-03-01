@@ -3,14 +3,11 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Andromeda.AvaloniaApp.ViewModels;
 
-namespace Andromeda.AvaloniaApp
-{
-    public class ViewLocator : IDataTemplate
-    {
+namespace Andromeda.AvaloniaApp {
+    public class ViewLocator : IDataTemplate {
         public bool SupportsRecycling => false;
 
-        public IControl Build(object data)
-        {
+        public IControl Build(object data) {
             var name = data.GetType().FullName.Replace("ViewModel", "View");
             var type = Type.GetType(name);
 
@@ -22,8 +19,7 @@ namespace Andromeda.AvaloniaApp
             }
         }
 
-        public bool Match(object data)
-        {
+        public bool Match(object data) {
             return data is ViewModelBase;
         }
     }

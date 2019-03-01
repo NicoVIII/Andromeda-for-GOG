@@ -18,18 +18,15 @@ using Andromeda.AvaloniaApp.Helpers;
 using Andromeda.AvaloniaApp.ViewModels.Widgets;
 using Andromeda.AvaloniaApp.Windows;
 
-namespace Andromeda.AvaloniaApp.ViewModels.Windows
-{
-    public class MainWindowViewModel : ViewModelBase
-    {
+namespace Andromeda.AvaloniaApp.ViewModels.Windows {
+    public class MainWindowViewModel : ViewModelBase {
         public string Version { get => "v0.3.0-alpha.5"; }
 
         private string searchTerm = "";
         public string SearchTerm { get => this.searchTerm; set => this.RaiseAndSetIfChanged(ref this.searchTerm, value); }
 
         private IReactiveList<AppData.InstalledGame.T> installedGames;
-        public IReactiveList<AppData.InstalledGame.T> InstalledGames
-        {
+        public IReactiveList<AppData.InstalledGame.T> InstalledGames {
             get => this.installedGames;
             set => this.RaiseAndSetIfChanged(ref this.installedGames, value);
         }
@@ -40,8 +37,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
         private readonly IReactiveList<NotificationData> notifications = new ReactiveList<NotificationData>();
         public IReactiveList<NotificationData> Notifications { get => this.notifications; }
 
-        public IReactiveList<DownloadStatus> Downloads
-        {
+        public IReactiveList<DownloadStatus> Downloads {
             get => this.DownloadWidgetVM.Downloads;
         }
 
@@ -51,14 +47,14 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
 
         public DownloadWidgetViewModel DownloadWidgetVM { get; }
 
-        public MainWindowViewModel(Control control) : base(control)
-        {
+        public MainWindowViewModel(Control control) : base(control) {
             // Initialize observables
             this.InstalledGames = new ReactiveList<AppData.InstalledGame.T>(this.AppData.installedGames);
             this.filteredInstalledGames = this
                 .WhenAnyValue(x => x.InstalledGames, x => x.SearchTerm)
                 .Throttle(TimeSpan.FromMilliseconds(800))
-                .Select(tuple => {
+                .Select(tuple =>
+                {
                     var installedGames = tuple.Item1;
                     var searchTerm = tuple.Item2;
                     return installedGames.Where(i => searchTerm.Length == 0 || i.name.Contains(searchTerm));
@@ -74,8 +70,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
             UpgradeAllGamesCommand = ReactiveCommand.Create(DownloadWidgetVM.UpgradeAllGames);
         }
 
-        public void AddNotification(string message)
-        {
+        public void AddNotification(string message) {
             var notification = new NotificationData(message);
             this.Notifications.Add(notification);
 
@@ -94,15 +89,13 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows
             timer.Start();
         }
 
-        private void OpenInstallWindow()
-        {
+        private void OpenInstallWindow() {
             var installWindow = new InstallWindow();
             installWindow.DataContext = new InstallWindowViewModel(installWindow, this);
             installWindow.ShowDialog(this.GetParentWindow());
         }
 
-        private static void StartGame(string path)
-        {
+        private static void StartGame(string path) {
             Games.startGame(path);
         }
     }

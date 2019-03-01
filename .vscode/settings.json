@@ -7,5 +7,7 @@
     },
     "FSharp.fsacRuntime": "netcore",
     "FSharp.logLanguageServiceRequests": "both",
-    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "INFO"
+    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "INFO",
+    "editor.formatOnSave": true,
+    "files.trimFinalNewlines": true
 }

@@ -8,17 +8,15 @@ using System;
 using Andromeda.AvaloniaApp.ViewModels.Windows;
 using Andromeda.AvaloniaApp.Windows;
 
-namespace Andromeda.AvaloniaApp
-{
-    static class Program
-    {
-        static void Main(string[] args)
-        {
+namespace Andromeda.AvaloniaApp {
+    static class Program {
+        static void Main(string[] args) {
             // Initialise Couchbase Lite
             Couchbase.Lite.Support.NetDesktop.Activate();
             Database.SetLogLevel(LogDomain.All, LogLevel.None);
 
-            BuildAvaloniaApp(args).Start((app, arg) => {
+            BuildAvaloniaApp(args).Start((app, arg) =>
+            {
                 var window = new MainWindow();
                 window.DataContext = new MainWindowViewModel(window);
                 app.Run(window);

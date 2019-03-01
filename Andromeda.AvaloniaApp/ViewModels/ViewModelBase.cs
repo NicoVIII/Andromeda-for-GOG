@@ -12,13 +12,10 @@ using Andromeda.AvaloniaApp.Windows;
 using static Andromeda.Core.FSharp.AppData;
 using static Andromeda.Core.FSharp.Installed;
 
-namespace Andromeda.AvaloniaApp.ViewModels
-{
-    public class ViewModelBase : ReactiveObject
-    {
+namespace Andromeda.AvaloniaApp.ViewModels {
+    public class ViewModelBase : ReactiveObject {
         public AppDataWrapper AppDataWrapper { get; private set; }
-        protected AppData AppData
-        {
+        protected AppData AppData {
             get => this.AppDataWrapper.AppData;
         }
 
@@ -27,26 +24,21 @@ namespace Andromeda.AvaloniaApp.ViewModels
 
         public Control Control { get; }
 
-        public ViewModelBase(Control control) : this(control, null)
-        {
+        public ViewModelBase(Control control) : this(control, null) {
             // Nothing to do here
         }
 
-        public ViewModelBase(Control control, AppDataWrapper appDataWrapper)
-        {
+        public ViewModelBase(Control control, AppDataWrapper appDataWrapper) {
             this.Control = control;
 
-            if (appDataWrapper != null)
-            {
+            if (appDataWrapper != null) {
                 this.AppDataWrapper = appDataWrapper;
             }
-            else
-            {
+            else {
                 this.AppDataWrapper = new AppDataWrapper();
                 this.SetAppData(loadAppData());
                 this.SetAppData(searchInstalled(this.AppData));
-                if (this.AppData.authentication.IsNoAuth)
-                {
+                if (this.AppData.authentication.IsNoAuth) {
                     // Authenticate
                     var window = new AuthenticationWindow();
                     window.DataContext = new AuthenticationWindowViewModel(window, this.AppDataWrapper);
@@ -55,19 +47,16 @@ namespace Andromeda.AvaloniaApp.ViewModels
             }
         }
 
-        public virtual Window GetParentWindow()
-        {
+        public virtual Window GetParentWindow() {
             return this.Control is Window ? (Window)this.Control : null;
         }
 
-        protected virtual void SetAppData(AppData appData)
-        {
+        protected virtual void SetAppData(AppData appData) {
             this.AppDataWrapper.AppData = appData;
             saveAppData(this.AppData);
         }
 
-        public IList<T> GetChildrenOfType<T>()
-        {
+        public IList<T> GetChildrenOfType<T>() {
             return this.children
                 .Where(child => typeof(T).IsInstanceOfType(child))
                 .Cast<T>()

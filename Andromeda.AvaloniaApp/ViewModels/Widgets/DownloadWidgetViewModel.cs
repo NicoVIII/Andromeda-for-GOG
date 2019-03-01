@@ -15,17 +15,14 @@ using System.Timers;
 using Andromeda.AvaloniaApp.Helpers;
 using Andromeda.AvaloniaApp.ViewModels.Windows;
 
-namespace Andromeda.AvaloniaApp.ViewModels.Widgets
-{
-    public class DownloadWidgetViewModel : SubViewModelBase
-    {
+namespace Andromeda.AvaloniaApp.ViewModels.Widgets {
+    public class DownloadWidgetViewModel : SubViewModelBase {
         private readonly Queue<InstallationInfos> downloadQueue = new Queue<InstallationInfos>();
 
         private readonly IReactiveList<DownloadStatus> downloads = new ReactiveList<DownloadStatus>();
         public IReactiveList<DownloadStatus> Downloads { get => this.downloads; }
 
-        public DownloadWidgetViewModel(Control control, ViewModelBase parent) : base(control, parent)
-        {
+        public DownloadWidgetViewModel(Control control, ViewModelBase parent) : base(control, parent) {
             // Search regularly for upgrades
             this.UpgradeAllGames();
             var timer = new Timer(1 * 3600 * 1000);
@@ -35,18 +32,15 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
         }
 
         // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
-        protected override void SetAppData(AppData.AppData appData)
-        {
+        protected override void SetAppData(AppData.AppData appData) {
             base.SetAppData(appData);
-            if (((MainWindowViewModel)this.Parent).InstalledGames != null)
-            {
+            if (((MainWindowViewModel)this.Parent).InstalledGames != null) {
                 ((MainWindowViewModel)this.Parent).InstalledGames.Clear();
                 ((MainWindowViewModel)this.Parent).InstalledGames.AddRange(appData.installedGames);
             }
         }
 
-        public void UpgradeAllGames()
-        {
+        public void UpgradeAllGames() {
             if (this.AppData.authentication.IsAuth) {
                 this.SetAppData(Installed.searchInstalled(this.AppData));
                 var result = Installed.checkAllForUpdates(this.AppData);
@@ -55,9 +49,8 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 var list = result.Item1.ToList();
                 var message = "Found " + list.Count() + " games to update.";
                 Logger.LogInfo(message);
-                ((MainWindowViewModel) this.Parent).AddNotification(message);
-                foreach (var updateInfo in list)
-                {
+                ((MainWindowViewModel)this.Parent).AddNotification(message);
+                foreach (var updateInfo in list) {
                     var game = this.AppData.installedGames.Where(g => g.id == updateInfo.game.id).FirstOrDefault();
                     Debug.Assert(game != null);
                     if (updateInfo.newVersion != game.version) // Just to be sure
@@ -72,30 +65,25 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
             }
         }
 
-        public void AddDownload(InstallationInfos info)
-        {
+        public void AddDownload(InstallationInfos info) {
             this.downloadQueue.Enqueue(info);
             Logger.LogInfo("Added download of " + info.GameTitle + " to download queue.");
 
             this.CheckForNewDownload();
         }
 
-        private void CheckForNewDownload()
-        {
+        private void CheckForNewDownload() {
             // TODO: Check for nr of already running downloads
-            if (this.downloadQueue.Count > 0)
-            {
+            if (this.downloadQueue.Count > 0) {
                 this.StartDownload(this.downloadQueue.Dequeue());
             }
         }
 
-        private void StartDownload(InstallationInfos info)
-        {
+        private void StartDownload(InstallationInfos info) {
             Logger.LogInfo("Get download info for " + info.GameTitle + " to download queue.");
             var res = Games.downloadGame(this.AppData, info.GameTitle, info.InstallerInfo);
             // TODO: This is installation stuff, this should be moved to core
-            if (res != null)
-            {
+            if (res != null) {
                 var filepath = res.Value.Item2;
                 var tmppath = res.Value.Item3;
                 var downloadInfo = new DownloadStatus(info.GameTitle, tmppath, res.Value.Item4 / 1000000.0f);
@@ -105,8 +93,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                 Task downloadTask = null;
 
                 // File not found in cache
-                if (res.Value.Item1 != null)
-                {
+                if (res.Value.Item1 != null) {
                     Logger.LogInfo("Download installer for " + info.GameTitle + ".");
                     downloadTask = res.Value.Item1.Value;
                     timer = new Timer(500.0);
@@ -118,36 +105,31 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets
                     };
                     timer.Start();
                 }
-                else
-                {
+                else {
                     Logger.LogInfo("Use cached installer for " + info.GameTitle + ".");
                 }
 
                 var worker = new BackgroundWorker();
                 worker.DoWork += (arg, arg2) =>
                 {
-                    if (downloadTask != null)
-                    {
+                    if (downloadTask != null) {
                         downloadTask.Wait();
                         File.Move(tmppath, filepath);
                     }
                     downloadInfo.FilePath = filepath;
 
-                    if (timer != null)
-                    {
+                    if (timer != null) {
                         timer.Stop();
                     }
 
                     // Install game
                     downloadInfo.IndicateInstalling();
-                    if (downloadInfo.FilePath != null)
-                    {
+                    if (downloadInfo.FilePath != null) {
                         Logger.LogInfo("Unpack " + downloadInfo.GameTitle + " from " + downloadInfo.FilePath);
                         Games.extractLibrary(this.AppData, downloadInfo.GameTitle, downloadInfo.FilePath);
                         Logger.LogInfo(downloadInfo.GameTitle + " unpacked successfully!");
                     }
-                    else
-                    {
+                    else {
                         Logger.LogError("Filepath to installer is empty! Something went wrong...");
                     }
                 };
