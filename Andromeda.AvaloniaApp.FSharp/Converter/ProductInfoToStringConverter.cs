@@ -6,24 +6,21 @@ using Microsoft.FSharp.Core;
 using System;
 using System.Globalization;
 
-namespace Andromeda.AvaloniaApp.Converter
-{
-    public class ProductInfoToStringConverter : IValueConverter
-    {
+namespace Andromeda.AvaloniaApp.Converter {
+    public class ProductInfoToStringConverter : IValueConverter {
         public object Convert(object value, Type targetType,
-            object parameter, CultureInfo culture)
-        {
+            object parameter, CultureInfo culture) {
             if (value != null) {
-                var info = (GogApi.DotNet.FSharp.Listing.ProductInfo) value;
+                var info = (GogApi.DotNet.FSharp.Listing.ProductInfo)value;
                 return info.title;
-            } else {
+            }
+            else {
                 return null;
             }
         }
 
         public object ConvertBack(object value, Type targetType,
-            object parameter, CultureInfo culture)
-        {
+            object parameter, CultureInfo culture) {
             return null;
         }
     }
