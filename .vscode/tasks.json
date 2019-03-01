@@ -13,8 +13,7 @@
                 "kind": "build",
                 "isDefault": true
             },
-            "options": {
-            },
-        },
+            "options": {}
+        }
     ]
 }
