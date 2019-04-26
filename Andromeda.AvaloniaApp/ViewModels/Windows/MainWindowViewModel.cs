@@ -57,7 +57,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows {
                 {
                     var installedGames = tuple.Item1;
                     var searchTerm = tuple.Item2;
-                    return installedGames.Where(i => searchTerm.Length == 0 || i.name.Contains(searchTerm));
+                    return installedGames.Where(i => searchTerm.Length == 0 || i.name.ToLower().Contains(searchTerm.ToLower()));
                 })
                 .ToProperty(this, x => x.FilteredInstalledGames);
 
