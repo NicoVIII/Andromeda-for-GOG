@@ -35,7 +35,7 @@ let os =
     elif isOS OSPlatform.OSX then MacOS
     else failwith "I couldn't determine your OS? :O"
 
-// Taken from and converted to F#: https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
+// Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
 let getShortcutTarget file =
     try
         if System.IO.Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
