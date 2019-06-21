@@ -14,6 +14,14 @@
                 "isDefault": true
             },
             "options": {}
+        },
+        {
+            "label": "buildFSharp",
+            "command": "./build-fsharp.sh",
+            "type": "shell",
+            "args": [],
+            "group": "build",
+            "options": {}
         }
     ]
 }

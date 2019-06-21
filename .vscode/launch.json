@@ -1,9 +1,9 @@
 {
-   // Use IntelliSense to find out which attributes exist for C# debugging
-   // Use hover for the description of the existing attributes
-   // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
-   "version": "0.2.0",
-   "configurations": [
+    // Use IntelliSense to find out which attributes exist for C# debugging
+    // Use hover for the description of the existing attributes
+    // For further information visit https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md
+    "version": "0.2.0",
+    "configurations": [
         {
             "name": "AvaloniaApp",
             "type": "coreclr",
@@ -22,9 +22,9 @@
             "name": "AvaloniaApp (F#)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build",
+            "preLaunchTask": "buildFSharp",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp/bin/Debug/netcoreapp2.1/Andromeda.AvaloniaApp.FSharp.dll",
+            "program": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.FSharp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/Andromeda.AvaloniaApp.FSharp",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window

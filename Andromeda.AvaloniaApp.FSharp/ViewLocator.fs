@@ -16,7 +16,7 @@ type ViewLocator() =
 
             match ``type`` with
             | null ->
-                let textBlock = new TextBlock();
+                let textBlock = TextBlock();
                 textBlock.Text <- "Not Found: " + name
                 textBlock :> IControl
             | x ->
