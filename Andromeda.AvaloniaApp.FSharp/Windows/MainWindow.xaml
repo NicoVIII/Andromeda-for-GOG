@@ -1,11 +1,9 @@
-<Window x:Class="Andromeda.AvaloniaApp.Windows.MainWindow"
-        xmlns="https://github.com/avaloniaui"
-        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:core="clr-namespace:Andromeda.Core;assembly=Andromeda.Core"
-        xmlns:converter="clr-namespace:Andromeda.AvaloniaApp.Converter;assembly=Andromeda.AvaloniaApp"
-        xmlns:cef="clr-namespace:CefGlue.Avalonia;assembly=CefGlue.Avalonia"
-        Title="Andromeda"
-        Height="660" Width="1024">
+<Window x:Class="Andromeda.AvaloniaApp.FSharp.Windows.MainWindow"
+  xmlns="https://github.com/avaloniaui"
+  xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+  xmlns:core="clr-namespace:Andromeda.Core;assembly=Andromeda.Core"
+  xmlns:converter="clr-namespace:Andromeda.AvaloniaApp.FSharp.Converter;assembly=Andromeda.AvaloniaApp.FSharp"
+  xmlns:cef="clr-namespace:CefGlue.Avalonia;assembly=CefGlue.Avalonia" Title="Andromeda" Height="660" Width="1024">
   <Grid ColumnDefinitions="Auto, 1*">
     <!-- Left column -->
     <Grid Classes="dark" Grid.Column="0" RowDefinitions="Auto, Auto, 1*, Auto">

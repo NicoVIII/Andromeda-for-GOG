@@ -31,10 +31,24 @@
     <EmbeddedResource Include="Assets/*" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Helper/AppDataWrapper.fs" />
-    <Compile Include="Windows/WebWindow.xaml.fs" />
+    <Compile Include="Helpers/AppDataWrapper.fs" />
+    <Compile Include="Helpers/DownloadStatus.fs" />
+    <Compile Include="Helpers/InstallationInfos.fs" />
+    <Compile Include="Helpers/Logger.fs" />
+    <Compile Include="Helpers/NotificationData.fs" />
+
+    <Compile Include="Converter/FloatToStringConverter.fs" />
+    <Compile Include="Converter/PathToBitmapConverter.fs" />
+    <Compile Include="Converter/ProductInfoToStringConverter.fs" />
+
+    <Compile Include="Windows/AuthenticationWindow.xaml.fs" />
+    <Compile Include="Windows/InstallWindow.xaml.fs" />
+    <Compile Include="Windows/MainWindow.xaml.fs" />
 
     <Compile Include="ViewModels/ViewModelBase.fs" />
+    <Compile Include="ViewModels/AuthenticationWindowViewModel.fs" />
+    <Compile Include="ViewModels/InstallWindowViewModel.fs" />
+    <Compile Include="ViewModels/MainWindowViewModel.fs" />
 
     <Compile Include="ViewLocator.fs" />
 

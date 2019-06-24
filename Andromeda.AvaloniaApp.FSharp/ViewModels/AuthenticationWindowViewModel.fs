@@ -8,14 +8,14 @@ open ReactiveUI
 open DynamicData
 open System.Reactive
 
-type AuthenticationWindowViewModel(appDataWrapper) as this =
-    inherit ViewModelBase(appDataWrapper)
+type AuthenticationWindowViewModel(control, parent) as this =
+    inherit SubViewModelBase(control, parent)
 
-    member private this.code = ""
+    let code = ""
     member this.Code
-        with get() = this.code
+        with get() = code
         and set (value: string) =
-            this.RaiseAndSetIfChanged(ref this.code, value) |> ignore
+            this.RaiseAndSetIfChanged(ref code, value) |> ignore
 
     member this.Authenticate(window: Window) =
         this.AppData <- { this.AppData with authentication = newToken this.Code }
@@ -23,4 +23,3 @@ type AuthenticationWindowViewModel(appDataWrapper) as this =
         window.Close();
 
     member this.AuthenticateCommand: ReactiveCommand<Window, Unit> = ReactiveCommand.Create<Window>(this.Authenticate)
-
