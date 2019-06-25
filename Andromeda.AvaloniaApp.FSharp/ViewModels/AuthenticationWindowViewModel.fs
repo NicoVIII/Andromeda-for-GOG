@@ -17,9 +17,8 @@ type AuthenticationWindowViewModel(control, parent) as this =
         and set (value: string) =
             this.RaiseAndSetIfChanged(ref code, value) |> ignore
 
-    member this.Authenticate(window: Window) =
-        this.AppData <- { this.AppData with authentication = newToken this.Code }
-        saveAppData(this.AppData);
-        window.Close();
+    member val AuthenticateCommand: ReactiveCommand<Window, Unit> = ReactiveCommand.Create<Window>(this.Authenticate)
 
-    member this.AuthenticateCommand: ReactiveCommand<Window, Unit> = ReactiveCommand.Create<Window>(this.Authenticate)
+    member this.Authenticate(window: Window) =
+        { this.AppData with authentication = newToken this.Code } |> this.SetAppData
+        window.Close();

@@ -14,7 +14,6 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
     member val AppDataWrapper: AppDataWrapper = appDataWrapper with get, set
     member this.AppData
         with get () = this.AppDataWrapper.AppData
-        and set value = this.AppDataWrapper.AppData <- value
 
     abstract member GetParentWindow: unit -> Window
     abstract member GetRootViewModel: unit -> ParentViewModelBase
@@ -31,10 +30,13 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
             | _ -> list
         ) []
 
-and ParentViewModelBase(window: Window, appDataWrapper) as this =
+and [<AbstractClass>]
+    ParentViewModelBase(window: Window, appDataWrapper) as this =
     inherit ViewModelBase(appDataWrapper)
 
     member val Control = window
+
+    abstract member AddNotification: string -> unit
 
     override __.GetParentWindow () = window
     override __.GetRootViewModel () = this
