@@ -48,6 +48,7 @@ let main (args: string[]): int =
                 window.DataContext <- AuthenticationWindowViewModel (window, mainWindowVM)
                 mainWindow |> window.ShowDialog |> ignore
             | _ -> ()
+            mainWindowVM.Init()
             app.Run(mainWindow)
         ),
         [||]

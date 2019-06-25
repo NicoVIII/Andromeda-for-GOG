@@ -5,6 +5,10 @@ open Andromeda.Core.FSharp.AppData
 open ReactiveUI
 open ReactiveUI.Legacy
 open System
+open System.Collections.Generic
+open System.Linq
+open System.Reactive
+open System.Reactive.Linq
 open System.Threading
 open System.Threading.Tasks
 
@@ -25,15 +29,18 @@ type MainWindowViewModel(window, appDataWrapper) as this =
         with get () = searchTerm
         and set (value: string) = this.RaiseAndSetIfChanged(ref searchTerm, value) |> ignore
 
-    // TODO: if this works without setter this can be simplified
-    member __.InstalledGames
-        with get () = installedGames
+    member val InstalledGames = installedGames
+    member private __.filteredInstalledGames =
+        this.WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame.T>, string>((fun x -> x.InstalledGames), (fun (x: MainWindowViewModel) -> x.SearchTerm))
+            .Throttle(TimeSpan.FromMilliseconds(800.0))
+            .Select(fun (installedGames, searchTerm) ->
+                installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()));
+            )
+            .ToProperty(this, fun x -> x.FilteredInstalledGames);
+    member val FilteredInstalledGames = (this.filteredInstalledGames:ObservableAsPropertyHelper<IEnumerable<InstalledGame.T>>).Value
+    member val Notifications = notifications
 
-    // TODO: if this works without setter this can be simplified
-    member __.Notifications
-        with get () = notifications
-
-    member val DownloadWidgetVM:DownloadWidgetViewModel = DownloadWidgetViewModel(this.GetParentWindow(), this);
+    member val DownloadWidgetVM:DownloadWidgetViewModel = DownloadWidgetViewModel(this.GetParentWindow(), this)
 
     member val OpenInstallWindowCommand = ReactiveCommand.Create<unit>(this.OpenInstallWindow)
     member val StartGameCommand = ReactiveCommand.Create<string>(this.StartGame)

@@ -19,7 +19,17 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
     let downloadQueue = Queue<InstallationInfos>()
     let downloads = ReactiveList<DownloadStatus>()
 
-    let upgradeAllGames () =
+    member __.Init () =
+        base.Init()
+        this.UpgradeAllGames ()
+        let timer = new Timers.Timer(1.0 * 3600.0 * 1000.0);
+        timer.AutoReset <- true
+        timer.Elapsed.Add(fun (_) -> this.UpgradeAllGames())
+        timer.Start ()
+
+    member val Downloads = downloads
+
+    member __.UpgradeAllGames () =
         match this.AppData.authentication with
         | NoAuth -> ()
         | Auth _ ->
@@ -44,17 +54,6 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
                     // TODO: Select if multiple hits
                     let installerInfo::_ = installerInfos
                     InstallationInfos (game.name, installerInfo) |> this.AddDownload
-
-    do upgradeAllGames ()
-    do (
-        let timer = new Timers.Timer(1.0 * 3600.0 * 1000.0);
-        timer.AutoReset <- true
-        timer.Elapsed.Add(fun (_) -> this.UpgradeAllGames())
-        timer.Start ()
-    )
-
-    member val Downloads = downloads
-    member this.UpgradeAllGames () = upgradeAllGames ()
 
     member this.AddDownload info =
         info |> downloadQueue.Enqueue
@@ -111,7 +110,7 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
                 downloadInfo.GameTitle + " unpacked successfully!" |> Logger.LogInfo
             )
             worker.RunWorkerCompleted.Add(fun _ ->
-                Installed.searchInstalled this.AppData |> this.SetAppData
+                searchInstalled this.AppData |> this.SetAppData
                 downloadInfo |> this.Downloads.Remove |> ignore
                 "Cleaned up after install." |> Logger.LogInfo
             )

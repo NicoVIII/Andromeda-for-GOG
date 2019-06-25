@@ -18,6 +18,10 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
     abstract member GetParentWindow: unit -> Window
     abstract member GetRootViewModel: unit -> ParentViewModelBase
 
+    member __.Init () =
+        for child in this.Children do
+            child.Init()
+
     member this.SetAppData (appData: AppData): unit =
         this.AppDataWrapper.AppData <- appData
         saveAppData(this.AppData)
@@ -42,13 +46,13 @@ and [<AbstractClass>]
     override __.GetRootViewModel () = this
 
 // Think about making this generic and add interfaces for ViewModelBase and SubViewModelBase
-and SubViewModelBase(control: Control, parent: ViewModelBase) as this =
+and [<AbstractClass>]
+    SubViewModelBase(control: Control, parent: ViewModelBase) as this =
     inherit ViewModelBase(parent.AppDataWrapper)
 
     do parent.Children <- this::parent.Children
 
     member val Control = control
-
     member val Parent: ViewModelBase = parent
 
     override this.GetParentWindow () =
