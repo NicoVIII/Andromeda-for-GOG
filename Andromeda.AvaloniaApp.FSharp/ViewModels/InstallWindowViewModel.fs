@@ -15,16 +15,16 @@ open Andromeda.AvaloniaApp.FSharp.Helpers
 type InstallWindowViewModel(control, parent) as this =
     inherit SubViewModelBase(control, parent)
 
-    let gameSearchTerm = ""
-    let foundGames = new SourceList<ProductInfo>()
+    let mutable gameSearchTerm = ""
+    let mutable foundGames = new SourceList<ProductInfo>()
 
     member private this.GameSearchTerm
         with get() = gameSearchTerm
-        and set value = this.RaiseAndSetIfChanged(ref gameSearchTerm, value) |> ignore
+        and set value = this.RaiseAndSetIfChanged(&gameSearchTerm, value) |> ignore
 
     member private this.FoundGames
         with get() = foundGames
-        and set value = this.RaiseAndSetIfChanged(ref foundGames, value) |> ignore
+        and set value = this.RaiseAndSetIfChanged(&foundGames, value) |> ignore
 
     member this.SearchGame() =
         let (games, appData) = getAvailableGamesForSearch this.AppData this.GameSearchTerm;

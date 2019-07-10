@@ -5,7 +5,7 @@
             "label": "build",
             "command": "./build.sh",
             "windows": {
-                "command": ".\\build.cmd"
+                "command": "./build.cmd"
             },
             "type": "shell",
             "args": [],

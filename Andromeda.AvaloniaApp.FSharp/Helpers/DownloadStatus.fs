@@ -13,10 +13,10 @@ type DownloadStatus(gameTitle, path, fileSize) =
     member val FileSize: float = fileSize
     member this.Downloaded
         with get () = downloaded
-        and private set value = this.RaiseAndSetIfChanged(ref downloaded, value) |> ignore
+        and private set value = this.RaiseAndSetIfChanged(&downloaded, value) |> ignore
     member this.Installing
         with get () = installing
-        and private set value = this.RaiseAndSetIfChanged(ref installing, value) |> ignore
+        and private set value = this.RaiseAndSetIfChanged(&installing, value) |> ignore
 
     member this.UpdateDownloaded downloaded = this.Downloaded <- downloaded
     member this.IndicateInstalling () = this.Installing <- true

@@ -11,14 +11,15 @@ open System.Reactive
 type AuthenticationWindowViewModel(control, parent) as this =
     inherit SubViewModelBase(control, parent)
 
-    let code = ""
+    let mutable code = ""
     member this.Code
         with get() = code
         and set (value: string) =
-            this.RaiseAndSetIfChanged(ref code, value) |> ignore
+            this.RaiseAndSetIfChanged(&code, value) |> ignore
 
     member val AuthenticateCommand: ReactiveCommand<Window, Unit> = ReactiveCommand.Create<Window>(this.Authenticate)
 
     member this.Authenticate(window: Window) =
-        { this.AppData with authentication = newToken this.Code } |> this.SetAppData
+        { this.AppData with authentication = newToken this.Code }
+        |> this.SetAppData
         window.Close();
