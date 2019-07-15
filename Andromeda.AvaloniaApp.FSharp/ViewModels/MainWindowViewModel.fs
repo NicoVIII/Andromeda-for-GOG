@@ -26,23 +26,20 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     inherit ParentViewModelBase(window, appDataWrapper)
 
     let mutable searchTerm = ""
-    let installedGames = ReactiveList<InstalledGame.T> (this.AppData.installedGames)
+    let mutable installedGames = ReactiveList<InstalledGame.T> (this.AppData.installedGames)
     let notifications = ReactiveList<NotificationData> ()
 
-    let exp1 =
-        (fun (x:MainWindowViewModel) -> x.InstalledGames)
-        |> toLinq
-    let exp2 =
-        (fun (x:MainWindowViewModel) -> x.SearchTerm)
-        |> toLinq
+    let exp1 = (fun (x:MainWindowViewModel) -> x.InstalledGames) |> toLinq
+    let exp2 = (fun (x:MainWindowViewModel) -> x.SearchTerm) |> toLinq
 
     let filteredInstalledGames =
-        let x = this.WhenAnyValue(exp1, exp2);
-        let y = x.Throttle(TimeSpan.FromMilliseconds(800.0))
-        let z = y.Select(fun ((installedGames:ReactiveList<InstalledGame.T>), (searchTerm:string)) ->
-                    installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()));
-                )
-        z.ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames);
+        this.WhenAnyValue(exp1, exp2)
+            (*.Throttle(TimeSpan.FromMilliseconds(800.0))
+            .Select(
+                fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm:string) ->
+                    installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
+            )
+            .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames);*)
 
     member val Version = "v0.3.0-alpha.5"
 
@@ -50,9 +47,11 @@ type MainWindowViewModel(window, appDataWrapper) as this =
         with get () = searchTerm
         and set (value: string) = this.RaiseAndSetIfChanged(&searchTerm, value) |> ignore
 
-    member val InstalledGames = installedGames
-    member this.FilteredInstalledGames = filteredInstalledGames.Value
-    member val Notifications = notifications
+    member __.InstalledGames
+        with get () = installedGames
+        and set (value: ReactiveList<InstalledGame.T>) = this.RaiseAndSetIfChanged(&installedGames, value) |> ignore
+    //member __.FilteredInstalledGames = filteredInstalledGames.Value
+    member __.Notifications = notifications
 
     member val DownloadWidgetVM:DownloadWidgetViewModel = DownloadWidgetViewModel(this.GetParentWindow(), this)
     

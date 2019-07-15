@@ -4,7 +4,10 @@ open Microsoft.FSharp.Linq.RuntimeHelpers
 open System
 open System.Linq.Expressions
 
-let toLinq fn =
+let toLinqHelper<'a, 'b, 'c when 'c :> Expression> fn =
     <@ Func<'a, 'b>fn @>
     |> LeafExpressionConverter.QuotationToExpression
-    |> unbox<Expression<Func<'a, 'b>>>
+    |> unbox<'c>
+
+let toLinq<'a, 'b> fn =
+    toLinqHelper<'a, 'b, Expression<Func<'a, 'b>>> fn
