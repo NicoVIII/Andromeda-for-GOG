@@ -5,9 +5,7 @@
         "**/node_modules/**": true,
         "**/packages/**": true
     },
-    "FSharp.fsacRuntime": "netcore",
-    "FSharp.logLanguageServiceRequests": "both",
-    "FSharp.logLanguageServiceRequestsOutputWindowLevel": "INFO",
+    "FSharp.fsacRuntime": "net",
     "editor.formatOnSave": true,
     "files.trimFinalNewlines": true
 }

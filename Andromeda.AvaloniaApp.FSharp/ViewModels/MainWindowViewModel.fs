@@ -18,7 +18,6 @@ open System.Threading.Tasks
 open DynamicData
 
 open Andromeda.AvaloniaApp.FSharp.Helpers
-open Andromeda.AvaloniaApp.FSharp.Helpers.LinqHelper
 open Andromeda.AvaloniaApp.FSharp.ViewModels
 open Andromeda.AvaloniaApp.FSharp.Windows
 
@@ -29,17 +28,17 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     let mutable installedGames = ReactiveList<InstalledGame.T> (this.AppData.installedGames)
     let notifications = ReactiveList<NotificationData> ()
 
-    let exp1 = (fun (x:MainWindowViewModel) -> x.InstalledGames) |> toLinq
-    let exp2 = (fun (x:MainWindowViewModel) -> x.SearchTerm) |> toLinq
-
     let filteredInstalledGames =
-        this.WhenAnyValue(exp1, exp2)
-            (*.Throttle(TimeSpan.FromMilliseconds(800.0))
-            .Select(
-                fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm:string) ->
-                    installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
-            )
-            .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames);*)
+        this
+         .WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame.T>, string>(
+             (fun (x:MainWindowViewModel) -> x.InstalledGames),
+             (fun (x:MainWindowViewModel) -> x.SearchTerm)
+         )
+         .Throttle(TimeSpan.FromMilliseconds(800.0))
+         .Select(fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm: string) ->
+            installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
+         )
+         .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames);
 
     member val Version = "v0.3.0-alpha.5"
 
@@ -50,11 +49,11 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     member __.InstalledGames
         with get () = installedGames
         and set (value: ReactiveList<InstalledGame.T>) = this.RaiseAndSetIfChanged(&installedGames, value) |> ignore
-    //member __.FilteredInstalledGames = filteredInstalledGames.Value
+    member __.FilteredInstalledGames = filteredInstalledGames.Value
     member __.Notifications = notifications
 
     member val DownloadWidgetVM:DownloadWidgetViewModel = DownloadWidgetViewModel(this.GetParentWindow(), this)
-    
+
     member this.Downloads = this.DownloadWidgetVM.Downloads;
 
     member val OpenInstallWindowCommand = ReactiveCommand.Create<unit>(this.OpenInstallWindow)
