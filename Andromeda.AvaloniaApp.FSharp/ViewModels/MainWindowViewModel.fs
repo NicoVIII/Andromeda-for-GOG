@@ -28,17 +28,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     let mutable installedGames = ReactiveList<InstalledGame.T> (this.AppData.installedGames)
     let notifications = ReactiveList<NotificationData> ()
 
-    let filteredInstalledGames =
-        this
-         .WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame.T>, string>(
-             (fun (x:MainWindowViewModel) -> x.InstalledGames),
-             (fun (x:MainWindowViewModel) -> x.SearchTerm)
-         )
-         .Throttle(TimeSpan.FromMilliseconds(800.0))
-         .Select(fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm: string) ->
-            installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
-         )
-         .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames);
+    let mutable filteredInstalledGames:ObservableAsPropertyHelper<IEnumerable<InstalledGame.T>> = null
 
     member val Version = "v0.3.0-alpha.5"
 
@@ -83,3 +73,16 @@ type MainWindowViewModel(window, appDataWrapper) as this =
         installWindow.ShowDialog(this.Control) |> ignore
 
     member __.StartGame (path: string) = Games.startGame path
+
+    member __.Initialize() =
+        filteredInstalledGames <-
+            this
+              .WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame.T>, string>(
+                (fun (x:MainWindowViewModel) -> x.InstalledGames),
+                (fun (x:MainWindowViewModel) -> x.SearchTerm)
+              )
+              .Throttle(TimeSpan.FromMilliseconds(800.0))
+              .Select(fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm: string) ->
+                installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
+              )
+              .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames)

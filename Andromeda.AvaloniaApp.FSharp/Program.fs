@@ -40,6 +40,7 @@ let main (args: string[]): int =
 
             let mainWindow = MainWindow ()
             let mainWindowVM = MainWindowViewModel (mainWindow, appDataWrapper)
+            mainWindowVM.Initialize()
             mainWindow.DataContext <- mainWindowVM
             match appDataWrapper.AppData.authentication with
             | NoAuth ->
