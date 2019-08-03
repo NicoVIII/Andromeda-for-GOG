@@ -74,6 +74,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
 
     member __.StartGame (path: string) = Games.startGame path
 
+    // Necessary, because F# wants to initialize EVERYTHING before using ANYTHING...
     member __.Initialize() =
         filteredInstalledGames <-
             this
