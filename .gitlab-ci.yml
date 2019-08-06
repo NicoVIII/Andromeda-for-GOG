@@ -8,3 +8,19 @@ build:
   only:
     - master
     - develop
+build-fsharp:
+  stage: build
+  script:
+    - './build-fsharp.sh'
+  only:
+    - master
+    - develop
+  allow_failure: true
+build-console:
+  stage: build
+  script:
+    - './build-fsharp.sh'
+  only:
+    - master
+    - develop
+  allow_failure: true

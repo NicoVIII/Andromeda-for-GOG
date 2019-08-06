@@ -10,7 +10,7 @@
     <PackageReference Include="SharpZipLib" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="../GogApi.DotNet/GogApi.DotNet.fsproj" />
+    <ProjectReference Include="../../GogApi.DotNet/GogApi.DotNet.fsproj" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers.fs" />

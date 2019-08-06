@@ -32,6 +32,6 @@
     <!--PackageReference Include="VitalElement.CefGlue.Core.Win-x64" Version="0.9.0-build32-alpha" /-->
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Andromeda.Core\Andromeda.Core.fsproj" />
+    <ProjectReference Include="..\Core\Andromeda.Core.fsproj" />
   </ItemGroup>
 </Project>

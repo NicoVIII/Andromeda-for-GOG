@@ -5,7 +5,7 @@
             "label": "build",
             "command": "./build.sh",
             "windows": {
-                "command": "./build.cmd"
+                "command": ".\\build.cmd"
             },
             "type": "shell",
             "args": [],
@@ -18,6 +18,9 @@
         {
             "label": "buildFSharp",
             "command": "./build-fsharp.sh",
+            "windows": {
+                "command": ".\\build-fsharp.cmd"
+            },
             "type": "shell",
             "args": [],
             "group": "build",
