@@ -16,9 +16,9 @@ echo "Start publishing as archive by building."
   cd "deploy" || exit
   # Move files to publish folder
   mkdir "publish"
-  mv "../src/Andromeda.AvaloniaApp/bin/Release/netcoreapp2.2/publish" "publish/bin"
-  cp "../build/start.cmd" "publish"
-  cp "../build/start.sh" "publish"
+  mv "../src/Andromeda/AvaloniaApp/bin/Release/netcoreapp2.2/publish" "publish/bin"
+  cp "../assets/build/start.cmd" "publish"
+  cp "../assets/build/start.sh" "publish"
   cp "../LICENSE" "publish"
   cp "../README.md" "publish"
   cp "../CHANGELOG.md" "publish"
@@ -41,7 +41,7 @@ echo "Start publishing as archive by building."
 
 echo "Start publishing as AppImage by building."
 (
-  cd "src/Andromeda.AvaloniaApp" || exit
+  cd "src/Andromeda/AvaloniaApp" || exit
   dotnet restore --runtime ubuntu.16.04-x64 -s "https://www.myget.org/F/avalonia-ci/api/v2" -s "https://api.nuget.org/v3/index.json"
   dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 | grep error --color=never
   rm -r "AppDir/usr/bin"
@@ -54,7 +54,7 @@ then
   chmod a+x appimagetool-x86_64.AppImage
 fi
 (
-  cd "src/Andromeda.AvaloniaApp" || exit
+  cd "src/Andromeda/AvaloniaApp" || exit
   ./../appimagetool-x86_64.AppImage ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
   mv "Andromeda-x86_64.AppImage" "../deploy/$DEPLOYNAME.AppImage"
   mv "Andromeda-x86_64.AppImage.zsync" "../deploy/$DEPLOYNAME.AppImage.zsync"

@@ -4,14 +4,14 @@ stages:
 build:
   stage: build
   script:
-    - './build.sh'
+    - './build-scripts/build.sh'
   only:
     - master
     - develop
 build-fsharp:
   stage: build
   script:
-    - './build-fsharp.sh'
+    - './build-scripts/build-fsharp.sh'
   only:
     - master
     - develop
@@ -19,7 +19,7 @@ build-fsharp:
 build-console:
   stage: build
   script:
-    - './build-console.sh'
+    - './build-scripts/build-console.sh'
   only:
     - master
     - develop
