@@ -1,45 +1,16 @@
 module Andromeda.Core.FSharp.AppData
 
 open Couchbase.Lite
-open GogApi.DotNet.FSharp.Base
 open GogApi.DotNet.FSharp.Authentication
-open System
+open GogApi.DotNet.FSharp.Base
 open System.IO
 
-open Andromeda.Core.FSharp.Helpers
-open Andromeda.Core.FSharp.Path
-
-module InstalledGame =
-    type T = {
-        id: int;
-        name: string;
-        path: string;
-        version: string;
-        updateable: bool;
-        icon: string option;
-    }
-
-    let create id name path version =
-        { T.id = id; name = name; path = path; version = version; updateable = false; icon = None }
-
-    let setUpdateable value game =
-        { game with updateable = value}
-
-    let setIcon iconpath game =
-        { game with icon = iconpath }
-
-type AppData = {
-    authentication: Authentication;
-    installedGames: InstalledGame.T list;
-    gamePath: string;
-}
-
-let createBasicAppData () = { authentication = NoAuth; installedGames = []; gamePath = gamePath }
+let createBasicAppData (): AppData = { authentication = NoAuth; installedGames = []; gamePath = SystemInfo.gamePath }
 let withNewToken appData code = { appData with authentication = newToken(code) }
 
 let dbConfig = DatabaseConfiguration()
-Directory.CreateDirectory(savePath) |> ignore
-dbConfig.Directory <- savePath
+Directory.CreateDirectory(SystemInfo.savePath) |> ignore
+dbConfig.Directory <- SystemInfo.savePath
 
 let saveAppData appData =
     use db = new Database("andromeda", dbConfig)
@@ -60,7 +31,7 @@ let saveAppData appData =
 
     // Installed games
     let gamesArray = MutableArrayObject ()
-    List.fold (fun _ (info: InstalledGame.T) ->
+    List.fold (fun _ (info: InstalledGame) ->
         let dict = MutableDictionaryObject ()
         dict.SetInt ("id", info.id) |> ignore
         dict.SetString ("name", info.name) |> ignore
@@ -116,6 +87,6 @@ let loadAppData () =
                     )
                 )
             // TODO: save and load game path as well
-            { authentication = auth; installedGames = installed; gamePath = gamePath }
+            { authentication = auth; installedGames = installed; gamePath = SystemInfo.gamePath }
     db.Close ()
     appData

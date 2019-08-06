@@ -25,14 +25,14 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows {
         private string searchTerm = "";
         public string SearchTerm { get => this.searchTerm; set => this.RaiseAndSetIfChanged(ref this.searchTerm, value); }
 
-        private IReactiveList<AppData.InstalledGame.T> installedGames;
-        public IReactiveList<AppData.InstalledGame.T> InstalledGames {
+        private IReactiveList<DomainTypes.InstalledGame> installedGames;
+        public IReactiveList<DomainTypes.InstalledGame> InstalledGames {
             get => this.installedGames;
             set => this.RaiseAndSetIfChanged(ref this.installedGames, value);
         }
 
-        private readonly ObservableAsPropertyHelper<IEnumerable<AppData.InstalledGame.T>> filteredInstalledGames;
-        public IEnumerable<AppData.InstalledGame.T> FilteredInstalledGames => filteredInstalledGames.Value;
+        private readonly ObservableAsPropertyHelper<IEnumerable<DomainTypes.InstalledGame>> filteredInstalledGames;
+        public IEnumerable<DomainTypes.InstalledGame> FilteredInstalledGames => filteredInstalledGames.Value;
 
         private readonly IReactiveList<NotificationData> notifications = new ReactiveList<NotificationData>();
         public IReactiveList<NotificationData> Notifications { get => this.notifications; }
@@ -49,7 +49,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Windows {
 
         public MainWindowViewModel(Control control) : base(control) {
             // Initialize observables
-            this.InstalledGames = new ReactiveList<AppData.InstalledGame.T>(this.AppData.installedGames);
+            this.InstalledGames = new ReactiveList<DomainTypes.InstalledGame>(this.AppData.installedGames);
             this.filteredInstalledGames = this
                 .WhenAnyValue(x => x.InstalledGames, x => x.SearchTerm)
                 .Throttle(TimeSpan.FromMilliseconds(800))

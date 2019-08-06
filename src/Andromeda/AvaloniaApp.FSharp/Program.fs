@@ -1,5 +1,6 @@
 module Andromeda.AvaloniaApp.FSharp.Program
 
+open Andromeda.Core.FSharp
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Installed
 open Avalonia

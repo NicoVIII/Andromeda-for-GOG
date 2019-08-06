@@ -1,4 +1,4 @@
-using static Andromeda.Core.FSharp.AppData;
+using static Andromeda.Core.FSharp.DomainTypes;
 
 namespace Andromeda.AvaloniaApp.Helpers {
     /**

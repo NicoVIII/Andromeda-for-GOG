@@ -25,10 +25,10 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     inherit ParentViewModelBase(window, appDataWrapper)
 
     let mutable searchTerm = ""
-    let mutable installedGames = ReactiveList<InstalledGame.T> (this.AppData.installedGames)
+    let mutable installedGames = ReactiveList<InstalledGame> (this.AppData.installedGames)
     let notifications = ReactiveList<NotificationData> ()
 
-    let mutable filteredInstalledGames:ObservableAsPropertyHelper<IEnumerable<InstalledGame.T>> = null
+    let mutable filteredInstalledGames:ObservableAsPropertyHelper<IEnumerable<InstalledGame>> = null
 
     member val Version = "v0.3.0-alpha.5"
 
@@ -38,7 +38,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
 
     member __.InstalledGames
         with get () = installedGames
-        and set (value: ReactiveList<InstalledGame.T>) = this.RaiseAndSetIfChanged(&installedGames, value) |> ignore
+        and set (value: ReactiveList<InstalledGame>) = this.RaiseAndSetIfChanged(&installedGames, value) |> ignore
     member __.FilteredInstalledGames = filteredInstalledGames.Value
     member __.Notifications = notifications
 
@@ -78,12 +78,12 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     member __.Initialize() =
         filteredInstalledGames <-
             this
-              .WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame.T>, string>(
+              .WhenAnyValue<MainWindowViewModel, ReactiveList<InstalledGame>, string>(
                 (fun (x:MainWindowViewModel) -> x.InstalledGames),
                 (fun (x:MainWindowViewModel) -> x.SearchTerm)
               )
               .Throttle(TimeSpan.FromMilliseconds(800.0))
-              .Select(fun (installedGames:ReactiveList<InstalledGame.T>, searchTerm: string) ->
+              .Select(fun (installedGames:ReactiveList<InstalledGame>, searchTerm: string) ->
                 installedGames.Where(fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
               )
               .ToProperty(this, fun (x:MainWindowViewModel) -> x.FilteredInstalledGames)

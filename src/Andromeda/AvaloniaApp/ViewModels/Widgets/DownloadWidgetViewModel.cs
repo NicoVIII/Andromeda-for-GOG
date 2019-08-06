@@ -32,7 +32,7 @@ namespace Andromeda.AvaloniaApp.ViewModels.Widgets {
         }
 
         // Overwrite AppData Setter to ensure that InstalledGames are always up-to-date
-        protected override void SetAppData(AppData.AppData appData) {
+        protected override void SetAppData(DomainTypes.AppData appData) {
             base.SetAppData(appData);
             if (((MainWindowViewModel)this.Parent).InstalledGames != null) {
                 ((MainWindowViewModel)this.Parent).InstalledGames.Clear();

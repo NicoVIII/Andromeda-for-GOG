@@ -7,10 +7,9 @@ open System
 open System.IO
 
 open Andromeda.Core.FSharp.AppData
-open Andromeda.Core.FSharp.Helpers
 
 type UpdateData = {
-    game: InstalledGame.T;
+    game: InstalledGame;
     newVersion: string;
 }
 
@@ -31,10 +30,10 @@ let checkAllForUpdates appData =
             (lst, appData)
         | Some update ->
             let os =
-                match os with
-                | Linux -> Some "linux"
-                | Windows -> Some "windows"
-                | MacOS -> Some "mac"
+                match SystemInfo.os with
+                | SystemInfo.OS.Linux -> Some "linux"
+                | SystemInfo.OS.Windows -> Some "windows"
+                | SystemInfo.OS.MacOS -> Some "mac"
             match os with
             | Some os ->
                 let installer =
@@ -139,12 +138,12 @@ let searchInstalled (appData :AppData) =
             appData
         | gameDir ->
             let fnc =
-                match os with
-                | Linux ->
+                match SystemInfo.os with
+                | SystemInfo.OS.Linux ->
                     Some getInstalledOnLinux
-                | Windows ->
+                | SystemInfo.OS.Windows ->
                     Some getInstalledOnWindows
-                | MacOS ->
+                | SystemInfo.OS.MacOS ->
                     None // TODO: implement
             match fnc with
             | Some fnc -> fnc appData gameDir

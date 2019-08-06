@@ -5,10 +5,10 @@ open GogApi.DotNet.FSharp.Authentication
 open System
 open System.IO
 
+open Andromeda.Core.FSharp.DomainTypes
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.Installed
-open Andromeda.Core.FSharp.Path
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
 
@@ -16,12 +16,12 @@ let authenticate () =
     printfn "Please go to https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%%3A%%2F%%2Fembed.gog.com%%2Fon_login_success%%3Forigin%%3Dclient&response_type=code&layout=client2 and log in."
     printfn "Enter Code from url (..code=<code>) here:"
 
-    System.Console.ReadLine ()
+    Console.ReadLine ()
     |> sscanf "%s"
     |> newToken
 
 let rec mainloop start appData =
-    let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames; gamePath = gamePath }
+    let newRound () = mainloop true ({createBasicAppData() with installedGames = appData.installedGames})
     let nextRound = mainloop false
 
     let (appData, authenticated) =

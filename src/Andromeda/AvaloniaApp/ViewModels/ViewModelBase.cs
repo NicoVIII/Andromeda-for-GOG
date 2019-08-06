@@ -1,3 +1,5 @@
+using Andromeda;
+using Andromeda.Core.FSharp;
 using Avalonia.Controls;
 using ReactiveUI;
 using System;
@@ -9,13 +11,12 @@ using Andromeda.AvaloniaApp.Helpers;
 using Andromeda.AvaloniaApp.ViewModels.Windows;
 using Andromeda.AvaloniaApp.Windows;
 
-using static Andromeda.Core.FSharp.AppData;
 using static Andromeda.Core.FSharp.Installed;
 
 namespace Andromeda.AvaloniaApp.ViewModels {
     public class ViewModelBase : ReactiveObject {
         public AppDataWrapper AppDataWrapper { get; private set; }
-        protected AppData AppData {
+        protected DomainTypes.AppData AppData {
             get => this.AppDataWrapper.AppData;
         }
 
@@ -36,7 +37,7 @@ namespace Andromeda.AvaloniaApp.ViewModels {
             }
             else {
                 this.AppDataWrapper = new AppDataWrapper();
-                this.SetAppData(loadAppData());
+                this.SetAppData(Core.FSharp.AppData.loadAppData());
                 this.SetAppData(searchInstalled(this.AppData));
                 if (this.AppData.authentication.IsNoAuth) {
                     // Authenticate
@@ -51,9 +52,9 @@ namespace Andromeda.AvaloniaApp.ViewModels {
             return this.Control is Window ? (Window)this.Control : null;
         }
 
-        protected virtual void SetAppData(AppData appData) {
+        protected virtual void SetAppData(DomainTypes.AppData appData) {
             this.AppDataWrapper.AppData = appData;
-            saveAppData(this.AppData);
+            Core.FSharp.AppData.saveAppData(this.AppData);
         }
 
         public IList<T> GetChildrenOfType<T>() {

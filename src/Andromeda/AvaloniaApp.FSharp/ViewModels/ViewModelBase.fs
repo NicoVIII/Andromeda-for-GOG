@@ -1,10 +1,11 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
+open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.AppData
 open Avalonia.Controls
 open ReactiveUI
 
 open Andromeda.AvaloniaApp.FSharp.Helpers
-open Andromeda.Core.FSharp.AppData
 
 [<AbstractClass>]
 type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
@@ -22,7 +23,7 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
         for child in this.Children do
             child.Init()
 
-    member this.SetAppData (appData: AppData): unit =
+    member this.SetAppData (appData): unit =
         this.AppDataWrapper.AppData <- appData
         saveAppData(this.AppData)
 

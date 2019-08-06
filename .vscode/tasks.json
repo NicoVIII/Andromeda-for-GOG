@@ -3,9 +3,9 @@
     "tasks": [
         {
             "label": "build",
-            "command": "./build.sh",
+            "command": "./build-scripts/build.sh",
             "windows": {
-                "command": ".\\build.cmd"
+                "command": "./build-scripts/build.cmd"
             },
             "type": "shell",
             "args": [],
@@ -17,14 +17,17 @@
         },
         {
             "label": "buildFSharp",
-            "command": "./build-fsharp.sh",
+            "command": "./build-scripts/build-fsharp.sh",
             "windows": {
-                "command": ".\\build-fsharp.cmd"
+                "command": "./build-scripts/build-fsharp.cmd"
             },
             "type": "shell",
             "args": [],
             "group": "build",
-            "options": {}
+            "options": {},
+            "problemMatcher": [
+                "$msCompile"
+            ]
         }
     ]
 }

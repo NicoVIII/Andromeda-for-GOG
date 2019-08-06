@@ -1,6 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp.Helpers
 
-open Andromeda.Core.FSharp.AppData
+open Andromeda.Core.FSharp
 
 (**
 This is a wrapper class for appdata to ensure,

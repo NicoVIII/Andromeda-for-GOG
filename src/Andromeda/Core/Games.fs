@@ -10,10 +10,6 @@ open System.Diagnostics
 open System.IO
 open System.Net
 
-open Andromeda.Core.FSharp.AppData
-open Andromeda.Core.FSharp.Helpers
-open Andromeda.Core.FSharp.Path
-
 let getOwnedGameIds auth =
     askForOwnedGameIds auth
     |> exeFst (function
@@ -26,9 +22,9 @@ let startFileDownload url gameName version =
         match version with
         | Some v -> "-v"
         | None -> ""
-    let dir = Path.Combine(cachePath, "installers")
-    let filepath = Path.Combine(dir, sprintf "%s%s.%s" gameName version installerEnding)
-    let tmppath = Path.Combine(dir, "tmp", sprintf "%s%s.%s" gameName version installerEnding)
+    let dir = Path.Combine(SystemInfo.cachePath, "installers")
+    let filepath = Path.Combine(dir, sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
+    let tmppath = Path.Combine(dir, "tmp", sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
     Directory.CreateDirectory(Path.Combine(dir, "tmp")) |> ignore
     let file = FileInfo(filepath)
     match not file.Exists with
@@ -41,13 +37,13 @@ let startFileDownload url gameName version =
         (None, filepath, tmppath)
 
 let startGame path =
-    match os with
-    | Linux
-    | MacOS ->
+    match SystemInfo.os with
+    | SystemInfo.OS.Linux
+    | SystemInfo.OS.MacOS ->
         let filepath = Path.Combine(path, "start.sh")
         Syscall.chmod(filepath, FilePermissions.ALLPERMS) |> ignore
         Process.Start filepath |> ignore
-    | Windows ->
+    | SystemInfo.OS.Windows ->
         let file =
             Directory.GetFiles(path)
             |> List.ofArray
@@ -128,8 +124,8 @@ let generateRandomString length =
 let extractLibrary appData (gamename: string) filepath =
     let target = Path.Combine(appData.gamePath, gamename)
     printfn "%s" target
-    match os with
-    | Linux ->
+    match SystemInfo.os with
+    | SystemInfo.OS.Linux ->
         Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
 
         let tmp = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Personal), "GOG Games", ".tmp", gamename)
@@ -154,7 +150,7 @@ let extractLibrary appData (gamename: string) filepath =
             Directory.Delete (tmp, true)
         | false ->
             failwith "Folder not found! :("
-    | Windows ->
+    | SystemInfo.OS.Windows ->
         let p = Process.Start(filepath, "/DIR=\"" + target+"\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
         p.WaitForExit()
         match p.ExitCode with
@@ -165,7 +161,7 @@ let extractLibrary appData (gamename: string) filepath =
             // Try again with non-silent install
             let p = Process.Start(filepath, "/DIR=\"" + target+"\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
             p.WaitForExit()
-    | MacOS ->
+    | SystemInfo.OS.MacOS ->
         failwith "Not supported yet :/"
 
 let getAvailableGamesForSearch (appData :AppData) name =
@@ -188,12 +184,12 @@ let getAvailableInstallersForOs (appData :AppData) gameId =
             let installers' =
                 installers
                 |> fun info ->
-                    match os with
-                    | Linux ->
+                    match SystemInfo.os with
+                    | SystemInfo.OS.Linux ->
                         List.filter (fun (i :InstallerInfo) -> i.os = "linux") info
-                    | Windows ->
+                    | SystemInfo.OS.Windows ->
                         List.filter (fun (i :InstallerInfo) -> i.os = "windows") info
-                    | MacOS ->
+                    | SystemInfo.OS.MacOS ->
                         List.filter (fun (i :InstallerInfo) -> i.os = "mac") info
             (installers', { appData with authentication = auth })
 
