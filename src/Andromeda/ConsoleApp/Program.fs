@@ -8,6 +8,7 @@ open System.IO
 open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Games
 open Andromeda.Core.FSharp.Installed
+open Andromeda.Core.FSharp.Path
 open Andromeda.Core.FSharp.User
 open Andromeda.ConsoleApp
 
@@ -20,7 +21,7 @@ let authenticate () =
     |> newToken
 
 let rec mainloop start appData =
-    let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames }
+    let newRound () = mainloop true { authentication = NoAuth; installedGames = appData.installedGames; gamePath = gamePath }
     let nextRound = mainloop false
 
     let (appData, authenticated) =
@@ -105,7 +106,7 @@ let rec mainloop start appData =
                                 List.head installers
                         let res = downloadGame appData game.title installer
                         match res with
-                        | Some (task, filepath, size) ->
+                        | Some (task, filepath, _, size) ->
                             match task with
                             | Some task ->
                                 printf "Download started..."
@@ -113,7 +114,7 @@ let rec mainloop start appData =
                                 use timer = new System.Timers.Timer(1000.0)
                                 timer.AutoReset <- true
                                 timer.Elapsed.Add (fun _ ->
-                                    let fileInfo = new FileInfo(filepath)
+                                    let fileInfo = FileInfo(filepath)
                                     float(fileInfo.Length) / 1000000.0
                                     |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
                                 )
@@ -124,7 +125,7 @@ let rec mainloop start appData =
                             | None ->
                                 printfn "Use installer file from cache"
                             printf "Installation started..."
-                            extractLibrary game.title filepath
+                            extractLibrary appData game.title filepath
                             printfn "\rInstallation completed!    "
                             searchInstalled appData
                         | None ->
@@ -189,7 +190,7 @@ let rec mainloop start appData =
                                     List.head lst
                             let downloadTask = downloadGame appData game.name installer
                             match downloadTask with
-                            | Some (task, filepath, size) ->
+                            | Some (task, filepath, _, size) ->
                                 match task with
                                 | Some task ->
                                     printf "Download started..."
@@ -197,7 +198,7 @@ let rec mainloop start appData =
                                     use timer = new System.Timers.Timer(1000.0)
                                     timer.AutoReset <- true
                                     timer.Elapsed.Add (fun _ ->
-                                        let fileInfo = new FileInfo(filepath)
+                                        let fileInfo = FileInfo(filepath)
                                         float(fileInfo.Length) / 1000000.0
                                         |> printf "\rDownloading.. (%.1f MB of %.1f MB)  " <| size
                                     )
@@ -208,7 +209,7 @@ let rec mainloop start appData =
                                 | None ->
                                     printfn "Use installer file from cache"
                                 printf "Installation started..."
-                                extractLibrary game.name filepath
+                                extractLibrary appData game.name filepath
                                 printfn "\rInstallation completed!    "
                                 searchInstalled appData |> ignore
                             | None ->
