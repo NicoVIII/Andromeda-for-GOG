@@ -55,7 +55,7 @@
                 </DataTemplate>
               </ItemsControl.DataTemplates>
             </ItemsControl>
-            <TextBlock IsVisible="{Binding !InstalledGames.Count}">You have no games installed.</TextBlock>
+            <TextBlock IsVisible="{Binding !InstalledGames.Length}">You have no games installed.</TextBlock>
           </StackPanel>
         </ScrollViewer>
         <StackPanel Grid.Row="2" Orientation="Vertical" Margin="12, 12">

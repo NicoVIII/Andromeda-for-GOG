@@ -110,8 +110,8 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
                 downloadInfo.GameTitle + " unpacked successfully!" |> Logger.LogInfo
             )
             worker.RunWorkerCompleted.Add(fun _ ->
-                searchInstalled this.AppData |> this.SetAppData
                 downloadInfo |> this.Downloads.Remove |> ignore
+                searchInstalled this.AppData |> this.SetAppData
                 "Cleaned up after install." |> Logger.LogInfo
             )
             worker.RunWorkerAsync ()

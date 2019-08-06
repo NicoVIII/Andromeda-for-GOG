@@ -4,6 +4,7 @@
     <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />

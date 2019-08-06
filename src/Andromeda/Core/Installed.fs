@@ -144,7 +144,7 @@ let searchInstalled (appData :AppData) =
                 | SystemInfo.OS.Windows ->
                     Some getInstalledOnWindows
                 | SystemInfo.OS.MacOS ->
-                    None // TODO: implement
+                    failwith "Not implemented yet" // TODO: implement
             match fnc with
             | Some fnc -> fnc appData gameDir
             | None -> appData
