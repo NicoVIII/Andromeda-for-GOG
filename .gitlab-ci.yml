@@ -19,7 +19,7 @@ build-fsharp:
 build-console:
   stage: build
   script:
-    - './build-fsharp.sh'
+    - './build-console.sh'
   only:
     - master
     - develop
