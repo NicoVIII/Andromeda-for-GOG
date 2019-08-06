@@ -37,13 +37,14 @@
                   <Grid ColumnDefinitions="Auto, 1*" Margin="0, 8">
                     <Grid.Resources>
                       <converter:PathToBitmapConverter x:Key="bitmapConverter"/>
+                      <converter:OptionToBoolConverter x:Key="optionBoolConverter"/>
                     </Grid.Resources>
                     <Grid.ContextMenu>
                       <ContextMenu>
                         <MenuItem Header="Start" Command="{Binding $parent[Window].DataContext.StartGameCommand}" CommandParameter="{Binding path}" />
                       </ContextMenu>
                     </Grid.ContextMenu>
-                    <Image Grid.Column="0" Height="30" Width="30" IsVisible="{Binding !!icon}" Source="{Binding icon, Converter={StaticResource bitmapConverter}}" />
+                    <Image Grid.Column="0" Height="30" Width="30" IsVisible="{Binding icon, Converter={StaticResource optionBoolConverter}}" Source="{Binding icon, Converter={StaticResource bitmapConverter}}" />
                     <!--<WrapPanel Grid.Column="1" Classes="info">-->
                     <StackPanel Grid.Column="1" Orientation="Vertical">
                       <TextBlock TextWrapping="Wrap" Text="{Binding name}" />

@@ -11,14 +11,13 @@
   <ItemGroup>
     <EmbeddedResource Include="**/*.xaml" />
     <EmbeddedResource Include="Assets/*" />
+    <Compile Include="ExtraPrimitives.fs" />
     <Compile Include="Helpers/AppDataWrapper.fs" />
     <Compile Include="Helpers/DownloadStatus.fs" />
     <Compile Include="Helpers/InstallationInfos.fs" />
     <Compile Include="Helpers/Logger.fs" />
     <Compile Include="Helpers/NotificationData.fs" />
-    <Compile Include="Converter/FloatToStringConverter.fs" />
-    <Compile Include="Converter/PathToBitmapConverter.fs" />
-    <Compile Include="Converter/ProductInfoToStringConverter.fs" />
+    <Compile Include="Converter/*.fs" />
     <Compile Include="Widgets/DownloadWidget.xaml.fs" />
     <Compile Include="Windows/AuthenticationWindow.xaml.fs" />
     <Compile Include="Windows/InstallWindow.xaml.fs" />
@@ -41,7 +40,5 @@
     <PackageReference Include="System.Reactive.Core" Version="4.1.*" />
     <PackageReference Include="System.Reactive.Interfaces" Version="4.1.*" />
     <PackageReference Include="System.Reactive.Linq" Version="4.1.*" />
-    <!--<PackageReference Include="VitalElement.CefGlue.Core" Version="0.9.0-build32-alpha" />
-    <PackageReference Include="VitalElement.CefGlue.Core.Avalonia" Version="0.9.0-build32-alpha" />-->
   </ItemGroup>
 </Project>
