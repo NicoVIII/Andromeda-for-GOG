@@ -3,20 +3,6 @@
     "tasks": [
         {
             "label": "build",
-            "command": "./build-scripts/build.sh",
-            "windows": {
-                "command": "./build-scripts/build.cmd"
-            },
-            "type": "shell",
-            "args": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            },
-            "options": {}
-        },
-        {
-            "label": "buildFSharp",
             "command": "./build-scripts/build-fsharp.sh",
             "windows": {
                 "command": "./build-scripts/build-fsharp.cmd"

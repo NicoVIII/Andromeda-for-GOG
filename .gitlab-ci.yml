@@ -4,23 +4,4 @@ stages:
 build:
   stage: build
   script:
-    - './build-scripts/build.sh'
-  only:
-    - master
-    - develop
-build-fsharp:
-  stage: build
-  script:
     - './build-scripts/build-fsharp.sh'
-  only:
-    - master
-    - develop
-  allow_failure: true
-build-console:
-  stage: build
-  script:
-    - './build-scripts/build-console.sh'
-  only:
-    - master
-    - develop
-  allow_failure: true

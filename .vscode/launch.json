@@ -10,39 +10,11 @@
             "request": "launch",
             "preLaunchTask": "build",
             // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/Andromeda/AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/src/Andromeda/AvaloniaApp",
-            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-            "console": "internalConsole",
-            "stopAtEntry": false,
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "name": "AvaloniaApp (F#)",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "buildFSharp",
-            // If you have changed target frameworks, make sure to update the program path.
             "program": "${workspaceFolder}/src/Andromeda/AvaloniaApp.FSharp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.FSharp.dll",
             "args": [],
             "cwd": "${workspaceFolder}/src/Andromeda/AvaloniaApp.FSharp",
             // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
             "console": "internalConsole",
-            "stopAtEntry": false,
-            "internalConsoleOptions": "openOnSessionStart"
-        },
-        {
-            "name": "ConsoleApp",
-            "type": "coreclr",
-            "request": "launch",
-            "preLaunchTask": "build",
-            // If you have changed target frameworks, make sure to update the program path.
-            "program": "${workspaceFolder}/src/Andromeda/ConsoleApp/bin/Debug/netcoreapp2.1/Andromeda.ConsoleApp.dll",
-            "args": [],
-            "cwd": "${workspaceFolder}/src/Andromeda/ConsoleApp",
-            // For more information about the 'console' field, see https://github.com/OmniSharp/omnisharp-vscode/blob/master/debugger-launchjson.md#console-terminal-window
-            "console": "integratedTerminal",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart"
         }

@@ -6,16 +6,10 @@ jobs:
   build:
     name: Test building of Andromeda
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Build CSharp Version of Andromeda
-      run: ./build-scripts/build.sh
     - name: Build FSharp Version of Andromeda
       run: ./build-scripts/build-fsharp.sh
-    - name: Build Console Version of Andromeda
-      run: ./build-scripts/build-console.sh
-      continue-on-error: true
- 
