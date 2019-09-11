@@ -1,6 +1,11 @@
 on: push
 
 jobs:
+  showme:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - run: ls
   build:
     name: Test building of CSharp Version
     runs-on: ubuntu-latest
