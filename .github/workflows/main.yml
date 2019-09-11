@@ -1,0 +1,26 @@
+on: [push]
+
+jobs:
+  build:
+    name: Test building of CSharp Version
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Build CSharp Version of Andromeda
+      run: ./build-scripts/build.sh
+  build-fsharp:
+    name: Test building of FSharp Version
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Build FSharp Version of Andromeda
+      run: ./build-scripts/build-fsharp.sh
+  build-console:
+    name: Test building of Console Version
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Build Console Version of Andromeda
+      run: ./build-scripts/build-console.sh
+      continue-on-error: true
+ 
