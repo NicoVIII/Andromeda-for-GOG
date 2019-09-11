@@ -3,9 +3,9 @@
     "tasks": [
         {
             "label": "build",
-            "command": "./build-scripts/build-fsharp.sh",
+            "command": "./scripts/build.sh",
             "windows": {
-                "command": "./build-scripts/build-fsharp.cmd"
+                "command": "./scripts/build.cmd"
             },
             "type": "shell",
             "args": [],
