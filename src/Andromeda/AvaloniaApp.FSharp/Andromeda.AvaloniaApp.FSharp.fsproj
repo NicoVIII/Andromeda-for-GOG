@@ -33,13 +33,14 @@
     <Compile Include="Program.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.*" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.8.*" />
-    <PackageReference Include="DynamicData" Version="6.9.*" />
-    <PackageReference Include="DynamicData.ReactiveUI" Version="6.9.*" />
-    <PackageReference Include="ReactiveUI" Version="9.13.*" />
-    <PackageReference Include="System.Reactive.Core" Version="4.1.*" />
-    <PackageReference Include="System.Reactive.Interfaces" Version="4.1.*" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.*" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.8.2" />
+    <PackageReference Include="DynamicData" Version="6.13.8" />
+    <PackageReference Include="DynamicData.ReactiveUI" Version="6.11.0.2613" />
+    <PackageReference Include="FSharp.Core" Version="4.7.0" />
+    <PackageReference Include="ReactiveUI" Version="9.22.1" />
+    <PackageReference Include="System.Reactive.Core" Version="4.1.6" />
+    <PackageReference Include="System.Reactive.Interfaces" Version="4.1.6" />
+    <PackageReference Include="System.Reactive.Linq" Version="4.1.6" />
   </ItemGroup>
 </Project>
