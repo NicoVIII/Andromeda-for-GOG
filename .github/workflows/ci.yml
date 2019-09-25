@@ -12,4 +12,4 @@ jobs:
       with:
         fetch-depth: 1
     - name: Build FSharp Version of Andromeda
-      run: ./build-scripts/build-fsharp.sh
+      run: ./scripts/build.sh
