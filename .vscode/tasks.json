@@ -9,7 +9,10 @@
             },
             "type": "shell",
             "args": [],
-            "group": "build",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
             "options": {},
             "problemMatcher": [
                 "$msCompile"
