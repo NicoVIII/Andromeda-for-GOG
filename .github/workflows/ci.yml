@@ -11,5 +11,5 @@ jobs:
     - uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Build FSharp Version of Andromeda
+    - name: Build Andromeda
       run: ./scripts/build.sh
