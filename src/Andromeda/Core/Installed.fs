@@ -129,7 +129,7 @@ let getInstalledOnWindows (appData: AppData) gameDir =
 
 let searchInstalled (appData :AppData) =
     let appData = { appData with installedGames = [] }
-    Directory.EnumerateDirectories(appData.gamePath)
+    Directory.EnumerateDirectories(appData.settings.gamePath)
     |> List.ofSeq
     |> List.fold (fun appData gameDir ->
         // Ignore folders starting with '!'

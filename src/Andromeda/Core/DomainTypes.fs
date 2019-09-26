@@ -1,5 +1,7 @@
 namespace Andromeda.Core.FSharp
 
+open System.IO
+
 [<AutoOpen>]
 module DomainTypes =
     // Provide an important type from GogApi over Andromeda.Core to avoid dependency of app to api
@@ -14,8 +16,12 @@ module DomainTypes =
         icon: string option;
     }
 
+    type Settings = {
+        gamePath: string;
+    }
+
     type AppData = {
         authentication: Authentication;
         installedGames: InstalledGame list;
-        gamePath: string;
+        settings: Settings;
     }

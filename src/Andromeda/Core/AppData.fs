@@ -5,7 +5,7 @@ open GogApi.DotNet.FSharp.Authentication
 open GogApi.DotNet.FSharp.Base
 open System.IO
 
-let createBasicAppData (): AppData = { authentication = NoAuth; installedGames = []; gamePath = SystemInfo.gamePath }
+let createBasicAppData (): AppData = { authentication = NoAuth; installedGames = []; settings = Settings.tmpDefault }
 let withNewToken appData code = { appData with authentication = newToken(code) }
 
 let dbConfig = DatabaseConfiguration()
@@ -47,6 +47,9 @@ let saveAppData appData =
     ) () appData.installedGames
     doc.SetArray ("installed", gamesArray) |> ignore
 
+    // Settings
+    Settings.save appData.settings
+
     db.Save doc
     db.Close ()
 
@@ -87,6 +90,6 @@ let loadAppData () =
                     )
                 )
             // TODO: save and load game path as well
-            { authentication = auth; installedGames = installed; gamePath = SystemInfo.gamePath }
+            { authentication = auth; installedGames = installed; settings = Settings.load () }
     db.Close ()
     appData

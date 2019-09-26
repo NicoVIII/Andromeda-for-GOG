@@ -121,8 +121,8 @@ let generateRandomString length =
 
     helper length ""
 
-let extractLibrary appData (gamename: string) filepath =
-    let target = Path.Combine(appData.gamePath, gamename)
+let extractLibrary (appData:AppData) (gamename: string) filepath =
+    let target = Path.Combine(appData.settings.gamePath, gamename)
     printfn "%s" target
     match SystemInfo.os with
     | SystemInfo.OS.Linux ->
