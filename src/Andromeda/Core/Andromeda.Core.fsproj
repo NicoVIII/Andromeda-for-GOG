@@ -21,6 +21,5 @@
     <PackageReference Include="GogApi.DotNet" Version="1.0.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
-    <!--<ProjectReference Include="../../../../GogApi.Dotnet/src/GogApi.DotNet/FSharp/GogApi.DotNet.fsproj" />-->
   </ItemGroup>
 </Project>

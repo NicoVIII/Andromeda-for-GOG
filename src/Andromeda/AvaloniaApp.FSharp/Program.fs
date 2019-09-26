@@ -29,8 +29,8 @@ let buildAvaloniaApp (args: string[]): AppBuilder =
 [<EntryPoint>]
 let main (args: string[]): int =
     // Initialise Couchbase Lite
-    Couchbase.Lite.Support.NetDesktop.Activate();
-    Database.SetLogLevel(LogDomain.All, LogLevel.None);
+    Database.Log.Console.Domains <- LogDomain.All;
+    Database.Log.Console.Level <- LogLevel.None;
 
     buildAvaloniaApp(args).Start(
         (fun app _ ->
