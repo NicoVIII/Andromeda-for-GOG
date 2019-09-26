@@ -16,10 +16,11 @@
     <Compile Include="User.fs" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Couchbase.Lite" Version="2.1.2" />
-    <PackageReference Include="FSharp.Core" Version="4.7.0" />
-    <PackageReference Include="GogApi.DotNet" Version="1.0.1" />
+    <PackageReference Update="FSharp.Core" Version="4.5.4" />
+    <PackageReference Include="Couchbase.Lite" Version="2.6.0" />
+    <PackageReference Include="GogApi.DotNet" Version="1.0.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
-    <PackageReference Include="SharpZipLib" Version="1.1.0" />
+    <PackageReference Include="SharpZipLib" Version="1.2.0" />
+    <!--<ProjectReference Include="../../../../GogApi.Dotnet/src/GogApi.DotNet/FSharp/GogApi.DotNet.fsproj" />-->
   </ItemGroup>
 </Project>
