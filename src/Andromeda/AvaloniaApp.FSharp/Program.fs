@@ -1,7 +1,6 @@
 module Andromeda.AvaloniaApp.FSharp.Program
 
 open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.AppData
 open Andromeda.Core.FSharp.Installed
 open Avalonia
 open Avalonia.Logging.Serilog
@@ -35,8 +34,8 @@ let main (args: string[]): int =
     buildAvaloniaApp(args).Start(
         (fun app _ ->
             let appDataWrapper =
-                loadAppData()
-                |> searchInstalled
+                AppDataPersistence.load ()
+                |> searchInstalled AppDataPersistence.save
                 |> AppDataWrapper
 
             let mainWindow = MainWindow ()

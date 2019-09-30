@@ -18,15 +18,6 @@ module HelperFunctions =
         fnc input |> ignore
         input
 
-    let convertFromArrayObject fnc array  =
-        let rec helper lst index fnc (array: ArrayObject)  =
-            if array.Count > index then
-                let out = (fnc index array)::lst
-                helper out (index+1) fnc array
-            else
-                lst
-        helper [] 0 fnc array
-
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
     let getShortcutTarget file =
         try

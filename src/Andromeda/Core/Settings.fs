@@ -1,15 +1,20 @@
 namespace Andromeda.Core.FSharp
 
 open Couchbase.Lite
+open System.IO
 
 module Settings =
-    module AndromedaDatabase = Andromeda.Core.FSharp.Database
+    let private config = DatabaseConfiguration()
+    Directory.CreateDirectory(SystemInfo.savePath) |> ignore
+    config.Directory <- SystemInfo.savePath
+
+    let openDatabase () = new Database("andromeda", config)
 
     // TODO: remove and replace with typesave initialisation
     let tmpDefault = { Settings.gamePath = SystemInfo.gamePath }
 
     let save (settings:Settings) =
-        use db = AndromedaDatabase.get ()
+        use db = openDatabase ()
         use doc =
             match db.GetDocument "settings" with
             | null -> new MutableDocument("settings")
@@ -23,7 +28,7 @@ module Settings =
         db.Close ()
 
     let load () =
-        use db = AndromedaDatabase.get ()
+        use db = openDatabase ()
         use doc = db.GetDocument("settings")
 
         let appData =
