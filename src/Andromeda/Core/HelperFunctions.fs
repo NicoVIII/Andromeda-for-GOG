@@ -60,16 +60,6 @@ module HelperFunctions =
         with
         | _ ->
             ""
-    module Result =
-        let map f xResult =
-            match xResult with
-            | Ok x -> Ok (f x)
-            | Error err -> Error err
-
-        let bind f xResult =
-            match xResult with
-            | Ok x -> f x
-            | Error err -> Error err
 
     type ResultBuilder() =
         member this.Return x = Ok x

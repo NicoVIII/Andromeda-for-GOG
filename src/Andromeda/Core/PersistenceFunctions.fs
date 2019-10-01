@@ -65,6 +65,9 @@ module Helpers =
             | false -> noneCase, [| |]
         FSharp.Reflection.FSharpValue.MakeUnion(relevantCase, args)
 
+type LoadError =
+    | ValueNotExisting of string
+
 // TODO: Return result types (see also PersistenceTypes)
 module PersistenceFunctions =
     let rec loadDictionary (typeObj: Type) (dictionary: IDictionaryObject) =
@@ -78,6 +81,9 @@ module PersistenceFunctions =
                 || typeObj = typeof<int64>
                 || typeObj = typeof<bool> ->
                 dictionary.GetValue(name)
+                |> function
+                | null -> ValueNotExisting name |> Error
+                | value -> value |> Ok
             | typeObj when Helpers.isList typeObj ->
                 let subType = typeObj.GetGenericArguments().[0]
                 dictionary.GetArray(name)
