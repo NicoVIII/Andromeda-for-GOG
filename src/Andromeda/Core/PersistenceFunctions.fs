@@ -77,8 +77,9 @@ type LoadError =
 // TODO: Think about wrapping Couchbase functions to use Option types
 
 module PersistenceFunctions =
+    // TODO: save options not with null :/ it's ambivalent (non existing, saved null)
     let rec loadDictionary (typeObj: Type) (dictionary: IDictionaryObject): Result<obj,LoadError> =
-        let rec loadType (typeObj: Type) (name: string) =
+        let rec loadType (typeObj: Type) (name: string) (fromOption: bool) =
             match typeObj with
             | typeObj when
                 typeObj = typeof<string>
@@ -89,8 +90,13 @@ module PersistenceFunctions =
                 || typeObj = typeof<bool> ->
                     dictionary.GetValue(name)
                     |> function
-                    | null -> ValueNotExisting name |> Error
-                    | value -> value |> Ok
+                    | null ->
+                        if fromOption then
+                            Ok null
+                        else
+                            ValueNotExisting name |> Error
+                    | value ->
+                        value |> Ok
             | typeObj when Helpers.isList typeObj ->
                 let subType = typeObj.GetGenericArguments().[0]
                 dictionary.GetArray(name)
@@ -107,7 +113,7 @@ module PersistenceFunctions =
                             || subType = typeof<int>
                             || subType = typeof<int64>
                             || subType = typeof<bool> ->
-                            array.GetValue index |> Ok
+                                array.GetValue index |> Ok
                         | subType when FSharpType.IsRecord subType ->
                             array.GetDictionary index
                             |> loadDictionary subType
@@ -115,8 +121,10 @@ module PersistenceFunctions =
                     |> Result.map (Helpers.CachingReflectiveListBuilder.BuildTypedList subType)
             | typeObj when Helpers.isOption typeObj ->
                 let subType = typeObj.GetGenericArguments().[0]
-                let value = loadType subType name
+                let value = loadType subType name true
                 match value with
+                | Error error ->
+                    error |> Error
                 | Ok null ->
                     Helpers.makeOptionValue subType () false |> Ok
                 | Ok value ->
@@ -126,7 +134,10 @@ module PersistenceFunctions =
                 dictionary.GetDictionary(name)
                 |> function
                     | null ->
-                        ValueNotExisting name |> Error
+                        if fromOption then
+                            Ok null
+                        else
+                            ValueNotExisting name |> Error
                     | dictionary ->
                         loadDictionary typeObj dictionary
             | typeObj ->
@@ -138,7 +149,7 @@ module PersistenceFunctions =
         |> List.traverseResultA (fun propertyInfo ->
             let name = propertyInfo.Name
             let propertyType = propertyInfo.PropertyType
-            loadType propertyType name
+            loadType propertyType name false
         )
         |> Result.map List.toArray
         |> function
@@ -166,18 +177,20 @@ module PersistenceFunctions =
         |> Result.map mapping
 
     let rec saveDictionary (dictionary: IMutableDictionary) (value: obj) =
-        let rec saveType (name: string) (value: obj) =
-            match value with
-            | :? string
-            | :? double
-            | :? single
-            | :? int
-            | :? int64
-            | :? bool ->
-                dictionary.SetValue(name, value) |> ignore
-            | :? List<_> ->
+        let rec saveType (typeObj: Type) (name: string) (value: obj) =
+            match typeObj with
+            | _ when
+                typeObj = typeof<string>
+                || typeObj = typeof<double>
+                || typeObj = typeof<single>
+                || typeObj = typeof<int>
+                || typeObj = typeof<int64>
+                || typeObj = typeof<bool> ->
+                    dictionary.SetValue(name, value) |> ignore
+            | _ when Helpers.isList typeObj ->
                 let arrayObj = MutableArrayObject()
-                value :?> List<_>
+                value :?> seq<obj>
+                |> List.ofSeq
                 |> List.iter (fun v ->
                     match box v with
                     | :? string
@@ -188,19 +201,25 @@ module PersistenceFunctions =
                     | :? bool ->
                         arrayObj.AddValue(v) |> ignore
                     // TODO: Add list
+                    | value when value.GetType() |> FSharpType.IsRecord ->
+                        let newDict = MutableDictionaryObject ()
+                        arrayObj.AddDictionary(newDict) |> ignore
+                        saveDictionary newDict value
                     | v ->
                         v.GetType().FullName
                         |> failwithf "Given type is not supported: %s"
                 )
                 dictionary.SetArray (name, arrayObj) |> ignore
-            | :? Option<_> ->
+            | _ when Helpers.isOption typeObj ->
                 // TODO:
                 ()
-            | value when value.GetType() |> FSharpType.IsRecord  ->
-                // TODO:
+            | _ when FSharpType.IsRecord typeObj ->
+                let newDict = MutableDictionaryObject ()
+                dictionary.SetDictionary(name, newDict)
+                |> saveDictionary <| value
                 ()
-            | value ->
-                value.GetType().FullName
+            | _ ->
+                typeObj.FullName
                 |> failwithf "Given type is not supported: %s"
 
         value.GetType()
@@ -208,7 +227,9 @@ module PersistenceFunctions =
         |> List.ofArray
         |> List.iter (fun propertyInfo ->
             let name = propertyInfo.Name
-            saveType name value
+            let typeObj = propertyInfo.PropertyType
+            let value = propertyInfo.GetValue(value)
+            saveType typeObj name value
         )
         ()
 
@@ -221,6 +242,7 @@ module PersistenceFunctions =
         match typeof<'T> with
         | typeObj when FSharpType.IsRecord typeObj ->
             saveDictionary doc record
+            database.Save doc
         | typeObj ->
             failwithf "Given type is no record: %s" typeObj.FullName
 

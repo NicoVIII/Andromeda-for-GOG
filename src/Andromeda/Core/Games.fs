@@ -139,7 +139,6 @@ let extractLibrary (appData:AppData) (gamename: string) filepath =
             let p = Process.Start("unzip", "-qq \"" + filepath + "\" -d \""+tmp+"\"");
             p.WaitForExit()
 
-
         // Move files to install folder
         let folderPath = Path.Combine(tmp, "data", "noarch")
         Syscall.chmod (folderPath, FilePermissions.ALLPERMS) |> ignore
