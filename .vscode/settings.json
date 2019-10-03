@@ -5,7 +5,6 @@
         "**/node_modules/**": true,
         "**/packages/**": true
     },
-    "FSharp.fsacRuntime": "net",
     "editor.formatOnSave": true,
     "files.trimFinalNewlines": true
 }

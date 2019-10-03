@@ -44,10 +44,15 @@ module Helpers =
     let convertFromArrayObject fnc array  =
         let rec helper lst index fnc (array: ArrayObject)  =
             if array.Count > index then
-                let out = (fnc index array)::lst
-                helper out (index+1) fnc array
+                let result = fnc index array
+                match result with
+                | Ok value ->
+                    let out = value::lst
+                    helper out (index+1) fnc array
+                | Error error ->
+                    Error error
             else
-                lst
+                Ok lst
         helper [] 0 fnc array
 
     let makeOptionValue typey v isSome =
@@ -67,10 +72,12 @@ module Helpers =
 
 type LoadError =
     | ValueNotExisting of string
+    | DocumentNotExisting of string
 
-// TODO: Return result types (see also PersistenceTypes)
+// TODO: Think about wrapping Couchbase functions to use Option types
+
 module PersistenceFunctions =
-    let rec loadDictionary (typeObj: Type) (dictionary: IDictionaryObject) =
+    let rec loadDictionary (typeObj: Type) (dictionary: IDictionaryObject): Result<obj,LoadError> =
         let rec loadType (typeObj: Type) (name: string) =
             match typeObj with
             | typeObj when
@@ -80,67 +87,83 @@ module PersistenceFunctions =
                 || typeObj = typeof<int>
                 || typeObj = typeof<int64>
                 || typeObj = typeof<bool> ->
-                dictionary.GetValue(name)
-                |> function
-                | null -> ValueNotExisting name |> Error
-                | value -> value |> Ok
+                    dictionary.GetValue(name)
+                    |> function
+                    | null -> ValueNotExisting name |> Error
+                    | value -> value |> Ok
             | typeObj when Helpers.isList typeObj ->
                 let subType = typeObj.GetGenericArguments().[0]
                 dictionary.GetArray(name)
-                |> Helpers.convertFromArrayObject (fun index array ->
-                    match subType with
-                    | subType when
-                        subType = typeof<string>
-                        || subType = typeof<double>
-                        || subType = typeof<single>
-                        || subType = typeof<int>
-                        || subType = typeof<int64>
-                        || subType = typeof<bool> ->
-                        array.GetValue index
-                    | subType when FSharpType.IsRecord subType ->
-                        array.GetDictionary index
-                        |> loadDictionary subType
-                )
-                |> Helpers.CachingReflectiveListBuilder.BuildTypedList subType
+                |> function
+                | null -> ValueNotExisting name |> Error
+                | value ->
+                    value
+                    |> Helpers.convertFromArrayObject (fun index array ->
+                        match subType with
+                        | subType when
+                            subType = typeof<string>
+                            || subType = typeof<double>
+                            || subType = typeof<single>
+                            || subType = typeof<int>
+                            || subType = typeof<int64>
+                            || subType = typeof<bool> ->
+                            array.GetValue index |> Ok
+                        | subType when FSharpType.IsRecord subType ->
+                            array.GetDictionary index
+                            |> loadDictionary subType
+                    )
+                    |> Result.map (Helpers.CachingReflectiveListBuilder.BuildTypedList subType)
             | typeObj when Helpers.isOption typeObj ->
                 let subType = typeObj.GetGenericArguments().[0]
                 let value = loadType subType name
                 match value with
-                | null ->
-                    Helpers.makeOptionValue subType () false
-                | value ->
-                    Helpers.makeOptionValue subType value true
+                | Ok null ->
+                    Helpers.makeOptionValue subType () false |> Ok
+                | Ok value ->
+                    Helpers.makeOptionValue subType value true |> Ok
             | typeObj when FSharpType.IsRecord typeObj ->
                 // TODO: optimize recursion away (it's no tail recursion)
                 dictionary.GetDictionary(name)
-                |> loadDictionary typeObj
+                |> function
+                    | null ->
+                        ValueNotExisting name |> Error
+                    | dictionary ->
+                        loadDictionary typeObj dictionary
             | typeObj ->
                 failwithf "Given type is not supported: %s" typeObj.FullName
 
-        let values =
-            typeObj
-            |> FSharpType.GetRecordFields
-            |> List.ofArray
-            |> List.map (fun propertyInfo ->
-                let name = propertyInfo.Name
-                let propertyType = propertyInfo.PropertyType
-                loadType propertyType name
-            )
-            |> List.toArray
-        FSharpValue.MakeRecord(typeObj, values)
+        typeObj
+        |> FSharpType.GetRecordFields
+        |> List.ofArray
+        |> List.traverseResultA (fun propertyInfo ->
+            let name = propertyInfo.Name
+            let propertyType = propertyInfo.PropertyType
+            loadType propertyType name
+        )
+        |> Result.map List.toArray
+        |> function
+            | Ok values ->
+                FSharpValue.MakeRecord(typeObj, values) |> Ok
+            | Error error ->
+                error |> Error
 
     let loadDocument<'T> (database: Database) (documentName: string) =
         use doc = database.GetDocument(documentName)
 
-        match typeof<'T> with
-        | typeObj when FSharpType.IsRecord typeObj ->
-            (loadDictionary typeObj doc) :?> 'T
-        | typeObj ->
-            failwithf "Given type is no record: %s" typeObj.FullName
+        match doc with
+        | null ->
+            DocumentNotExisting documentName |> Error
+        | doc ->
+            match typeof<'T> with
+            | typeObj when FSharpType.IsRecord typeObj ->
+                loadDictionary typeObj doc
+                |> Result.map (fun x -> x :?> 'T)
+            | typeObj ->
+                failwithf "Given type is no record: %s" typeObj.FullName
 
     let loadDocumentWithMapping<'TPersistence, 'T> (mapping: 'TPersistence -> 'T) (database: Database) (documentName: string) =
         loadDocument<'TPersistence> database documentName
-        |> mapping
+        |> Result.map mapping
 
     let rec saveDictionary (dictionary: IMutableDictionary) (value: obj) =
         let rec saveType (name: string) (value: obj) =

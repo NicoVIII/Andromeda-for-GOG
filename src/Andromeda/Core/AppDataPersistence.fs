@@ -63,6 +63,11 @@ module AppDataPersistence =
     let load () =
         let db = AndromedaDatabase.openDatabase ()
         loadDocumentWithMapping<AppDataPers, AppData> fromPers db documentName
+        |> function
+            | Ok appdata -> appdata
+            | Error _ ->
+                // TODO: log error
+                AppData.createBasicAppData ()
 
     let save (appData: AppData) =
         let db = AndromedaDatabase.openDatabase ()
