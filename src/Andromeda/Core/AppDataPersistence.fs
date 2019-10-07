@@ -1,9 +1,9 @@
 namespace Andromeda.Core.FSharp
 
 open GogApi.DotNet.FSharp.Base
+open TypedPersistence.CouchbaseLite.FSharp
 
 open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.PersistenceFunctions
 
 module AppDataPersistence =
     module AndromedaDatabase = Andromeda.Core.FSharp.Database

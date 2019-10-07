@@ -20,7 +20,6 @@
     <Compile Include="User.fs" />
 
     <!-- Persistence Implementation Layer -->
-    <Compile Include="PersistenceFunctions.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="AppDataPersistence.fs" />
   </ItemGroup>
@@ -30,5 +29,6 @@
     <PackageReference Include="GogApi.DotNet" Version="1.0.2" />
     <PackageReference Include="Mono.Posix.NETStandard" Version="1.0.0" />
     <PackageReference Include="SharpZipLib" Version="1.2.0" />
+    <PackageReference Include="TypedPersistence.CouchbaseLite" Version="0.1.0" />
   </ItemGroup>
 </Project>
