@@ -5,6 +5,6 @@
         "**/node_modules/**": true,
         "**/packages/**": true
     },
-    "editor.formatOnSave": true,
+    "editor.formatOnSave": false,
     "files.trimFinalNewlines": true
 }

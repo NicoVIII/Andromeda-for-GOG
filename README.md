@@ -45,22 +45,19 @@ This does not work all the time, but you can try to right click the game in the 
 
 ### Setup (VSCode)
 
-TBD
+Run "restore" task, after that you can use the debugger and run the build task.
 
-For some reason the used build of Avalonia makes problems with Omnisharp. To make code completion work again, you have to comment out the first "UsingTask"-Element in `AvaloniaBuildTasks.targets` in NuGet-Download.  
-For me this is located at `~/.nuget/packages/avalonia/[version]/build/AvaloniaBuildTasks.targets`.
+For some reason the used build of Avalonia sometimes has problems with Omnisharp.
+To make code completion work again, you have to comment out the first "UsingTask"-Element in `AvaloniaBuildTasks.targets` in NuGet-Download.  
+For me this is located at `~/.nuget/packages/avalonia/[version]/build/AvaloniaBuildTasks.targets`. 
 
 ### Building
 
-You need .NET Core 2.2 to build Andromeda.
-To build the program use `build.sh` or `build.cmd` in the root folder. This will build the whole solution.
-
-To start the program use dotnet and the built `.dll`:  
-`dotnet ./Andromeda.AvaloniaApp/bin/Debug/netcoreapp2.2/Andromeda.AvaloniaApp.dll`
+You need .NET Core 3.0 to build Andromeda.
 
 ### Publishing
 
-Publishing only works on a linux system. I personally use Manjaro Linux or Ubuntu 18.10 (depending on the machine I use).  
+Publishing only works on a linux system. I personally use Manjaro Linux or Ubuntu 19.10 (depending on the machine I use).  
 You need additionally to building dependencies, zsyncmake (in the zsync package I guess).
 
 There is a bash script which bundles Andromeda in all the designated forms. Run `publish.sh` for that.

@@ -293,7 +293,7 @@ _Pvt_Extensions
 # Paket dependency manager
 #.paket/paket.exe #paket.exe is needed and is only a bootstraper...
 paket-files/
-.paket/Paket.Restore.targets
+.paket/
 
 # FAKE - F# Make
 .fake/

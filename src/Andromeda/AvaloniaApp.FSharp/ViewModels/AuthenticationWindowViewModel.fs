@@ -20,6 +20,6 @@ type AuthenticationWindowViewModel(control, parent) as this =
     member val AuthenticateCommand: ReactiveCommand<Window, Unit> = ReactiveCommand.Create<Window>(this.Authenticate)
 
     member this.Authenticate(window: Window) =
-        { this.AppData with authentication = newToken this.Code }
+        withNewToken this.AppData this.Code
         |> this.SetAppData
         window.Close();

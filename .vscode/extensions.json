@@ -8,7 +8,6 @@
         "ionide.ionide-fsharp",
         // Coding style
         "editorconfig.editorconfig",
-        "paolodellepiane.fantomas-fmt",
         // Highlighting
         "aaron-bond.better-comments",
         "ybaumes.highlight-trailing-white-spaces"
