@@ -1,11 +1,8 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
-open Andromeda.AvaloniaApp.FSharp.Helpers
 open Andromeda.Core.FSharp.AppData
 open Avalonia.Controls
-open GogApi.DotNet.FSharp.Authentication
 open ReactiveUI
-open DynamicData
 open System.Reactive
 
 type AuthenticationWindowViewModel(control, parent) as this =

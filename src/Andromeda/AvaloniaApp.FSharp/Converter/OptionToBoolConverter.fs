@@ -2,7 +2,6 @@ namespace Andromeda.AvaloniaApp.FSharp.Converter
 
 open Avalonia.Data.Converters
 open Microsoft.FSharp.Core
-open System
 
 type OptionToBoolConverter () =
     interface IValueConverter with

@@ -3,8 +3,6 @@ namespace Andromeda.Core.FSharp
 open System
 open System.IO
 
-open Couchbase.Lite
-
 [<AutoOpen>]
 module HelperFunctions =
     let exeFst fnc (a, b) = (fnc a, b)
@@ -21,7 +19,7 @@ module HelperFunctions =
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
     let getShortcutTarget file =
         try
-            if System.IO.Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
+            if Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
                 Exception("Supplied file must be a .LNK file") |> raise
 
             let fileStream = File.Open(file, FileMode.Open, FileAccess.Read)

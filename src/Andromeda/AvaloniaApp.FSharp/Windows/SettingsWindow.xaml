@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Name="SettingsWindow"
+        Title="Settings"
+        Height="260" Width="700">
+  <StackPanel Orientation="Vertical" Spacing="5">
+    <TextBlock>Game path</TextBlock>
+    <StackPanel Orientation="Horizontal" Spacing="5">
+      <TextBox Text="{Binding GamePath}"/><!--IsReadOnly="True"-->
+      <!--<Button Command="{Binding SelectFolderCommand}">Choose...</Button>-->
+    </StackPanel>
+    <Button Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=SettingsWindow}">Save</Button>
+  </StackPanel>
+</Window>

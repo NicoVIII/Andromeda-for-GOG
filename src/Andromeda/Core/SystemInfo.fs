@@ -59,7 +59,7 @@ let gamePath =
     | Windows ->
         //"D:\\Spiele" // TODO: tmp for debugging purposes
         "C:\\Spiele"
-        
+
 // TODO: Move to config?
 let savePath =
     match os with

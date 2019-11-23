@@ -22,14 +22,15 @@
     <Compile Include="Converter/*.fs" />
     <Compile Include="Widgets/DownloadWidget.xaml.fs" />
     <Compile Include="Windows/AuthenticationWindow.xaml.fs" />
+    <Compile Include="Windows/SettingsWindow.xaml.fs" />
     <Compile Include="Windows/InstallWindow.xaml.fs" />
     <Compile Include="Windows/MainWindow.xaml.fs" />
     <Compile Include="ViewModels/ViewModelBase.fs" />
     <Compile Include="ViewModels/AuthenticationWindowViewModel.fs" />
+    <Compile Include="ViewModels/SettingsWindowViewModel.fs" />
     <Compile Include="ViewModels/DownloadWidgetViewModel.fs" />
     <Compile Include="ViewModels/InstallWindowViewModel.fs" />
     <Compile Include="ViewModels/MainWindowViewModel.fs" />
-    <Compile Include="ViewModels/SettingsWindowViewModel.fs" />
     <Compile Include="ViewLocator.fs" />
     <Compile Include="App.xaml.fs" />
     <Compile Include="Program.fs" />

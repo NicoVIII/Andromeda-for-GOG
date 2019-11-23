@@ -1,7 +1,5 @@
 namespace Andromeda.Core.FSharp
 
-open System.IO
-
 [<AutoOpen>]
 module DomainTypes =
     // Provide an important type from GogApi over Andromeda.Core to avoid dependency of app to api

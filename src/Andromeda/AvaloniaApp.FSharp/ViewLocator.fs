@@ -7,10 +7,10 @@ open System
 
 type ViewLocator() =
     interface IDataTemplate with
-        member this.SupportsRecycling = false
-        member this.Match(data: obj) = data :? ViewModelBase
+        member __.SupportsRecycling = false
+        member __.Match(data: obj) = data :? ViewModelBase
 
-        member this.Build(data) =
+        member __.Build(data) =
             let name = data.GetType().FullName.Replace("ViewModel", "View");
             let ``type`` = Type.GetType(name);
 
@@ -19,5 +19,5 @@ type ViewLocator() =
                 let textBlock = TextBlock();
                 textBlock.Text <- "Not Found: " + name
                 textBlock :> IControl
-            | x ->
+            | _ ->
                 Activator.CreateInstance ``type`` :?> IControl

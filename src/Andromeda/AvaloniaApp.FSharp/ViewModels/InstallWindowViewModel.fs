@@ -1,11 +1,9 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
 open Andromeda.Core.FSharp.Games
-open Andromeda.Core.FSharp.Installed
 open ReactiveUI
 open DynamicData
 open GogApi.DotNet.FSharp.Listing
-open System.Diagnostics
 open System.Linq
 open System.Reactive
 open Avalonia.Controls

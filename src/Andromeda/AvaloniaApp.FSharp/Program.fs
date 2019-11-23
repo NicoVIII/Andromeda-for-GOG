@@ -12,47 +12,39 @@ open Andromeda.AvaloniaApp.FSharp.Helpers
 open Andromeda.AvaloniaApp.FSharp.ViewModels
 open Andromeda.AvaloniaApp.FSharp.Windows
 
-let buildAvaloniaApp (args: string[]): AppBuilder =
-    let mutable builder =
-        AppBuilder
-         .Configure<App>()
-         .UsePlatformDetect()
-         .UseSkia()
-         .UseReactiveUI()
-         .LogToDebug()
+let buildAvaloniaApp (args: string []): AppBuilder =
+    let mutable builder = AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().UseReactiveUI().LogToDebug()
 
     // Use CefGlue only on Windows for now...
     //builder <- builder.ConfigureCefGlue(args);
     builder
 
 [<EntryPoint>]
-let main (args: string[]): int =
+let main (args: string []): int =
     // Initialise Couchbase Lite
-    Database.Log.Console.Domains <- LogDomain.All;
-    Database.Log.Console.Level <- LogLevel.None;
+    Database.Log.Console.Domains <- LogDomain.All
+    Database.Log.Console.Level <- LogLevel.None
 
-    buildAvaloniaApp(args).Start(
-        (fun app _ ->
-            let appDataWrapper =
-                AppDataPersistence.load ()
-                |> searchInstalled AppDataPersistence.save
-                |> AppDataWrapper
+    buildAvaloniaApp(args).Start
+        ((fun app _ ->
+         let appDataWrapper =
+             AppDataPersistence.load()
+             |> searchInstalled AppDataPersistence.save
+             |> AppDataWrapper
 
-            let mainWindow = MainWindow ()
-            let mainWindowVM = MainWindowViewModel (mainWindow, appDataWrapper)
-            mainWindowVM.Initialize()
-            mainWindow.DataContext <- mainWindowVM
-            match appDataWrapper.AppData.authentication with
-            | NoAuth ->
-                // Authenticate
-                let window = AuthenticationWindow ()
-                window.DataContext <- AuthenticationWindowViewModel (window, mainWindowVM)
-                mainWindow |> window.ShowDialog |> ignore
-            | _ -> ()
-            mainWindowVM.Init()
-            app.Run(mainWindow)
-        ),
-        [||]
-    )
+         let mainWindow = MainWindow()
+         let mainWindowVM = MainWindowViewModel(mainWindow, appDataWrapper)
+         mainWindowVM.Initialize()
+         mainWindow.DataContext <- mainWindowVM
+         match appDataWrapper.AppData.authentication with
+         | NoAuth ->
+             // Authenticate
+             let window = AuthenticationWindow()
+             window.DataContext <- AuthenticationWindowViewModel(window, mainWindowVM)
+             window.ShowDialog mainWindow |> ignore
+         | _ -> ()
+
+         mainWindowVM.Init()
+         app.Run(mainWindow)), [||])
 
     0

@@ -1,7 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
 open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.AppData
 open Avalonia.Controls
 open ReactiveUI
 
