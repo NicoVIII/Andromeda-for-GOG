@@ -1,7 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
 open Andromeda.Core.FSharp
-open Avalonia.Controls
 open ReactiveUI
 open ReactiveUI.Legacy
 open System
@@ -63,7 +62,9 @@ type MainWindowViewModel(window, appDataWrapper) as this =
 
     member this.OpenSettings() =
         let settingsWindow = SettingsWindow()
-        settingsWindow.DataContext <- SettingsWindowViewModel(settingsWindow, this)
+        let settingsWindowVM = SettingsWindowViewModel(settingsWindow, this)
+        settingsWindowVM.Initialize()
+        settingsWindow.DataContext <- settingsWindowVM
         settingsWindow.ShowDialog(this.Control) |> ignore
 
     member __.StartGame(path: string) = Games.startGame path
@@ -71,7 +72,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     // Necessary, because F# wants to initialize EVERYTHING before using ANYTHING...
     member __.Initialize() =
         installedGames <-
-            this.WhenAnyValue<MainWindowViewModel, AppData>((fun (x: MainWindowViewModel) -> x.AppDataWrapper.AppData))
+            this.WhenAnyValue<MainWindowViewModel, AppData>(fun (x: MainWindowViewModel) -> x.AppDataWrapper.AppData)
                 .Select(fun (appData: AppData) -> appData.installedGames)
                 .ToProperty(this, (fun (x: MainWindowViewModel) -> x.InstalledGames))
 

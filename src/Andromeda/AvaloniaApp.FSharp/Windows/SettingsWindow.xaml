@@ -6,9 +6,10 @@
   <StackPanel Orientation="Vertical" Spacing="5">
     <TextBlock>Game path</TextBlock>
     <StackPanel Orientation="Horizontal" Spacing="5">
-      <TextBox Text="{Binding GamePath}"/><!--IsReadOnly="True"-->
+      <TextBox Text="{Binding GamePath}" Width="300"/><!--IsReadOnly="True"-->
       <!--<Button Command="{Binding SelectFolderCommand}">Choose...</Button>-->
     </StackPanel>
-    <Button Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=SettingsWindow}">Save</Button>
+    <TextBlock IsVisible="{Binding Invalid}">Some data is invalid! (GamePath can not be found..)"</TextBlock>
+    <Button Command="{Binding SaveCommand}" CommandParameter="{Binding ElementName=SettingsWindow}" IsEnabled="{Binding !Invalid}">Save</Button>
   </StackPanel>
 </Window>
