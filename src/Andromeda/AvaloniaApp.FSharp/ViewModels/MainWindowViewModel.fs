@@ -4,6 +4,7 @@ open Andromeda.Core.FSharp
 open ReactiveUI
 open ReactiveUI.Legacy
 open System
+open System.Diagnostics
 open System.Reactive.Linq
 open System.Threading
 open System.Threading.Tasks
@@ -17,6 +18,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     inherit ParentViewModelBase(window, appDataWrapper)
 
     let mutable searchTerm = ""
+    let mutable terminalOutput = ""
     let mutable installedGames: ObservableAsPropertyHelper<InstalledGame list> = null
     let notifications = ReactiveList<NotificationData>()
 
@@ -27,6 +29,10 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     member this.SearchTerm
         with get () = searchTerm
         and set (value: string) = this.RaiseAndSetIfChanged(&searchTerm, value) |> ignore
+
+    member __.TerminalOutput
+        with get () = terminalOutput
+        and set (value: string) = this.RaiseAndSetIfChanged(&terminalOutput, value) |> ignore
 
     member __.InstalledGames = installedGames.Value
     member __.FilteredInstalledGames = filteredInstalledGames.Value
@@ -67,7 +73,19 @@ type MainWindowViewModel(window, appDataWrapper) as this =
         settingsWindow.DataContext <- settingsWindowVM
         settingsWindow.ShowDialog(this.Control) |> ignore
 
-    member __.StartGame(path: string) = Games.startGame path
+    member __.StartGame(path: string) =
+        let showGameOutput _ (outLine: DataReceivedEventArgs) =
+            if outLine.Data |> String.IsNullOrEmpty |> not then
+                this.TerminalOutput <- outLine.Data + Environment.NewLine + this.TerminalOutput
+            else
+                ()
+
+        let proc = Games.startGameProcess showGameOutput path
+        match proc with
+        | Some _ ->
+            sprintf "Started game: %s" path |> this.AddNotification
+        | None ->
+            this.AddNotification "Game could not be started. Error while creating process..."
 
     // Necessary, because F# wants to initialize EVERYTHING before using ANYTHING...
     member __.Initialize() =

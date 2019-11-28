@@ -79,13 +79,13 @@
         <TextBlock Grid.Row="3" Text="{Binding Version}" FontSize="10" />
       </Grid>
       <!-- Right page -->
-      <Grid Grid.Column="1" RowDefinitions="Auto, Auto, Auto">
+      <Grid Grid.Column="1" RowDefinitions="Auto, 1*, Auto">
         <!--<TextBlock Grid.Row="0">Aktionsleiste</TextBlock>-->
-        <StackPanel Grid.Row="1" Margin="10" Orientation="Horizontal" Spacing="5">
+        <StackPanel Grid.Row="0" Margin="10" Orientation="Horizontal" Spacing="5">
           <Button Command="{Binding OpenInstallWindowCommand}">Install game</Button>
           <Button Command="{Binding UpgradeAllGamesCommand}">Upgrade games</Button>
         </StackPanel>
-        <StackPanel Grid.Row="2" Orientation="Vertical" Margin="25" Spacing="2">
+        <StackPanel Grid.Row="1" Orientation="Vertical" Margin="25" Spacing="2">
           <TextBlock TextWrapping="Wrap">Because I couldn't make a browser control for Avalonia work,</TextBlock>
           <TextBlock TextWrapping="Wrap">we have to live for now without the graphical stuff from GOG Galaxy</TextBlock>
           <TextBlock TextWrapping="Wrap">and use some workaround buttons (and later menus).</TextBlock>
@@ -101,6 +101,7 @@
           <TextBlock TextWrapping="Wrap"> </TextBlock>
           <TextBlock TextWrapping="Wrap">Working on a solution for those problems!</TextBlock>
         </StackPanel>
+        <TextBox MaxHeight="100" Grid.Row="2" IsReadOnly="True" Text="{Binding TerminalOutput}"/>
         <!--<cef:AvaloniaCefBrowser Grid.Row="1" StartUrl="https://embed.gog.com" />-->
       </Grid>
     </Grid>

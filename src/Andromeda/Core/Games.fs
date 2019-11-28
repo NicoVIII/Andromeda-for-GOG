@@ -36,41 +36,61 @@ let startFileDownload url gameName version =
     | false ->
         (None, filepath, tmppath)
 
-let startGame path =
+let private prepareGameProcess processOutput (proc: Process) =
+    proc.StartInfo.RedirectStandardOutput <- true
+    proc.OutputDataReceived.AddHandler(new DataReceivedEventHandler(processOutput))
+    proc
+
+let private startWindowsGameProcess (prepareGameProcess: Process -> Process) path =
+    let file =
+        Directory.GetFiles(path)
+        |> List.ofArray
+        |> List.filter (fun path ->
+            let fileName = Path.GetFileName path
+            fileName.StartsWith "Launch " && fileName.EndsWith ".lnk"
+        )
+        |> List.first
+    match file with
+    | Some file ->
+        let proc =
+            new Process()
+            |> fun proc -> proc.StartInfo.FileName <- getShortcutTarget file; proc
+            |> prepareGameProcess
+        try
+            proc.Start() |> ignore
+            proc.BeginOutputReadLine()
+            proc |> Some
+        with
+        | _ ->
+            try
+                // Try again with admin rights
+                proc.StartInfo.UseShellExecute <- true
+                proc.StartInfo.Verb <- "runas"
+                proc.Start() |> ignore
+                proc.BeginOutputReadLine()
+                Some proc
+            with
+            | _ ->
+                None
+    | None ->
+        None
+
+let startGameProcess processStandardOutput path =
+    let prepareGameProcess = prepareGameProcess processStandardOutput
     match SystemInfo.os with
     | SystemInfo.OS.Linux
     | SystemInfo.OS.MacOS ->
         let filepath = Path.Combine(path, "start.sh")
         Syscall.chmod(filepath, FilePermissions.ALLPERMS) |> ignore
-        Process.Start filepath |> ignore
+        let proc =
+            new Process()
+            |> fun proc -> proc.StartInfo.FileName <- filepath; proc
+            |> prepareGameProcess
+        proc.Start() |> ignore
+        proc.BeginOutputReadLine()
+        proc |> Some
     | SystemInfo.OS.Windows ->
-        let file =
-            Directory.GetFiles(path)
-            |> List.ofArray
-            |> List.filter (fun path ->
-                let fileName = Path.GetFileName path
-                fileName.StartsWith "Launch " && fileName.EndsWith ".lnk"
-            )
-            |> List.first
-        match file with
-        | Some file ->
-            let target = getShortcutTarget file
-            try
-                Process.Start target |> ignore
-            with
-            | _ ->
-                try
-                    // Try again with admin rights
-                    let p = new Process()
-                    p.StartInfo.FileName <- target
-                    p.StartInfo.UseShellExecute <- true
-                    p.StartInfo.Verb <- "runas"
-                    p.Start() |> ignore
-                with
-                | _ ->
-                    ()
-        | None ->
-            () // TODO: better error handling
+        startWindowsGameProcess prepareGameProcess path
 
 let rec copyDirectory (sourceDirName :string) (destDirName :string) (copySubDirs:bool) =
     let dir = DirectoryInfo(sourceDirName)
