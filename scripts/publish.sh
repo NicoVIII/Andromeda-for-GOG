@@ -4,20 +4,20 @@ rm -fr "deploy"
 mkdir -p "deploy"
 
 DEPLOYNAME="Andromeda-v0.0.0-x86_64"
+FRAMEWORK="netcoreapp3.0"
 
 echo "Start publishing as archive by building."
 (
-  cd src/Andromeda.AvaloniaApp || exit
-  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 grep error --color=never
+  cd src/Andromeda/AvaloniaApp.FSharp || exit
+  dotnet publish --verbosity quiet --configuration Release --framework "$FRAMEWORK" | grep error --color=never
 )
 
 (
   cd "deploy" || exit
   # Move files to publish folder
   mkdir "publish"
-  mv "../src/Andromeda/AvaloniaApp/bin/Release/netcoreapp2.2/publish" "publish/bin"
-  cp "../assets/build/start.cmd" "publish"
-  cp "../assets/build/start.sh" "publish"
+  mv "../src/Andromeda/AvaloniaApp.FSharp/bin/Release/"$FRAMEWORK"/publish" "publish/bin"
+  cp -a "../assets/build/archive/." "publish"
   cp "../LICENSE" "publish"
   cp "../README.md" "publish"
   cp "../CHANGELOG.md" "publish"
@@ -40,22 +40,29 @@ echo "Start publishing as archive by building."
 
 echo "Start publishing as AppImage by building."
 (
-  cd "src/Andromeda/AvaloniaApp" || exit
-  dotnet publish --verbosity quiet --configuration Release --framework netcoreapp2.2 --runtime ubuntu.16.04-x64 | grep error --color=never
-  rm -r "AppDir/usr/bin"
-  mv "bin/Release/netcoreapp2.2/ubuntu.16.04-x64/publish" "AppDir/usr"
-  mv "AppDir/usr/publish" "AppDir/usr/bin"
+  cd "src/Andromeda/AvaloniaApp.FSharp" || exit
+  dotnet publish --verbosity quiet --configuration Release --framework "$FRAMEWORK" --runtime ubuntu.16.04-x64 | grep error --color=never
+  mkdir -p "AppDir/usr"
+  mv -T "bin/Release/$FRAMEWORK/ubuntu.16.04-x64/publish" "AppDir/usr/bin"
+
+  cp -a "../../../assets/build/appimage/." "AppDir"
+  cp "../../../LICENSE" "AppDir"
+  cp "../../../README.md" "AppDir"
+  cp "../../../CHANGELOG.md" "AppDir"
 )
 if ! [ -f "./appimagetool-x86_64.AppImage" ]
 then
   wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
   chmod a+x appimagetool-x86_64.AppImage
 fi
+./appimagetool-x86_64.AppImage --appimage-extract
 (
-  cd "src/Andromeda/AvaloniaApp" || exit
-  ./../appimagetool-x86_64.AppImage ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
-  mv "Andromeda-x86_64.AppImage" "../deploy/$DEPLOYNAME.AppImage"
-  mv "Andromeda-x86_64.AppImage.zsync" "../deploy/$DEPLOYNAME.AppImage.zsync"
+  cd "src/Andromeda/AvaloniaApp.FSharp" || exit
+  ./../../../squashfs-root/AppRun --no-appstream ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
+  mv "Andromeda-x86_64.AppImage" "../../../deploy/$DEPLOYNAME.AppImage"
+  mv "Andromeda-x86_64.AppImage.zsync" "../../../deploy/$DEPLOYNAME.AppImage.zsync"
+  rm -r "AppDir"
 
   echo "Finished publishing as AppImage."
 )
+rm -r squashfs-root

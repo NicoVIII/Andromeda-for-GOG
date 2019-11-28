@@ -12,10 +12,10 @@ If you need something to play Multiplayer over Galaxy on linux, have a look at t
 
 ## Dependencies
 
-If you do not use the AppImage for Linux, you need .NET Core 2.2 to run Andromeda.  
+If you do not use the AppImage for Linux, you need .NET Core 3.0 to run Andromeda.  
 You can download it here: <https://www.microsoft.com/net/download>
 
-## Installation
+## Installation 
 
 Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases and unpack it anywhere you want.
 
@@ -58,7 +58,7 @@ You need .NET Core 3.0 to build Andromeda.
 ### Publishing
 
 Publishing only works on a linux system. I personally use Manjaro Linux or Ubuntu 19.10 (depending on the machine I use).  
-You need additionally to building dependencies, zsyncmake (in the zsync package I guess).
+You need additionally to building dependencies, zsyncmake (in the zsync package I guess) and appstream.
 
 There is a bash script which bundles Andromeda in all the designated forms. Run `publish.sh` for that.
 

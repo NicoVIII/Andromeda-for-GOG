@@ -10,7 +10,9 @@
         "editorconfig.editorconfig",
         // Highlighting
         "aaron-bond.better-comments",
-        "ybaumes.highlight-trailing-white-spaces"
+        "ybaumes.highlight-trailing-white-spaces",
+        // Git
+        "eamodio.gitlens"
     ],
     // List of extensions recommended by VS Code that should not be recommended for users of this workspace.
     "unwantedRecommendations": []
