@@ -14,8 +14,12 @@ module DomainTypes =
         icon: string option;
     }
 
+    type Settings = {
+        gamePath: string;
+    }
+
     type AppData = {
         authentication: Authentication;
         installedGames: InstalledGame list;
-        gamePath: string;
+        settings: Settings;
     }

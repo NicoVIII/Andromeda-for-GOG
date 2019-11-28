@@ -121,8 +121,8 @@ let generateRandomString length =
 
     helper length ""
 
-let extractLibrary appData (gamename: string) filepath =
-    let target = Path.Combine(appData.gamePath, gamename)
+let extractLibrary (appData:AppData) (gamename: string) filepath =
+    let target = Path.Combine(appData.settings.gamePath, gamename)
     printfn "%s" target
     match SystemInfo.os with
     | SystemInfo.OS.Linux ->
@@ -138,7 +138,6 @@ let extractLibrary appData (gamename: string) filepath =
         | :? ZipException ->
             let p = Process.Start("unzip", "-qq \"" + filepath + "\" -d \""+tmp+"\"");
             p.WaitForExit()
-
 
         // Move files to install folder
         let folderPath = Path.Combine(tmp, "data", "noarch")

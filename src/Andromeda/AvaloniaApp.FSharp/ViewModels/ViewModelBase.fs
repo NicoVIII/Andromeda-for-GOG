@@ -1,7 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
 open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.AppData
 open Avalonia.Controls
 open ReactiveUI
 
@@ -25,7 +24,7 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
 
     member this.SetAppData (appData): unit =
         this.AppDataWrapper.AppData <- appData
-        saveAppData(this.AppData)
+        AppDataPersistence.save appData
 
     member this.GetChildrenOfType<'T when 'T :> SubViewModelBase> () =
         this.Children

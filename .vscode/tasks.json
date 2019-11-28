@@ -3,16 +3,24 @@
     "tasks": [
         {
             "label": "build",
-            "command": "./scripts/build.sh",
-            "windows": {
-                "command": "./scripts/build.cmd"
-            },
+            "command": "dotnet fake build",
             "type": "shell",
             "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
+            "options": {},
+            "problemMatcher": [
+                "$msCompile"
+            ]
+        },
+        {
+            "label": "restore",
+            "command": "dotnet tool restore && dotnet paket restore",
+            "type": "shell",
+            "args": [],
+            "group": "none",
             "options": {},
             "problemMatcher": [
                 "$msCompile"

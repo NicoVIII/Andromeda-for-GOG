@@ -3,10 +3,9 @@ module Andromeda.Core.FSharp.Installed
 open FSharp.Json
 open GogApi.DotNet.FSharp.GalaxyApi
 open GogApi.DotNet.FSharp.Listing
-open System
 open System.IO
 
-open Andromeda.Core.FSharp.AppData
+open Andromeda.Core.FSharp.PersistenceTypes
 
 type UpdateData = {
     game: InstalledGame;
@@ -19,10 +18,10 @@ type WindowsGameInfoFile = {
     version: int option;
 }
 
-let checkAllForUpdates appData =
+let checkAllForUpdates (appData: AppData) =
     appData.installedGames
     |> List.filter (fun game -> game.updateable)
-    |> List.fold (fun (lst, appData) game ->
+    |> List.fold (fun (lst, (appData:AppData)) game ->
         let (update, auth) = askForProductInfo appData.authentication { id = game.id }
         let appData = { appData with authentication = auth }
         match update with
@@ -53,7 +52,7 @@ let checkAllForUpdates appData =
                 failwith "OS is invalid for some reason!"
     ) ([], appData)
 
-let getGameId appData name =
+let getGameId (appData: AppData) name =
     askForFilteredProducts appData.authentication { search = name }
     |> exeFst (
         function
@@ -127,9 +126,9 @@ let getInstalledOnWindows (appData: AppData) gameDir =
     | _ ->
         appData
 
-let searchInstalled (appData :AppData) =
+let searchInstalled (saveAppData: SaveAppData) (appData :AppData) =
     let appData = { appData with installedGames = [] }
-    Directory.EnumerateDirectories(appData.gamePath)
+    Directory.EnumerateDirectories(appData.settings.gamePath)
     |> List.ofSeq
     |> List.fold (fun appData gameDir ->
         // Ignore folders starting with '!'
@@ -149,4 +148,4 @@ let searchInstalled (appData :AppData) =
             | Some fnc -> fnc appData gameDir
             | None -> appData
     ) appData
-    |> fluent (saveAppData)
+    |> fluent saveAppData

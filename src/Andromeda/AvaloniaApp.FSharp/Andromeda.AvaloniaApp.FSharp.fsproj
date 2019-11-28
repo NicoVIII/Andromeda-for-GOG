@@ -1,9 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <AssemblyName>Andromeda.AvaloniaApp.FSharp</AssemblyName>
     <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
@@ -21,10 +22,12 @@
     <Compile Include="Converter/*.fs" />
     <Compile Include="Widgets/DownloadWidget.xaml.fs" />
     <Compile Include="Windows/AuthenticationWindow.xaml.fs" />
+    <Compile Include="Windows/SettingsWindow.xaml.fs" />
     <Compile Include="Windows/InstallWindow.xaml.fs" />
     <Compile Include="Windows/MainWindow.xaml.fs" />
     <Compile Include="ViewModels/ViewModelBase.fs" />
     <Compile Include="ViewModels/AuthenticationWindowViewModel.fs" />
+    <Compile Include="ViewModels/SettingsWindowViewModel.fs" />
     <Compile Include="ViewModels/DownloadWidgetViewModel.fs" />
     <Compile Include="ViewModels/InstallWindowViewModel.fs" />
     <Compile Include="ViewModels/MainWindowViewModel.fs" />
@@ -32,15 +35,5 @@
     <Compile Include="App.xaml.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Update="FSharp.Core" Version="4.5.4" />
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
-    <PackageReference Include="Avalonia.ReactiveUI" Version="0.8.2" />
-    <PackageReference Include="DynamicData" Version="6.13.8" />
-    <PackageReference Include="DynamicData.ReactiveUI" Version="6.11.0.2613" />
-    <PackageReference Include="ReactiveUI" Version="9.22.1" />
-    <PackageReference Include="System.Reactive.Core" Version="4.1.6" />
-    <PackageReference Include="System.Reactive.Interfaces" Version="4.1.6" />
-    <PackageReference Include="System.Reactive.Linq" Version="4.1.6" />
-  </ItemGroup>
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

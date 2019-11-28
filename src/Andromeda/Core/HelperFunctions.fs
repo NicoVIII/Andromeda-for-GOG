@@ -3,8 +3,6 @@ namespace Andromeda.Core.FSharp
 open System
 open System.IO
 
-open Couchbase.Lite
-
 [<AutoOpen>]
 module HelperFunctions =
     let exeFst fnc (a, b) = (fnc a, b)
@@ -18,19 +16,10 @@ module HelperFunctions =
         fnc input |> ignore
         input
 
-    let convertFromArrayObject fnc array  =
-        let rec helper lst index fnc (array: ArrayObject)  =
-            if array.Count > index then
-                let out = (fnc index array)::lst
-                helper out (index+1) fnc array
-            else
-                lst
-        helper [] 0 fnc array
-
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
     let getShortcutTarget file =
         try
-            if System.IO.Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
+            if Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
                 Exception("Supplied file must be a .LNK file") |> raise
 
             let fileStream = File.Open(file, FileMode.Open, FileAccess.Read)
@@ -69,3 +58,10 @@ module HelperFunctions =
         with
         | _ ->
             ""
+
+    type ResultBuilder() =
+        member this.Return x = Ok x
+        member this.Zero() = Ok ()
+        member this.Bind(xResult,f) = Result.bind f xResult
+
+    let result = ResultBuilder()

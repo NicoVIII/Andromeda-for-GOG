@@ -46,7 +46,7 @@ let cachePath =
     Directory.CreateDirectory(path) |> ignore
     path
 
-// TODO: Move to config
+// TODO: Move to config?
 let tmpPath = Path.GetTempPath()
 
 // TODO: Move to config
@@ -60,7 +60,7 @@ let gamePath =
         //"D:\\Spiele" // TODO: tmp for debugging purposes
         "C:\\Spiele"
 
-// TODO: Move to config
+// TODO: Move to config?
 let savePath =
     match os with
     | Linux
