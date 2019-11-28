@@ -16,7 +16,7 @@ echo "Start publishing as archive by building."
   cd "deploy" || exit
   # Move files to publish folder
   mkdir "publish"
-  mv "../src/Andromeda/AvaloniaApp.FSharp/bin/Release/"$FRAMEWORK"/publish" "publish/bin"
+  mv "../src/Andromeda/AvaloniaApp.FSharp/bin/Release/$FRAMEWORK/publish" "publish/bin"
   cp -a "../assets/build/archive/." "publish"
   cp "../LICENSE" "publish"
   cp "../README.md" "publish"
