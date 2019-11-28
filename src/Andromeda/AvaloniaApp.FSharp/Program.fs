@@ -60,8 +60,6 @@ let start (app: Application) (_: string []) = app.Run(getStartWindow())
 
 [<EntryPoint>]
 let main (args: string []): int =
-    printfn "Started? :)"
-
     // Initialise Couchbase Lite
     Database.Log.Console.Domains <- LogDomain.All
     Database.Log.Console.Level <- LogLevel.None
