@@ -62,7 +62,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
 
     member this.OpenSettings() =
         let settingsWindow = SettingsWindow()
-        let settingsWindowVM = SettingsWindowViewModel(settingsWindow, this)
+        let settingsWindowVM = SettingsWindowViewModel(this.AppDataWrapper)
         settingsWindowVM.Initialize()
         settingsWindow.DataContext <- settingsWindowVM
         settingsWindow.ShowDialog(this.Control) |> ignore

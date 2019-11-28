@@ -65,11 +65,11 @@ module AppDataPersistence =
         loadDocumentWithMapping<AppDataPers, AppData> fromPers db documentName
         |> fluent (fun _ -> db.Close ())
         |> function
-            | Ok appdata -> appdata
+            | Ok appdata -> Some appdata
             | Error error ->
                 // TODO: log error
                 printfn "%A" error
-                AppData.createBasicAppData ()
+                None
 
     let save (appData: AppData) =
         let db = AndromedaDatabase.openDatabase ()

@@ -1,5 +1,8 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
+open Andromeda.AvaloniaApp.FSharp.Helpers
+open Andromeda.AvaloniaApp.FSharp.Windows
+
 open Andromeda.Core.FSharp
 open Avalonia.Controls
 open ReactiveUI
@@ -7,11 +10,19 @@ open System.IO
 open System.Reactive
 open System.Reactive.Linq
 
-type SettingsWindowViewModel(control, parent) as this =
-    inherit SubViewModelBase(control, parent)
+type SettingsWindowViewModel(appDataWrapper: AppDataWrapper option, createMainWindow: AppDataWrapper -> MainWindow) as this =
+    inherit ReactiveObject()
 
-    let mutable gamePath = this.AppDataWrapper.AppData.settings.gamePath
+    let mutable gamePath =
+        match appDataWrapper with
+        | Some appDataWrapper ->
+            appDataWrapper.AppData.settings.gamePath
+        | None ->
+            ""
     let mutable invalid: ObservableAsPropertyHelper<bool> = null
+
+    new(createMainWindow) = SettingsWindowViewModel(None, createMainWindow)
+    new(appDataWrapper: AppDataWrapper) = SettingsWindowViewModel(Some appDataWrapper, fun _ -> failwith "Should not be called...")
 
     member this.GamePath
         with private get () = gamePath
@@ -29,14 +40,21 @@ type SettingsWindowViewModel(control, parent) as this =
                 .ToProperty(this, (fun (x: SettingsWindowViewModel) -> x.Invalid))
 
     member this.Save(window: Window) =
-        let appData = this.AppDataWrapper.AppData
         if this.GamePath |> Directory.Exists then
-            if appData.settings.gamePath <> this.GamePath then
-                let appData = { this.AppDataWrapper.AppData with settings = { Settings.gamePath = this.GamePath } }
-                this.AppDataWrapper.AppData <- Installed.searchInstalled AppDataPersistence.save appData
-            else
-                ()
+            match appDataWrapper with
+            | Some appDataWrapper ->
+                if appDataWrapper.AppData.settings.gamePath <> this.GamePath then
+                    let appData = { appDataWrapper.AppData with settings = { Settings.gamePath = this.GamePath } }
+                    appDataWrapper.AppData <- Installed.searchInstalled AppDataPersistence.save appData
+                else
+                    ()
+            // Initial call to set initial settings
+            | None ->
+                let mainWindow =
+                    AppData.createBasicAppData { Settings.gamePath = this.GamePath }
+                    |> AppDataWrapper
+                    |> createMainWindow
+                mainWindow.Show ()
             window.Close()
         else
-            // Prevent saving, if Path is invalid
-            ()
+            failwith "Saving should not be allowed, if path does not exist!"
