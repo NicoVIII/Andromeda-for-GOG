@@ -76,16 +76,20 @@ type MainWindowViewModel(window, appDataWrapper) as this =
     member __.StartGame(path: string) =
         let showGameOutput _ (outLine: DataReceivedEventArgs) =
             if outLine.Data |> String.IsNullOrEmpty |> not then
-                this.TerminalOutput <- outLine.Data + Environment.NewLine + this.TerminalOutput
-            else
-                ()
+                this.TerminalOutput <-
+                    if this.TerminalOutput <> "" then
+                        outLine.Data + Environment.NewLine + this.TerminalOutput
+                    else
+                        outLine.Data
+            else ()
+
+        if this.TerminalOutput <> "" then this.TerminalOutput <- Environment.NewLine + this.TerminalOutput
+        else ()
 
         let proc = Games.startGameProcess showGameOutput path
         match proc with
-        | Some _ ->
-            sprintf "Started game: %s" path |> this.AddNotification
-        | None ->
-            this.AddNotification "Game could not be started. Error while creating process..."
+        | Some _ -> sprintf "Started game: %s" path |> this.AddNotification
+        | None -> this.AddNotification "Game could not be started. Error while creating process..."
 
     // Necessary, because F# wants to initialize EVERYTHING before using ANYTHING...
     member __.Initialize() =
@@ -94,15 +98,11 @@ type MainWindowViewModel(window, appDataWrapper) as this =
                 .Select(fun (appData: AppData) -> appData.installedGames)
                 .ToProperty(this, (fun (x: MainWindowViewModel) -> x.InstalledGames))
 
-        filteredInstalledGames <-
-        this
-          .WhenAnyValue<MainWindowViewModel, InstalledGame list, string>(
-            (fun (x: MainWindowViewModel) -> x.InstalledGames),
-            (fun (x: MainWindowViewModel) -> x.SearchTerm)
-          )
-          .Throttle(TimeSpan.FromMilliseconds(800.0))
-          .Select(fun (installedGames: InstalledGame list, searchTerm: string) ->
+        let selectQuery (installedGames: InstalledGame list, searchTerm: string) =
             installedGames
             |> List.where (fun i -> searchTerm.Length = 0 || i.name.ToLower().Contains(searchTerm.ToLower()))
-          )
-          .ToProperty(this, fun (x: MainWindowViewModel) -> x.FilteredInstalledGames)
+
+        filteredInstalledGames <-
+            this.WhenAnyValue<MainWindowViewModel, InstalledGame list, string>((fun (x: MainWindowViewModel) -> x.InstalledGames), (fun (x: MainWindowViewModel) -> x.SearchTerm))
+                .Throttle(TimeSpan.FromMilliseconds(800.0)).Select(selectQuery)
+                .ToProperty(this, (fun (x: MainWindowViewModel) -> x.FilteredInstalledGames))
