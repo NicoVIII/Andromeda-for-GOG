@@ -1,2 +1,2 @@
 #!/bin/bash
-dotnet ./bin/Andromeda.AvaloniaApp.dll
+dotnet ./bin/Andromeda.AvaloniaApp.FSharp.dll
