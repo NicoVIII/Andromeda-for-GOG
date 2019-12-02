@@ -3,7 +3,7 @@ echo "Clear deploy folder."
 rm -fr "deploy"
 mkdir -p "deploy"
 
-DEPLOYNAME="Andromeda-v0.0.0-x86_64"
+DEPLOYNAME="Andromeda-v$1-x86_64"
 FRAMEWORK="netcoreapp3.0"
 
 echo "Start publishing as archive by building."
