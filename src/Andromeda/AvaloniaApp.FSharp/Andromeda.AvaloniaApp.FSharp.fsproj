@@ -5,6 +5,7 @@
     <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.0</TargetFramework>
+    <PublishTrimmed>true</PublishTrimmed>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
@@ -34,6 +35,9 @@
     <Compile Include="ViewLocator.fs" />
     <Compile Include="App.xaml.fs" />
     <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <TrimmerRootAssembly Include="mscorlib" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>
