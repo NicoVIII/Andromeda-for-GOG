@@ -12,18 +12,20 @@ If you need something to play Multiplayer over Galaxy on linux, have a look at t
 
 ## Dependencies
 
-If you do not use the AppImage for Linux, you need .NET Core 3.0 to run Andromeda.  
-You can download it here: <https://www.microsoft.com/net/download>
+Neither for AppImage nor for the single files executables are any dependencies required.
 
-## Installation 
+## Installation
 
-Just download the `.tar.xz`, `.tar.gz` or `.zip` file from the GitHub releases and unpack it anywhere you want.
+Just download the archive for your os from the GitHub releases and unpack it anywhere you want.
+On linux you could use the AppImage, if you want to.
 
 ## Usage
 
-Execute `start.sh` or `start.cmd` (untested) to run the program.
+Simple start the Andromeda.FSharp(.exe) or the AppImage.
 
-For now I sadly did not find a way to make the browsery stuff work, so for now you have to live with some workarounds.
+### Define settings
+
+If you start Andromeda for the first time, you will get a settings window. Please configure your desired path for the games here. (For now it is just a plain text box, but it will check, if the directory exists)
 
 ### Install game
 
@@ -36,36 +38,11 @@ To upgrade all of your installed games, press the "Upgrade games" button. If And
 
 ### Start game
 
-This does not work all the time, but you can try to right click the game in the left bar and click "Start" to start the game.
+This does not work all the time, but you can try to right click the game in the left bar and click "Start" to start the game. The console output will be shown in the bottom right terminal.
 
 ## Development
 
 [![Actions Status](https://github.com/NicoVIII/Andromeda-for-GOG/workflows/CI/badge.svg)](https://github.com/NicoVIII/Andromeda-for-GOG/actions)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/075c69d86f154b40bef949483e04b98c?branch=develop)](https://www.codacy.com/manual/NicoVIII/Andromeda-for-GOG?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NicoVIII/Andromeda-for-GOG&amp;utm_campaign=Badge_Grade)
 
-### Setup (VSCode)
-
-Run "restore" task, after that you can use the debugger and run the build task.
-
-For some reason the used build of Avalonia sometimes has problems with Omnisharp.
-To make code completion work again, you have to comment out the first "UsingTask"-Element in `AvaloniaBuildTasks.targets` in NuGet-Download.  
-For me this is located at `~/.nuget/packages/avalonia/[version]/build/AvaloniaBuildTasks.targets`. 
-
-### Building
-
-You need .NET Core 3.0 to build Andromeda.
-
-### Publishing
-
-Publishing only works on a linux system. I personally use Manjaro Linux or Ubuntu 19.10 (depending on the machine I use).  
-You need additionally to building dependencies, zsyncmake (in the zsync package I guess) and appstream.
-
-There is a bash script which bundles Andromeda in all the designated forms. Run `publish.sh` for that.
-
-### Versioning
-
-I will try to stick to Semantic Versioning 2.0.0 (<http://semver.org/spec/v2.0.0.html>).
-
-### Used Tools
-
-I write the code in "Visual Studio Code" (<https://code.visualstudio.com/>).
+For for information about development have a look at [README_DEVELOPMENT](README_DEVELOPMENT.md).
