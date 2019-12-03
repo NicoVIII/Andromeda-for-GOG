@@ -45,4 +45,4 @@ This does not work all the time, but you can try to right click the game in the 
 [![Actions Status](https://github.com/NicoVIII/Andromeda-for-GOG/workflows/CI/badge.svg)](https://github.com/NicoVIII/Andromeda-for-GOG/actions)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/075c69d86f154b40bef949483e04b98c?branch=develop)](https://www.codacy.com/manual/NicoVIII/Andromeda-for-GOG?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NicoVIII/Andromeda-for-GOG&amp;utm_campaign=Badge_Grade)
 
-For for information about development have a look at [README_DEVELOPMENT](README_DEVELOPMENT.md).
+For for information about development have a look at [README-DEVELOPMENT](README-DEVELOPMENT.md).
