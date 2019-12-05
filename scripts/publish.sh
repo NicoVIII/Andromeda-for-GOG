@@ -4,7 +4,7 @@ rm -fr "deploy"
 mkdir -p "deploy"
 
 DEPLOYNAME="Andromeda-v$1"
-FRAMEWORK="netcoreapp3.0"
+FRAMEWORK="netcoreapp3.1"
 
 echo "Start publishing as single file executables."
 (
