@@ -148,4 +148,4 @@ let searchInstalled (saveAppData: SaveAppData) (appData :AppData) =
             | Some fnc -> fnc appData gameDir
             | None -> appData
     ) appData
-    |> fluent saveAppData
+    |> fluent (saveAppData >> ignore)

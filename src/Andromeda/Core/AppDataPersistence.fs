@@ -1,14 +1,13 @@
 namespace Andromeda.Core.FSharp
 
 open GogApi.DotNet.FSharp.Base
-open TypedPersistence.CouchbaseLite.FSharp
+open LiteDB
+open LiteDB.FSharp.Extensions
 
 open Andromeda.Core.FSharp
 
 module AppDataPersistence =
     module AndromedaDatabase = Andromeda.Core.FSharp.Database
-
-    let private documentName = "appData"
 
     type AuthenticationPers = {
         accesscode: string;
@@ -16,10 +15,12 @@ module AppDataPersistence =
     }
 
     type SettingsPers = {
+        id: int
         gamepath: string
     }
 
     type AppDataPers = {
+        id: int
         authentication: AuthenticationPers option
         installed: InstalledGame list
         gamepath: string
@@ -36,6 +37,7 @@ module AppDataPersistence =
                     accesscode = auth.accessToken
                 }
         {
+            id = 1
             AppDataPers.authentication = authentication
             installed = appData.installedGames
             gamepath = appData.settings.gamePath
@@ -62,16 +64,14 @@ module AppDataPersistence =
 
     let load () =
         let db = AndromedaDatabase.openDatabase ()
-        loadDocumentWithMapping<AppDataPers, AppData> fromPers db documentName
-        |> fluent (fun _ -> db.Close ())
-        |> function
-            | Ok appdata -> Some appdata
-            | Error error ->
-                // TODO: log error
-                printfn "%A" error
-                None
+        let collection = db.GetCollection<AppDataPers>()
+        match collection.TryFindById(BsonValue(1)) with
+        | Some appDataPers ->
+            appDataPers |> fromPers |> Some
+        | None ->
+            None
 
     let save (appData: AppData) =
         let db = AndromedaDatabase.openDatabase ()
-        saveDocumentWithMapping<AppDataPers, AppData> toPers db documentName appData
-        db.Close ()
+        let appDataPers = appData |> toPers
+        db.GetCollection<AppDataPers>().Upsert(appDataPers)

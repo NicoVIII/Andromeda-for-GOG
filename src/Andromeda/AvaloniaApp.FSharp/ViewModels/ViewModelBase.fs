@@ -24,7 +24,8 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
 
     member this.SetAppData (appData): unit =
         this.AppDataWrapper.AppData <- appData
-        AppDataPersistence.save appData
+        // TODO: error handling
+        AppDataPersistence.save appData |> ignore
 
     member this.GetChildrenOfType<'T when 'T :> SubViewModelBase> () =
         this.Children

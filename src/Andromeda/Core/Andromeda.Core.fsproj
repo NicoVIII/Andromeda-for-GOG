@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -10,12 +9,10 @@
     <Compile Include="DomainTypes.fs" />
     <Compile Include="PersistenceTypes.fs" />
     <Compile Include="InstalledGame.fs" />
-    <Compile Include="Settings.fs" />
     <Compile Include="AppData.fs" />
     <Compile Include="Games.fs" />
     <Compile Include="Installed.fs" />
     <Compile Include="User.fs" />
-    <!-- Persistence Implementation Layer -->
     <Compile Include="Database.fs" />
     <Compile Include="AppDataPersistence.fs" />
   </ItemGroup>

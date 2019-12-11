@@ -1,13 +1,14 @@
 namespace Andromeda.Core.FSharp
 
-open Couchbase.Lite
+open LiteDB
+open LiteDB.FSharp
 open System.IO
 
 open Andromeda.Core.FSharp
 
 module Database =
-    let private config = DatabaseConfiguration()
     Directory.CreateDirectory(SystemInfo.savePath) |> ignore
-    config.Directory <- SystemInfo.savePath
+    let database = Path.Combine(SystemInfo.savePath, "andromeda.db")
+    let mapper = FSharpBsonMapper()
 
-    let openDatabase () = new Database("andromeda", config)
+    let openDatabase () = new LiteDatabase(database, mapper)

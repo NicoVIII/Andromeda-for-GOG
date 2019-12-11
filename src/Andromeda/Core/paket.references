@@ -2,4 +2,4 @@ FSharp.Core
 GogApi.DotNet
 Mono.Posix.NETStandard
 SharpZipLib
-TypedPersistence.CouchbaseLite
+LiteDB.FSharp

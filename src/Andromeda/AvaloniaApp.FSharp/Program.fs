@@ -9,8 +9,6 @@ open Andromeda.Core.FSharp.Installed
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Logging.Serilog
-open Couchbase.Lite
-open Couchbase.Lite.Logging
 open GogApi.DotNet.FSharp.Base
 open System.IO
 
@@ -60,9 +58,5 @@ let start (app: Application) (_: string []) = app.Run(getStartWindow())
 
 [<EntryPoint>]
 let main (args: string []): int =
-    // Initialise Couchbase Lite
-    Database.Log.Console.Domains <- LogDomain.All
-    Database.Log.Console.Level <- LogLevel.None
-
     buildAvaloniaApp(args).Start((fun app _ -> app.Run(getStartWindow())), [||])
     0
