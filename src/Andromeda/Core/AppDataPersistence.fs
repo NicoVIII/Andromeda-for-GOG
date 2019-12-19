@@ -3,6 +3,7 @@ namespace Andromeda.Core.FSharp
 open GogApi.DotNet.FSharp.Base
 open LiteDB
 open LiteDB.FSharp.Extensions
+open TypedPersistence.FSharp
 
 open Andromeda.Core.FSharp
 
@@ -64,14 +65,18 @@ module AppDataPersistence =
 
     let load () =
         let db = AndromedaDatabase.openDatabase ()
-        let collection = db.GetCollection<AppDataPers>()
-        match collection.TryFindById(BsonValue(1)) with
-        | Some appDataPers ->
-            appDataPers |> fromPers |> Some
-        | None ->
+
+        loadDocumentWithMapping<AppDataPers, AppData> fromPers db
+        |> function
+        | Ok appData ->
+            Some appData
+        | Error _ ->
             None
 
     let save (appData: AppData) =
         let db = AndromedaDatabase.openDatabase ()
-        let appDataPers = appData |> toPers
-        db.GetCollection<AppDataPers>().Upsert(appDataPers)
+
+        saveDocumentWithMapping<AppDataPers, AppData> toPers db appData
+        |> function
+        | Ok _ -> true
+        | Error _ -> false

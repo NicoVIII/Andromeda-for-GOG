@@ -9,7 +9,7 @@ nuget Avalonia = 0.8.2
 nuget Avalonia.Desktop = 0.8.2
 nuget Avalonia.ReactiveUI = 0.8.2
 nuget DynamicData ~> 6.13
-nuget LiteDB.FSharp ~> 2.14
 nuget Mono.Posix.NETStandard ~> 1.0
 nuget ReactiveUI ~> 9.22
 nuget SharpZipLib ~> 1.2
+nuget TypedPersistence ~> 0.2
