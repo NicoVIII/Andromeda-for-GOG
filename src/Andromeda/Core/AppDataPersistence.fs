@@ -64,19 +64,23 @@ module AppDataPersistence =
         }
 
     let load () =
-        let db = AndromedaDatabase.openDatabase ()
+        use db = AndromedaDatabase.openDatabase ()
 
         loadDocumentWithMapping<AppDataPers, AppData> fromPers db
+        |> fun x -> db.Dispose(); x
         |> function
         | Ok appData ->
+            printfn "Loading successful!"
             Some appData
-        | Error _ ->
+        | Error error ->
+            printfn "Loading errored :( - %A" error
             None
 
     let save (appData: AppData) =
-        let db = AndromedaDatabase.openDatabase ()
+        use db = AndromedaDatabase.openDatabase ()
 
         saveDocumentWithMapping<AppDataPers, AppData> toPers db appData
+        |> fun x -> db.Dispose(); x
         |> function
-        | Ok _ -> true
-        | Error _ -> false
+        | Ok _ -> printfn "Saving successful!"; true
+        | Error error -> printfn "Saving errored for some reason: %A" error; false
