@@ -23,9 +23,9 @@ echo "Start publishing as single file executables."
     cd "../../.." || exit
 
     echo "Prepare archives"
-    cp "LICENSE" "deploy/win"
-    cp "LICENSE" "deploy/mac"
-    cp "LICENSE" "deploy/lin"
+    cp "LICENSE.txt" "deploy/win"
+    cp "LICENSE.txt" "deploy/mac"
+    cp "LICENSE.txt" "deploy/lin"
     cp "README.md" "deploy/win"
     cp "README.md" "deploy/mac"
     cp "README.md" "deploy/lin"
@@ -69,7 +69,7 @@ echo "Start publishing as AppImage."
   mv -T "bin/Release/$FRAMEWORK/ubuntu.16.04-x64/publish" "AppDir/usr/bin"
 
   cp -a "../../../assets/build/appimage/." "AppDir"
-  cp "../../../LICENSE" "AppDir"
+  cp "../../../LICENSE.txt" "AppDir"
   cp "../../../README.md" "AppDir"
   cp "../../../CHANGELOG.md" "AppDir"
 )
