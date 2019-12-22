@@ -51,6 +51,8 @@ NUGET
     FSharp.Core (4.7)
     FSharp.Json (0.4) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
+    FSharpPlus (1.0) - restriction: >= netstandard2.0
+      FSharp.Core (>= 4.3.4) - restriction: || (>= net45) (>= netstandard2.0)
     GogApi.DotNet (1.0.3)
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
       FSharp.Json (>= 0.3.7) - restriction: >= netstandard2.0
@@ -301,8 +303,9 @@ NUGET
       System.Runtime.CompilerServices.Unsafe (>= 4.5.2) - restriction: || (&& (< monoandroid) (< monotouch) (>= netstandard1.0) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< netstandard1.0) (>= portable-net45+win8+wp8+wpa81) (< win8)) (>= net45) (&& (< netcoreapp2.1) (>= netstandard2.0) (< xamarinios) (< xamarinmac)) (&& (< netstandard1.0) (>= win8)) (&& (< netstandard2.0) (>= wpa81)) (>= wp8)
     System.ValueTuple (4.5) - restriction: || (&& (>= net46) (>= uap10.1)) (>= net461) (>= netstandard2.0)
     Tizen.NET (6.0.0.14995) - restriction: >= tizen4.0
-    TypedPersistence (0.2)
+    TypedPersistence (0.5)
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
+      FSharpPlus (>= 1.0) - restriction: >= netstandard2.0
       LiteDB.FSharp (>= 2.14) - restriction: >= netstandard2.0
     TypeShape (8.0.1) - restriction: || (&& (< net45) (>= netstandard2.0)) (&& (>= net461) (>= netstandard2.0))
       FSharp.Core (>= 3.1.2) - restriction: >= net45

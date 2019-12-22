@@ -47,7 +47,7 @@ let getStartWindow() =
     | Some appData when appData.settings.gamePath |> Directory.Exists ->
         let appDataWrapper =
             appData
-            |> searchInstalled AppDataPersistence.save
+            |> searchInstalled
             |> AppDataWrapper
         createMainWindow appDataWrapper :> Window
     | Some _

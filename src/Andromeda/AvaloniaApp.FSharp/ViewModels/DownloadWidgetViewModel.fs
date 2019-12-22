@@ -33,7 +33,7 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
         match this.AppData.authentication with
         | NoAuth -> ()
         | Auth _ ->
-            this.AppData |> searchInstalled AppDataPersistence.save |> this.SetAppData
+            this.AppData |> searchInstalled |> this.SetAppData
             let (list, appData) = this.AppData |> checkAllForUpdates
             appData |> this.SetAppData
 
@@ -111,7 +111,7 @@ type DownloadWidgetViewModel(control, appDataWrapper) as this =
             )
             worker.RunWorkerCompleted.Add(fun _ ->
                 downloadInfo |> this.Downloads.Remove |> ignore
-                searchInstalled AppDataPersistence.save this.AppData |> this.SetAppData
+                searchInstalled this.AppData |> this.SetAppData
                 "Cleaned up after install." |> Logger.LogInfo
             )
             worker.RunWorkerAsync ()
