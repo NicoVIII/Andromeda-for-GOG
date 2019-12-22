@@ -5,8 +5,6 @@ open GogApi.DotNet.FSharp.GalaxyApi
 open GogApi.DotNet.FSharp.Listing
 open System.IO
 
-open Andromeda.Core.FSharp.PersistenceTypes
-
 type UpdateData = {
     game: InstalledGame;
     newVersion: string;
@@ -126,7 +124,7 @@ let getInstalledOnWindows (appData: AppData) gameDir =
     | _ ->
         appData
 
-let searchInstalled (saveAppData: SaveAppData) (appData :AppData) =
+let searchInstalled (appData :AppData) =
     let appData = { appData with installedGames = [] }
     Directory.EnumerateDirectories(appData.settings.gamePath)
     |> List.ofSeq
@@ -148,4 +146,3 @@ let searchInstalled (saveAppData: SaveAppData) (appData :AppData) =
             | Some fnc -> fnc appData gameDir
             | None -> appData
     ) appData
-    |> fluent saveAppData

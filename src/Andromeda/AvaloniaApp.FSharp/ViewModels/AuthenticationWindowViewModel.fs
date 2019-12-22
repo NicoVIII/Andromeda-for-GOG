@@ -1,5 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp.ViewModels
 
+open Andromeda.Core.FSharp
 open Andromeda.Core.FSharp.AppData
 open Avalonia.Controls
 open ReactiveUI
@@ -18,5 +19,6 @@ type AuthenticationWindowViewModel(control, parent) as this =
 
     member this.Authenticate(window: Window) =
         withNewToken this.AppData this.Code
+        |> fun x -> AppDataPersistence.save; x
         |> this.SetAppData
         window.Close();
