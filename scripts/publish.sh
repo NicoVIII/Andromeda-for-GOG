@@ -10,6 +10,10 @@ echo "Start publishing as single file executables."
 (
   cd "src/Andromeda/AvaloniaApp.FSharp" || exit
 
+  # Restore
+  dotnet tool restore
+  dotnet paket restore
+
   echo "Build for Windows."
   dotnet publish -v quiet -c Release -r win-x64 -o "../../../deploy/win" -p:PublishSingleFile=true | grep error --color=never
 
