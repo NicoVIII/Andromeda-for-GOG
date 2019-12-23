@@ -24,7 +24,7 @@ type MainWindowViewModel(window, appDataWrapper) as this =
 
     let mutable filteredInstalledGames: ObservableAsPropertyHelper<InstalledGame list> = null
 
-    member val Version = "v0.3.0-beta.3"
+    member val Version = "v0.3.0-beta.4"
 
     member this.SearchTerm
         with get () = searchTerm
