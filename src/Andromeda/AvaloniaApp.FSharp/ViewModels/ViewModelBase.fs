@@ -23,6 +23,7 @@ type ViewModelBase(appDataWrapper: AppDataWrapper) as this =
             child.Init()
 
     member this.SetAppData (appData): unit =
+        AppDataPersistence.save appData
         this.AppDataWrapper.AppData <- appData
 
     member this.GetChildrenOfType<'T when 'T :> SubViewModelBase> () =

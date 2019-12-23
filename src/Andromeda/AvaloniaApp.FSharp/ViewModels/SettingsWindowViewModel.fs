@@ -45,7 +45,6 @@ type SettingsWindowViewModel(appDataWrapper: AppDataWrapper option, createMainWi
             | Some appDataWrapper ->
                 if appDataWrapper.AppData.settings.gamePath <> this.GamePath then
                     let appData = { appDataWrapper.AppData with settings = { Settings.gamePath = this.GamePath } }
-                    AppDataPersistence.save appData
                     appDataWrapper.AppData <- Installed.searchInstalled appData
                 else
                     ()
