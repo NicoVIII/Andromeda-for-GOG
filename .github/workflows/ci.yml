@@ -14,10 +14,9 @@ jobs:
     - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '3.1.100'
-# packages dir is far too big for caching... :(
-#    - uses: actions/cache@v1
-#      with:
-#        path: packages
-#        key: ${{ runner.OS }}-build-${{ hashFiles('**/paket.lock') }}
+    - uses: actions/cache@v1
+      with:
+        path: packages
+        key: ${{ runner.OS }}-build-${{ hashFiles('**/paket.lock') }}
     - name: Build Andromeda
       run: dotnet tool restore && dotnet paket restore && dotnet fake build
