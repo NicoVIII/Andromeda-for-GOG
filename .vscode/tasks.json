@@ -13,7 +13,13 @@
             "options": {},
             "problemMatcher": [
                 "$msCompile"
-            ]
+            ],
+            "windows": {
+                "command": "dotnet build",
+                "options": {
+                    "cwd": "./src/Andromeda/AvaloniaApp.FSharp/"
+                }
+            }
         },
         {
             "label": "restore",

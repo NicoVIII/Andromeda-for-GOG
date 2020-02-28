@@ -5,27 +5,24 @@ open GogApi.DotNet.FSharp.GalaxyApi
 open GogApi.DotNet.FSharp.Listing
 open System.IO
 
-type UpdateData = {
-    game: InstalledGame;
-    newVersion: string;
-}
+type UpdateData =
+    { game: InstalledGame
+      newVersion: string }
 
-type WindowsGameInfoFile = {
-    gameId: string;
-    name: string;
-    version: int option;
-}
+type WindowsGameInfoFile =
+    { gameId: string
+      name: string
+      version: int option }
 
-let checkAllForUpdates (appData: AppData) =
-    appData.installedGames
+let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Authentication) =
+    installedGames
     |> List.filter (fun game -> game.updateable)
-    |> List.fold (fun (lst, (appData:AppData)) game ->
-        let (update, auth) = askForProductInfo appData.authentication { id = game.id }
-        let appData = { appData with authentication = auth }
-        match update with
-        | None ->
-            (lst, appData)
-        | Some update ->
+    |> List.fold (fun (lst, authentication: Authentication) game ->
+        askForProductInfo { id = game.id } authentication
+        |> Async.RunSynchronously
+        |> function
+        | Error _ -> (lst, authentication)
+        | Ok update ->
             let os =
                 match SystemInfo.os with
                 | SystemInfo.OS.Linux -> Some "linux"
@@ -36,113 +33,93 @@ let checkAllForUpdates (appData: AppData) =
                 let installer =
                     update.downloads.installers
                     |> List.filter (fun installer -> installer.os = os)
-                    |> List.first
-                match installer with
-                | None ->
-                    (lst, appData)
-                | Some installer ->
-                    match (game.version, installer.version) with
-                    | (a, Some b) when a <> b ->
-                        ({ newVersion = b; game = game }::lst, appData)
-                    | (_, _) ->
-                        (lst, appData)
-            | None ->
-                failwith "OS is invalid for some reason!"
-    ) ([], appData)
+                    |> List.item 0
+                match (game.version, installer.version) with
+                | (a, Some b) when a <> b ->
+                    ({ newVersion = b
+                       game = game }
+                     :: lst, authentication)
+                | (_, _) -> (lst, authentication)
+            | None -> failwith "OS is invalid for some reason!") ([], authentication)
 
-let getGameId (appData: AppData) name =
-    askForFilteredProducts appData.authentication { search = name }
-    |> exeFst (
-        function
-        | None -> None
-        | Some x ->
-            List.filter (fun p -> p.title = name) x.products
-            |>  function
-                | l when l.Length = 1 ->
-                    x.products.Head.id
-                    |> Some
-                | l when l.Length >= 0 ->
-                    None
-                | _ -> failwith "Something went totally wrong! Gog reported a negative amount of products..."
-    )
-    |> exeSnd (
-        fun auth -> { appData with authentication = auth }
-    )
+let private getGameId (authentication: Authentication) name =
+    askForFilteredProducts { search = name } authentication
+    |> Async.RunSynchronously
+    |> function
+    | Error _ -> None
+    | Ok x ->
+        List.filter (fun p -> p.title = name) x.products
+        |> function
+        | l when l.Length = 1 -> x.products.Head.id |> Some
+        | l when l.Length >= 0 -> None
+        | _ -> failwith "Something went totally wrong! Gog reported a negative amount of products..."
 
-let getInstalledOnLinux (appData: AppData) gameDir =
+let getInstalledOnLinux gameDir (authentication: Authentication) =
     // Internal functions
-    let readGameinfo path :string[] option =
+    let readGameinfo path: string [] option =
         let gameinfoPath = sprintf "%s/gameinfo" path
         match File.Exists gameinfoPath with
         | true ->
             gameinfoPath
             |> File.ReadAllLines
             |> Some
-        | false ->
-            None
+        | false -> None
 
     // Code
     match readGameinfo gameDir with
-    | None ->
-        appData
+    | None -> None
     | Some lines when lines.Length > 3 ->
         let game =
-            InstalledGame.create ((int)lines.[4]) lines.[0] gameDir lines.[1]
+            InstalledGame.create ((int) lines.[4]) lines.[0] gameDir lines.[1]
             |> InstalledGame.setUpdateable true
-        let installed = game::appData.installedGames
-        { appData with installedGames = installed }
+            |> Some
+        game
     | Some lines ->
-        let idData =
-            Path.GetFileName gameDir
-            |> getGameId appData
-        match idData with
-        | (None, appData) ->
-            appData
-        | (Some id, appData) ->
-            let game =
-                InstalledGame.create id lines.[0] gameDir lines.[1]
-            let installed = game::appData.installedGames
-            { appData with installedGames = installed }
+        Path.GetFileName gameDir
+        |> getGameId authentication
+        |> function
+        | None -> None
+        | Some id ->
+            let game = InstalledGame.create id lines.[0] gameDir lines.[1] |> Some
+            game
 
-let getInstalledOnWindows (appData: AppData) gameDir =
+let getInstalledOnWindows gameDir (_: Authentication) =
     let extractGameInfo file =
         let gameInfo =
             File.ReadAllLines file
             |> Seq.fold (+) ""
             |> Json.deserialize<WindowsGameInfoFile>
         // TODO: determine version and updateability
-        InstalledGame.create ((int)gameInfo.gameId) gameInfo.name gameDir "1"
-        |> InstalledGame.setIcon (Some (gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
+        InstalledGame.create ((int) gameInfo.gameId) gameInfo.name gameDir "1"
+        |> InstalledGame.setIcon (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
 
     // Find info file of game
-    let files = Directory.GetFiles (gameDir, "goggame-*.info")
+    let files = Directory.GetFiles(gameDir, "goggame-*.info")
     match files.Length with
     | 1 ->
-        let game = extractGameInfo files.[0]
-        let installed = game::appData.installedGames
-        { appData with installedGames = installed }
-    | _ ->
-        appData
+        let game = extractGameInfo files.[0] |> Some
+        game
+    | _ -> None
 
-let searchInstalled (appData :AppData) =
-    let appData = { appData with installedGames = [] }
-    Directory.EnumerateDirectories(appData.settings.gamePath)
+let searchInstalled (settings: Settings) (authentication: Authentication) =
+    Directory.EnumerateDirectories(settings.gamePath)
     |> List.ofSeq
-    |> List.fold (fun appData gameDir ->
+    |> List.fold (fun installedGames gameDir ->
         // Ignore folders starting with '!'
         match gameDir with
-        | dir when dir |> Path.GetFileName |> String.startsWith "!" ->
-            appData
+        | dir when dir
+                   |> Path.GetFileName
+                   |> String.startsWith "!" -> installedGames
         | gameDir ->
             let fnc =
                 match SystemInfo.os with
-                | SystemInfo.OS.Linux ->
-                    Some getInstalledOnLinux
-                | SystemInfo.OS.Windows ->
-                    Some getInstalledOnWindows
-                | SystemInfo.OS.MacOS ->
-                    failwith "Not implemented yet" // TODO: implement
+                | SystemInfo.OS.Linux -> Some getInstalledOnLinux
+                | SystemInfo.OS.Windows -> Some getInstalledOnWindows
+                | SystemInfo.OS.MacOS -> None // TODO: implement
             match fnc with
-            | Some fnc -> fnc appData gameDir
-            | None -> appData
-    ) appData
+            | Some fnc ->
+                let installedGame = fnc gameDir authentication
+                match installedGame with
+                | Some installedGame -> installedGame :: installedGames
+                | None -> installedGames
+            | None -> installedGames) []

@@ -1,8 +1,12 @@
-module Andromeda.AvaloniaApp.FSharp.Helpers.Logger
+namespace Andromeda.AvaloniaApp.FSharp
 
-    open System
+open System
 
-    type LogLevel = Info=0 | Warning=1 | Error=2
+module Logger =
+    type LogLevel =
+        | Info = 0
+        | Warning = 1
+        | Error = 2
 
 #if DEBUG
     let logLevel: LogLevel = LogLevel.Info
@@ -12,8 +16,7 @@ module Andromeda.AvaloniaApp.FSharp.Helpers.Logger
 
     let Log level message =
         match level with
-        | level when logLevel <= level ->
-            Console.WriteLine("[" + level.ToString() + "] " + message)
+        | level when logLevel <= level -> Console.WriteLine("[" + level.ToString() + "] " + message)
         | _ -> ()
 
     let LogError = Log LogLevel.Error

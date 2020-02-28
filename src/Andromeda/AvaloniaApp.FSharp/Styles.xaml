@@ -1,0 +1,25 @@
+<Styles
+    xmlns="https://github.com/avaloniaui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <Style Selector="DockPanel.leftBar">
+      <Setter Property="Background" Value="Black"/>
+    </Style>
+
+    <Style Selector=".icon Path">
+      <Setter Property="Fill" Value="LightGray"/>
+    </Style>
+
+    <Style Selector="Button.iconButton">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style Selector="Button.iconButton:pointerover .icon Path">
+      <Setter Property="Fill" Value="White"/>
+    </Style>
+
+    <Style Selector="StackPanel.dark">
+      <Setter Property="Background" Value="Gray" />
+    </Style>
+</Styles>

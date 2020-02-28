@@ -1,3 +1,6 @@
-module Andromeda.Core.FSharp.Constants
+namespace Andromeda.Core.FSharp
 
-let folderName = "andromeda"
+[<RequireQualifiedAccess>]
+module Constants =
+    let folderName = "andromeda"
+    let databaseFile = "andromeda.db"
