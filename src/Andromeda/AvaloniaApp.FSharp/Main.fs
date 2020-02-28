@@ -10,6 +10,7 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Platform
 open Avalonia.Threading
 open Elmish
 open GogApi.DotNet.FSharp.Listing
@@ -18,7 +19,6 @@ open System
 open System.ComponentModel
 open System.Diagnostics
 open System.IO
-open System.Threading
 open System.Threading.Tasks
 
 module Main =
@@ -420,7 +420,7 @@ module Main =
         inherit HostWindow()
         do
             base.Title <- "Andromeda"
-            base.Icon <- WindowIcon "Assets/logo.ico"
+            base.Icon <- WindowIcon (AvaloniaHelper.loadAssetPath "avares://Andromeda.AvaloniaApp.FSharp/Assets/logo.ico")
             base.Width <- 1024.0
             base.Height <- 660.0
 

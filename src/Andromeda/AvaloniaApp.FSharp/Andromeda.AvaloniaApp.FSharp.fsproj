@@ -12,12 +12,13 @@
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
   </ItemGroup>
   <ItemGroup>
-    <AvaloniaResource Include="Assets/*" />
+    <AvaloniaResource Include="Assets\*" />
     <AvaloniaResource Include="Styles.xaml" />
     <Compile Include="Config.fs" />
     <Compile Include="Logger.fs" />
     <Compile Include="Icons.fs" />
     <Compile Include="DomainTypes.fs" />
+    <Compile Include="AvaloniaHelper.fs" />
     <!-- Main window components -->
     <Compile Include="LeftBar.fs" />
     <!-- Own windows -->
