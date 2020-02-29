@@ -42,8 +42,7 @@ module InstallGame =
         match msg with
         | ChangeSearch search ->
             { state with
-                  search = search
-                  message = "" }, Cmd.none
+                  search = search }, Cmd.none
         | SearchGame ->
             let invoke() =
                 async {
@@ -54,7 +53,7 @@ module InstallGame =
                     | Some _
                     | None -> return None
                 }
-            state, Cmd.OfAsync.perform invoke () CloseWindow
+            { state with message = "" }, Cmd.OfAsync.perform invoke () CloseWindow
         | CloseWindow downloadStatus ->
             let message =
                 match downloadStatus with
