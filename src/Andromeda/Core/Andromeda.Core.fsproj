@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Constants.fs" />
+    <Compile Include="HelperFunctions.fs" />
+    <Compile Include="SystemInfo.fs" />
+    <Compile Include="DomainTypes.fs" />
+    <Compile Include="PersistenceTypes.fs" />
+    <Compile Include="Authentication.fs" />
+    <Compile Include="InstalledGame.fs" />
+    <Compile Include="Games.fs" />
+    <Compile Include="Installed.fs" />
+    <Compile Include="User.fs" />
+    <Compile Include="Database.fs" />
+    <Compile Include="AuthenticationPersistence.fs" />
+    <Compile Include="SettingsPersistence.fs" />
+  </ItemGroup>
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+</Project>

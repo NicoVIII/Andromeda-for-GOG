@@ -3,19 +3,34 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet",
-            "type": "process",
-            "args": [
-                "fake",
-                "build"
-            ],
+            "command": "dotnet fake build",
+            "type": "shell",
+            "args": [],
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "options": {
-                "cwd": "./Andromeda.ConsoleApp"
+            "options": {},
+            "problemMatcher": [
+                "$msCompile"
+            ],
+            "windows": {
+                "command": "dotnet build",
+                "options": {
+                    "cwd": "./src/Andromeda/AvaloniaApp.FSharp/"
+                }
             }
+        },
+        {
+            "label": "restore",
+            "command": "dotnet tool restore && dotnet paket restore",
+            "type": "shell",
+            "args": [],
+            "group": "none",
+            "options": {},
+            "problemMatcher": [
+                "$msCompile"
+            ]
         }
     ]
 }

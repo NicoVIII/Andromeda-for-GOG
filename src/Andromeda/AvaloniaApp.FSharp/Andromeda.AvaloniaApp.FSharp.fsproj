@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>Andromeda.AvaloniaApp.FSharp</AssemblyName>
+    <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <!--<PublishTrimmed>true</PublishTrimmed>-->
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\*" />
+    <AvaloniaResource Include="Styles.xaml" />
+    <Compile Include="Config.fs" />
+    <Compile Include="Logger.fs" />
+    <Compile Include="Icons.fs" />
+    <Compile Include="DomainTypes.fs" />
+    <Compile Include="AvaloniaHelper.fs" />
+    <!-- Main window components -->
+    <Compile Include="LeftBar.fs" />
+    <!-- Own windows -->
+    <Compile Include="InstallGame.fs" />
+    <Compile Include="Authentication.fs" />
+    <Compile Include="Settings.fs" />
+
+    <Compile Include="Main.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <TrimmerRootAssembly Include="mscorlib" />
+  </ItemGroup>
+  <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+</Project>
