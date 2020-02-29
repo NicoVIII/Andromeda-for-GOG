@@ -9,14 +9,23 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Layout
 open Elmish
+open System
 open System.IO
 
 module Settings =
+    module Dialogs =
+        let getFolderDialog () =
+            let dialog = OpenFolderDialog()
+            dialog.Directory <- Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+            dialog.Title <- "Choose where to look up for GOG games"
+            dialog
+
     type ISettingsWindow =
         abstract Close: unit -> unit
 
         [<CLIEvent>]
         abstract OnSave: IEvent<ISettingsWindow * Settings>
+
         abstract Save: Settings -> unit
 
     type State =
@@ -24,15 +33,14 @@ module Settings =
           window: ISettingsWindow }
 
     type Msg =
+        | OpenDialog
         | SetGamepath of string
         | Save
 
     let stateToSettings state =
         match state.gamePath with
-        | gamePath when gamePath |> Directory.Exists ->
-            { gamePath = gamePath } |> Some
-        | _ ->
-            None
+        | gamePath when gamePath |> Directory.Exists -> { gamePath = gamePath } |> Some
+        | _ -> None
 
     let init (settings: Settings option, window: ISettingsWindow) =
         let state =
@@ -47,11 +55,14 @@ module Settings =
 
     let update (msg: Msg) (state: State) =
         match msg with
+        | OpenDialog ->
+            let dialog = Dialogs.getFolderDialog ()
+            let showDialog window = dialog.ShowAsync(window) |> Async.AwaitTask
+            state, Cmd.OfAsync.perform showDialog (state.window :?> Window) SetGamepath
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
             match stateToSettings state with
-            | Some settings ->
-                state.window.Save settings
+            | Some settings -> state.window.Save settings
             | None -> ()
             state, Cmd.none
 
@@ -66,10 +77,13 @@ module Settings =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.spacing 5.0
                           StackPanel.children
-                              [ TextBox.create [
+                              [ TextBox.create
+                                  [ TextBox.isReadOnly true
                                     TextBox.text state.gamePath
-                                    TextBox.width 300.0
-                                    TextBox.onTextChanged (SetGamepath >> dispatch) ] ] ]
+                                    TextBox.width 300.0 ]
+                                Button.create
+                                    [ Button.content ".."
+                                      Button.onClick (fun _ -> OpenDialog |> dispatch) ] ] ]
                     Button.create
                         [ Button.content "Save"
                           Button.isEnabled (stateToSettings state |> Option.isSome)
@@ -99,8 +113,9 @@ module Settings =
             |> Program.runWith (settings, this)
 
         interface ISettingsWindow with
-            member __.Close () = this.Close()
+            member __.Close() = this.Close()
 
             [<CLIEvent>]
             member __.OnSave = saveEvent.Publish
+
             member __.Save(settings: Settings) = saveEvent.Trigger(this :> ISettingsWindow, settings)
