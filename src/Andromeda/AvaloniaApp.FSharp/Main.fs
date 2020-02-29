@@ -10,7 +10,6 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
-open Avalonia.Platform
 open Avalonia.Threading
 open Elmish
 open GogApi.DotNet.FSharp.Listing
@@ -65,7 +64,7 @@ module Main =
         | StartGameDownload of ProductInfo
         | UnpackGame of Tuple<Settings, DownloadStatus>
         | FinishGameDownload of Tuple<string, Settings>
-        | UpdateDownloadSize of Tuple<string, int>
+        | UpdateDownloadSize of Tuple<int, int>
         | UpdateDownloadInstalling of string
         | UpgradeGames
 
@@ -104,7 +103,7 @@ module Main =
                                     tmppath
                                     |> FileInfo
                                     |> fun fileInfo -> int (float (fileInfo.Length) / 1000000.0)
-                                UpdateDownloadSize(tmppath, fileSize) |> dispatch
+                                UpdateDownloadSize(downloadInfo.gameId, fileSize) |> dispatch
                                 fileSize
                             else
                                 0
@@ -113,7 +112,7 @@ module Main =
                     DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5) |> ignore
                 | None ->
                     "Use cached installer for " + downloadInfo.gameTitle + "." |> Logger.LogInfo
-                    UpdateDownloadSize(tmppath, int downloadInfo.fileSize) |> dispatch
+                    UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize) |> dispatch
             Cmd.ofSub sub
 
         let removeNotification notification =
@@ -318,12 +317,12 @@ module Main =
                         |> Cmd.ofMsg) updateDataList
                 | _ -> [ Cmd.ofMsg <| AddNotification "No games found to update." ]
             { state with authentication = authentication }, Cmd.batch cmdList
-        | UpdateDownloadSize(filePath, fileSize) ->
+        | UpdateDownloadSize(gameId, fileSize) ->
             let downloads =
                 state.downloads
                 |> List.map
                     (fun download ->
-                        if download.filePath = filePath then { download with downloaded = fileSize } else download)
+                        if download.gameId = gameId then { download with downloaded = fileSize } else download)
             { state with downloads = downloads }, Cmd.none
         | UpdateDownloadInstalling filePath ->
             let downloads =
