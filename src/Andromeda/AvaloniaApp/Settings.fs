@@ -12,9 +12,20 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Layout
 open Elmish
+open System
 open System.IO
 
 module Settings =
+    module Dialogs =
+        let getFolderDialog () =
+            let dialog = OpenFolderDialog()
+
+            dialog.Directory <-
+                Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+
+            dialog.Title <- "Choose where to look up for GOG games"
+            dialog
+
     type IWindow =
         inherit IAndromedaWindow
 
@@ -24,6 +35,7 @@ module Settings =
         abstract Save: Settings -> unit
 
     type Msg =
+        | OpenDialog
         | SetCacheRemoval of CacheRemovalPolicy
         | SetGamepath of string
         | Save
@@ -34,6 +46,13 @@ module Settings =
 
     let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
+        | OpenDialog ->
+            let dialog = Dialogs.getFolderDialog ()
+
+            let showDialog window =
+                dialog.ShowAsync(window) |> Async.AwaitTask
+
+            state, Cmd.OfAsync.perform showDialog (window :?> Window) SetGamepath
         | SetCacheRemoval policy -> { state with cacheRemoval = policy }, Cmd.none
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
@@ -54,9 +73,13 @@ module Settings =
                     StackPanel.spacing 5.0
                     StackPanel.children [
                         TextBox.create [
+                            TextBox.isReadOnly true
                             TextBox.text state.gamePath
                             TextBox.width 300.0
-                            TextBox.onTextChanged (SetGamepath >> dispatch)
+                        ]
+                        Button.create [
+                            Button.content ".."
+                            Button.onClick (fun _ -> OpenDialog |> dispatch)
                         ]
                     ]
                 ]
