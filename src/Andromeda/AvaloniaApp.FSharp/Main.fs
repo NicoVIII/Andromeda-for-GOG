@@ -296,6 +296,7 @@ module Main =
                                       File.Move(tmppath, filePath) }
                               Cmd.OfAsync.perform invoke () (fun _ -> UnpackGame(state.settings.Value, downloadInfo))
                           | None -> Cmd.ofMsg <| UnpackGame(state.settings.Value, downloadInfo) ]
+            | 0 -> state, Cmd.ofMsg <| AddNotification "Found no installer for this OS..."
             | _ -> state, Cmd.ofMsg <| AddNotification "Found multiple installers, this is not supported yet..."
         | UnpackGame(settings, downloadInfo) ->
             let invoke() = Games.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath
