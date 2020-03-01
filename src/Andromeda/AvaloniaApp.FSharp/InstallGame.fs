@@ -7,7 +7,6 @@ open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Elmish
-open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Threading
@@ -64,12 +63,20 @@ module InstallGame =
                            | None -> []
                 }
             state, Cmd.OfAsync.perform invoke () SetProductInfos
-        | SetProductInfos productInfos -> { state with productInfos = Some productInfos }, Cmd.none
+        | SetProductInfos productInfos ->
+            let cmd =
+                // Preselect, if there is only one ProductInfo
+                match productInfos with
+                | [productInfo] ->
+                    Cmd.ofMsg <| SetSelected productInfo
+                | _ ->
+                    Cmd.none
+            { state with productInfos = Some productInfos }, cmd
         | SetSelected productInfo -> { state with selected = Some productInfo }, Cmd.none
 
-    let productInfoView (productInfos: ProductInfo list option) (dispatch: Msg -> unit) =
+    let productInfoView (state: State) (dispatch: Msg -> unit) =
         let productInfoList =
-            match productInfos with
+            match state.productInfos with
             | Some productInfoList -> productInfoList
             | None -> []
 
@@ -77,14 +84,19 @@ module InstallGame =
             [ StackPanel.children
                 [ TextBlock.create
                     [ TextBlock.text "No games found!"
-                      TextBlock.isVisible (productInfos.IsSome && productInfos.Value.Length = 0) ]
+                      TextBlock.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length = 0) ]
                   ListBox.create
-                      [ ListBox.dataItems productInfoList
-                        ListBox.itemTemplate
+                      [ yield ListBox.dataItems productInfoList
+                        yield ListBox.itemTemplate
                             (DataTemplateView<ProductInfo>.create
                              <| fun productInfo -> TextBlock.create [ TextBlock.text productInfo.title ])
-                        ListBox.isVisible (productInfos.IsSome && productInfos.Value.Length > 0)
-                        ListBox.onSelectedItemChanged (fun obj ->
+                        yield ListBox.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length > 0)
+                        match state.selected with
+                        | Some selected ->
+                            yield ListBox.selectedItem selected
+                        | None ->
+                            ()
+                        yield ListBox.onSelectedItemChanged (fun obj ->
                             match obj with
                             | :? ProductInfo as p ->
                                 p
@@ -112,7 +124,7 @@ module InstallGame =
                                         match text = state.search with
                                         | true -> ()
                                         | false -> ChangeSearch text |> dispatch) ] ] ]
-                    productInfoView state.productInfos dispatch
+                    productInfoView state dispatch
                     Button.create
                         [ Button.content "Install"
                           Button.isEnabled state.selected.IsSome
