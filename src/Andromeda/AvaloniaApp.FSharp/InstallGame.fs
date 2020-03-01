@@ -62,15 +62,15 @@ module InstallGame =
                            | Some products -> products
                            | None -> []
                 }
-            state, Cmd.OfAsync.perform invoke () SetProductInfos
+            { state with
+                  productInfos = None
+                  selected = None }, Cmd.OfAsync.perform invoke () SetProductInfos
         | SetProductInfos productInfos ->
             let cmd =
                 // Preselect, if there is only one ProductInfo
                 match productInfos with
-                | [productInfo] ->
-                    Cmd.ofMsg <| SetSelected productInfo
-                | _ ->
-                    Cmd.none
+                | [ productInfo ] -> Cmd.ofMsg <| SetSelected productInfo
+                | _ -> Cmd.none
             { state with productInfos = Some productInfos }, cmd
         | SetSelected productInfo -> { state with selected = Some productInfo }, Cmd.none
 
@@ -88,21 +88,19 @@ module InstallGame =
                   ListBox.create
                       [ yield ListBox.dataItems productInfoList
                         yield ListBox.itemTemplate
-                            (DataTemplateView<ProductInfo>.create
-                             <| fun productInfo -> TextBlock.create [ TextBlock.text productInfo.title ])
+                                  (DataTemplateView<ProductInfo>.create
+                                   <| fun productInfo -> TextBlock.create [ TextBlock.text productInfo.title ])
                         yield ListBox.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length > 0)
                         match state.selected with
-                        | Some selected ->
-                            yield ListBox.selectedItem selected
-                        | None ->
-                            ()
+                        | Some selected -> yield ListBox.selectedItem selected
+                        | None -> ()
                         yield ListBox.onSelectedItemChanged (fun obj ->
-                            match obj with
-                            | :? ProductInfo as p ->
-                                p
-                                |> SetSelected
-                                |> dispatch
-                            | _ -> ()) ] ] ]
+                                  match obj with
+                                  | :? ProductInfo as p ->
+                                      p
+                                      |> SetSelected
+                                      |> dispatch
+                                  | _ -> ()) ] ] ]
 
     let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create
