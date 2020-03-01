@@ -86,8 +86,8 @@ fi
 (
   cd "src/Andromeda/AvaloniaApp.FSharp" || exit
   ./../../../squashfs-root/AppRun --no-appstream ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
-  mv "Andromeda-x86_64.AppImage" "../../../deploy/$DEPLOYNAME-x86_64.AppImage"
-  mv "Andromeda-x86_64.AppImage.zsync" "../../../deploy/$DEPLOYNAME-x86_64.AppImage.zsync"
+  mv "Andromeda-x86_64.AppImage" "../../../deploy/Andromeda-x86_64.AppImage"
+  mv "Andromeda-x86_64.AppImage.zsync" "../../../deploy/Andromeda-x86_64.AppImage.zsync"
   rm -r "AppDir"
 
   echo "Finished publishing as AppImage."

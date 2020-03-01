@@ -1,6 +1,10 @@
 # Changelog of Andromeda for GOG
 
-## v0.3.0 (Beta)
+## v0.4.0 (Alpha)
+
+-   add ability to choose a game from the list of found games (Install game)
+
+## v0.3.0
 
 -   a first very basic GUI (for now without browser with workaround buttons) which can install games, update games and start (some) games
 -   supports basic notifications
