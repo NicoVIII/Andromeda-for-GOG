@@ -1,8 +1,4 @@
-FSharp.Core
-Avalonia
-Avalonia.Desktop
 FSharpPlus
-JaggerJo.Avalonia.FuncUI
 JaggerJo.Avalonia.FuncUI.DSL
 JaggerJo.Avalonia.FuncUI.Elmish
 MessageBox.Avalonia

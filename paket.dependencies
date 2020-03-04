@@ -21,6 +21,5 @@ nuget TypedPersistence ~> 0.5.0
 group Build
     source https://api.nuget.org/v3/index.json
 
-    nuget Fake.IO.FileSystem
     nuget Fake.DotNet.Cli
     nuget Fake.Core.Target
