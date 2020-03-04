@@ -6,6 +6,7 @@
         // Language
         "ms-vscode.csharp",
         "ionide.ionide-fsharp",
+        "ionide.ionide-paket",
         // Coding style
         "editorconfig.editorconfig",
         // Highlighting
