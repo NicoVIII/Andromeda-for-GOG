@@ -4,7 +4,7 @@
     // List of extensions which should be recommended for users of this workspace.
     "recommendations": [
         // Language
-        "ms-vscode.csharp",
+        "ms-dotnettools.csharp",
         "ionide.ionide-fsharp",
         "ionide.ionide-paket",
         // Coding style
