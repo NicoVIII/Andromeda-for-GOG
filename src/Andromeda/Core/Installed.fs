@@ -107,9 +107,8 @@ let searchInstalled (settings: Settings) (authentication: Authentication) =
     |> List.fold (fun installedGames gameDir ->
         // Ignore folders starting with '!'
         match gameDir with
-        | dir when dir
-                   |> Path.GetFileName
-                   |> String.startsWith "!" -> installedGames
+        | dir when (dir
+                   |> Path.GetFileName).StartsWith "!" -> installedGames
         | gameDir ->
             let fnc =
                 match SystemInfo.os with

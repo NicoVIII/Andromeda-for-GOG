@@ -81,7 +81,7 @@ module LeftBar =
     let private gamesListView (installedGames: InstalledGame list) startGame (state: State) (dispatch: Msg -> unit) =
         let filteredGamesList =
             installedGames
-            |> List.filter (fun game -> String.contains (state.searchString.ToLower()) (game.name.ToLower()))
+            |> List.filter (fun game -> game.name.ToLower().Contains (state.searchString.ToLower()))
         match filteredGamesList.Length with
         | 0 -> emptyGamesListView state dispatch :> IView
         | _ -> filledGamesListView filteredGamesList startGame dispatch :> IView
