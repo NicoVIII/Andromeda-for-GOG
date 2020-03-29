@@ -150,7 +150,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
             let tmp = Path.Combine(settings.gamePath, ".tmp", gamename)
             // If there are some rests, remove them
             if Directory.Exists tmp then
-                Directory.Delete tmp
+                Directory.Delete (tmp, true)
             else
                 ()
             Directory.CreateDirectory(tmp) |> ignore
