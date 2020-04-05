@@ -1,6 +1,5 @@
 namespace Andromeda.Core.FSharp
 
-open GogApi.DotNet.FSharp.Base
 open TypedPersistence.FSharp
 
 module AuthenticationPersistence =

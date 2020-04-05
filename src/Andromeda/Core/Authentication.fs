@@ -7,4 +7,4 @@ module Authentication =
 
     let refresh = Authentication.refreshAuthentication
 
-    let withAutoRefresh = Authentication.withAutoRefresh
+    let withAutoRefresh = Helpers.withAutoRefresh
