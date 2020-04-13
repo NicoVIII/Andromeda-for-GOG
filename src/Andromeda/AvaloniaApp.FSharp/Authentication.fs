@@ -36,17 +36,16 @@ module Authentication =
     let update (msg: Msg) (state: State) =
         match msg with
         | CloseWindow authentication ->
-            match authentication with
-            | Authentication.NoAuth -> ()
-            | Authentication.Auth _ as newAuth ->
-                newAuth |> state.window.Save
-                state.window.Close()
+            authentication |> state.window.Save
+            state.window.Close()
             state, Cmd.none
         | Save ->
-            let getAuth () = Authentication.newToken state.authCode
+            let getAuth() = async {
+                let! authentication = Authentication.newToken state.authCode
+                return authentication.Value
+            }
             state, Cmd.OfAsync.perform getAuth () CloseWindow
-        | SetCode code ->
-            { state with authCode = code }, Cmd.none
+        | SetCode code -> { state with authCode = code }, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create
@@ -60,7 +59,8 @@ module Authentication =
                           TextBox.borderThickness 0.0
                           TextBox.isReadOnly true
                           TextBox.textWrapping (TextWrapping.Wrap)
-                          TextBox.text "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code&layout=client2" ]
+                          TextBox.text
+                              "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code&layout=client2" ]
                     TextBlock.create [ TextBlock.text "and log in." ]
                     TextBlock.create [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
                     TextBox.create
@@ -99,5 +99,6 @@ module Authentication =
 
             [<CLIEvent>]
             member __.OnSave = saveEvent.Publish
+
             member __.Save(authentication: Authentication) =
                 saveEvent.Trigger(this :> IAuthenticationWindow, authentication)

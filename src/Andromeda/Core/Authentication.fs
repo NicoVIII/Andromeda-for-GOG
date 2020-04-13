@@ -3,8 +3,8 @@ namespace Andromeda.Core.FSharp
 open GogApi.DotNet.FSharp
 
 module Authentication =
-    let newToken = Authentication.newToken
+    let getNewToken = Authentication.getNewToken
 
-    let refresh = Authentication.refreshAuthentication
+    let getRefreshToken = Authentication.getRefreshToken
 
     let withAutoRefresh = Helpers.withAutoRefresh

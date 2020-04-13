@@ -1,3 +1,3 @@
 module Andromeda.Core.FSharp.User
 
-let getUserData = GogApi.DotNet.FSharp.User.askForUserData
+let getUserData = GogApi.DotNet.FSharp.User.getUserData

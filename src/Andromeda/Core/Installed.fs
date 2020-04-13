@@ -18,7 +18,7 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
     installedGames
     |> List.filter (fun game -> game.updateable)
     |> List.fold (fun (lst, authentication: Authentication) game ->
-        askForProductInfo { id = game.id } authentication
+        getProductInfo { id = game.id } authentication
         |> Async.RunSynchronously
         |> function
         | Error _ -> (lst, authentication)
@@ -43,7 +43,7 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
             | None -> failwith "OS is invalid for some reason!") ([], authentication)
 
 let private getGameId (authentication: Authentication) name =
-    askForFilteredProducts { search = name } authentication
+    getFilteredProducts { search = name } authentication
     |> Async.RunSynchronously
     |> function
     | Error _ -> None

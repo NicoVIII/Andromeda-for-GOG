@@ -154,10 +154,9 @@ module Main =
                 | None -> ()
             Cmd.ofSub sub
 
-    let init (settings: Settings option, authentication: Authentication, window: HostWindow) =
-        let authentication = Authentication.refresh authentication |> Async.RunSynchronously
-
-        AuthenticationPersistence.save authentication |> ignore
+    let init (settings: Settings option, authentication: Authentication option, window: HostWindow) =
+        let authentication = Option.bind (Authentication.getRefreshToken >> Async.RunSynchronously) authentication
+        Option.map AuthenticationPersistence.save |> ignore
 
         let state =
             { leftBarState = LeftBar.init()
@@ -174,8 +173,8 @@ module Main =
 
         let authenticationCommand =
             match authentication with
-            | Authentication.Auth _ -> Cmd.none
-            | Authentication.NoAuth -> Cmd.ofMsg OpenAuthenticationWindow
+            | Some _ -> Cmd.none
+            | None -> Cmd.ofMsg OpenAuthenticationWindow
 
         let settingsCommand =
             match settings with
@@ -432,8 +431,8 @@ module Main =
 
             let authentication =
                 match AuthenticationPersistence.load() with
-                | Some appData -> appData
-                | None -> Authentication.NoAuth
+                | Some authentication -> Some authentication
+                | None -> None
 
             let syncDispatch (dispatch: Dispatch<'msg>): Dispatch<'msg> =
                 match Dispatcher.UIThread.CheckAccess() with

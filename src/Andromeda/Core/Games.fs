@@ -15,7 +15,7 @@ open System.Net
 
 let getOwnedGameIds auth =
     async {
-        let! result = askForOwnedGameIds auth
+        let! result = getOwnedGameIds auth
         return match result with
                | Ok { owned = owned } -> owned
                | Error _ -> []
@@ -191,7 +191,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
 
 let getAvailableGamesForSearch name (authentication: Authentication) =
     async {
-        let! result = askForFilteredProducts { search = name } authentication
+        let! result = getFilteredProducts { search = name } authentication
         return match result with
                | Ok response -> Some response.products
                | Error _ -> None
@@ -199,7 +199,7 @@ let getAvailableGamesForSearch name (authentication: Authentication) =
 
 let getAvailableInstallersForOs gameId (authentication: Authentication) =
     async {
-        let! result = askForProductInfo { ProductInfoRequest.id = gameId } authentication
+        let! result = getProductInfo { ProductInfoRequest.id = gameId } authentication
         return match result with
                | Ok response ->
                    let installers = response.downloads.installers
@@ -219,7 +219,7 @@ let downloadGame gameName installer (authentication: Authentication) =
     async {
         match installer.files with
         | (info :: _) ->
-            let! result = askForSecureDownlink { downlink = info.downlink } authentication
+            let! result = getSecureDownlink { downlink = info.downlink } authentication
             match result with
             | Ok urlResponse ->
                 let (task, filepath, tmppath) = startFileDownload urlResponse.downlink gameName installer.version
