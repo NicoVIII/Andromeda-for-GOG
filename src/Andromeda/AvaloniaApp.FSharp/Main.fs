@@ -13,6 +13,7 @@ open Avalonia.Media
 open Avalonia.Threading
 open Elmish
 open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp.Types
 open MessageBox.Avalonia
 open System
 open System.ComponentModel
@@ -35,7 +36,7 @@ module Main =
 
     type State =
         { leftBarState: LeftBar.State
-          authentication: Authentication
+          authentication: Authentication option
           authenticationWindow: Authentication.AuthenticationWindow option
           downloads: DownloadStatus list
           installGameWindow: InstallGame.InstallGameWindow option
@@ -229,7 +230,7 @@ module Main =
             let state = { state with authenticationWindow = window |> Some }
             state, Subs.saveAuthentication state
         | OpenInstallGameWindow ->
-            let window = InstallGame.InstallGameWindow(state.authentication)
+            let window = InstallGame.InstallGameWindow(state.authentication.Value)
             window.ShowDialog(state.window) |> ignore
             let state = { state with installGameWindow = window |> Some }
             state, Subs.installGameWindow state
@@ -250,7 +251,7 @@ module Main =
 
             { state with
                   authenticationWindow = None
-                  authentication = authentication }, Cmd.none
+                  authentication = Some authentication }, Cmd.none
         | CloseInstallGameWindow downloadInfo ->
             { state with installGameWindow = None }, Cmd.ofMsg <| StartGameDownload downloadInfo
         | CloseSettingsWindow settings ->
@@ -260,7 +261,7 @@ module Main =
 
             { state with settingsWindow = None }, Cmd.ofMsg (SetSettings settings)
         | SearchInstalled settings ->
-            let installedGames = Installed.searchInstalled settings state.authentication
+            let installedGames = Installed.searchInstalled settings state.authentication.Value
             { state with installedGames = installedGames }, Cmd.none
         | SetSettings settings ->
             SettingsPersistence.save settings |> ignore
@@ -271,12 +272,12 @@ module Main =
         | StartGame installedGame -> state, Subs.startGame installedGame
         | StartGameDownload productInfo ->
             let installerInfoList =
-                Games.getAvailableInstallersForOs productInfo.id state.authentication |> Async.RunSynchronously
+                Games.getAvailableInstallersForOs productInfo.id state.authentication.Value |> Async.RunSynchronously
             match installerInfoList.Length with
             | 1 ->
                 let installerInfo = installerInfoList.[0]
                 let result =
-                    Games.downloadGame productInfo.title installerInfo state.authentication |> Async.RunSynchronously
+                    Games.downloadGame productInfo.title installerInfo state.authentication.Value |> Async.RunSynchronously
                 match result with
                 | None -> state, Cmd.none
                 | Some(task, filePath, tmppath, size) ->
@@ -305,7 +306,7 @@ module Main =
                   Cmd.OfAsync.perform invoke () (fun _ -> FinishGameDownload(downloadInfo.filePath, settings)) ]
         | UpgradeGames ->
             let (updateDataList, authentication) =
-                Installed.checkAllForUpdates state.installedGames state.authentication
+                Installed.checkAllForUpdates state.installedGames state.authentication.Value
 
             let cmdList =
                 match updateDataList with
@@ -316,7 +317,7 @@ module Main =
                         |> StartGameDownload
                         |> Cmd.ofMsg) updateDataList
                 | _ -> [ Cmd.ofMsg <| AddNotification "No games found to update." ]
-            { state with authentication = authentication }, Cmd.batch cmdList
+            { state with authentication = Some authentication }, Cmd.batch cmdList
         | UpdateDownloadSize(gameId, fileSize) ->
             let downloads =
                 state.downloads

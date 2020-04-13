@@ -41,7 +41,7 @@ module Authentication =
             state, Cmd.none
         | Save ->
             let getAuth() = async {
-                let! authentication = Authentication.newToken state.authCode
+                let! authentication = Authentication.getNewToken state.authCode
                 return authentication.Value
             }
             state, Cmd.OfAsync.perform getAuth () CloseWindow
