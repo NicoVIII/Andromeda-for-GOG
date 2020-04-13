@@ -10,6 +10,7 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
+open System.Web
 
 module Authentication =
     type IAuthenticationWindow =
@@ -19,6 +20,8 @@ module Authentication =
         abstract OnSave: IEvent<IAuthenticationWindow * Authentication>
 
         abstract Save: Authentication -> unit
+
+    let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
     type State =
         { authCode: string
@@ -40,10 +43,11 @@ module Authentication =
             state.window.Close()
             state, Cmd.none
         | Save ->
-            let getAuth() = async {
-                let! authentication = Authentication.getNewToken state.authCode
-                return authentication.Value
-            }
+            let getAuth() =
+                async {
+                    let! authentication = Authentication.getNewToken redirectUri
+                                              state.authCode
+                    return authentication.Value }
             state, Cmd.OfAsync.perform getAuth () CloseWindow
         | SetCode code -> { state with authCode = code }, Cmd.none
 
@@ -60,9 +64,12 @@ module Authentication =
                           TextBox.isReadOnly true
                           TextBox.textWrapping (TextWrapping.Wrap)
                           TextBox.text
-                              "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri=https%3A%2F%2Fembed.gog.com%2Fon_login_success%3Forigin%3Dclient&response_type=code&layout=client2" ]
+                          <| "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri="
+                             + (HttpUtility.UrlEncode redirectUri)
+                             + "&response_type=code&layout=client2" ]
                     TextBlock.create [ TextBlock.text "and log in." ]
-                    TextBlock.create [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
+                    TextBlock.create
+                        [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
                     TextBox.create
                         [ TextBox.text state.authCode
                           TextBox.onTextChanged (SetCode >> dispatch) ]
