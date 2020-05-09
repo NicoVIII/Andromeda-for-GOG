@@ -66,10 +66,9 @@ NUGET
       FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
     FSharpPlus (1.0)
       FSharp.Core (>= 4.3.4) - restriction: || (>= net45) (>= netstandard2.0)
-    GogApi.DotNet (2.0.0-alpha.8)
-      FSharp.Core (> 4.5)
-      FSharp.Json (>= 0.4 < 0.5)
-      SchlenkR.FsHttp (>= 3.0 < 4.0)
+    GogApi.DotNet (2.0.0-alpha.11)
+      FSharp.Json (>= 0.4 < 0.5) - restriction: >= netstandard2.0
+      SchlenkR.FsHttp (>= 3.0 < 4.0) - restriction: >= netstandard2.0
     JaggerJo.Avalonia.FuncUI (0.4)
       Avalonia.Desktop (>= 0.9.7) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.6.2) - restriction: >= netstandard2.0
@@ -203,7 +202,7 @@ NUGET
     runtime.ubuntu.16.04-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net35) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net35) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net35) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net35) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net35) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
     runtime.ubuntu.16.10-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net35) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net35) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net35) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net35) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net35) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
     runtime.ubuntu.18.04-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3) - restriction: || (&& (< monoandroid) (< monotouch) (< net35) (>= netstandard1.6) (< netstandard2.0) (< win8) (< wpa81) (< xamarintvos) (< xamarinwatchos)) (&& (< monoandroid) (< net35) (< netstandard1.2) (>= netstandard1.6) (< win8)) (&& (< monoandroid) (< net35) (< netstandard1.4) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< monoandroid) (< net35) (< netstandard1.5) (>= netstandard1.6) (< win8) (< wpa81)) (&& (< net35) (>= net46) (< netstandard1.4) (>= netstandard1.6)) (&& (< netstandard1.5) (>= netstandard1.6) (>= uap10.0))
-    SchlenkR.FsHttp (3.0)
+    SchlenkR.FsHttp (3.0) - restriction: >= netstandard2.0
       FSharp.Core (>= 4.7) - restriction: >= netstandard2.0
       FSharp.Data (>= 3.1.1) - restriction: >= netstandard2.0
     Serilog (2.9) - restriction: || (>= net461) (>= netstandard2.0)

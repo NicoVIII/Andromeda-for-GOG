@@ -1,8 +1,8 @@
 module Andromeda.Core.FSharp.Installed
 
 open FSharp.Json
-open GogApi.DotNet.FSharp.GalaxyApi
-open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp
+open GogApi.DotNet.FSharp.Account
 open System.IO
 
 type UpdateData =
@@ -18,7 +18,7 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
     installedGames
     |> List.filter (fun game -> game.updateable)
     |> List.fold (fun (lst, authentication: Authentication) game ->
-        getProductInfo { id = game.id } authentication
+        GalaxyApi.getProduct (uint32 game.id) authentication
         |> Async.RunSynchronously
         |> function
         | Error _ -> (lst, authentication)
@@ -43,12 +43,13 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
             | None -> failwith "OS is invalid for some reason!") ([], authentication)
 
 let private getGameId (authentication: Authentication) name =
-    getFilteredProducts { search = name } authentication
+    getFilteredGames { search = name } authentication
     |> Async.RunSynchronously
     |> function
     | Error _ -> None
     | Ok x ->
-        List.filter (fun p -> p.title = name) x.products
+        x.products
+        |> List.filter (fun p -> p.title = name)
         |> function
         | l when l.Length = 1 -> x.products.Head.id |> Some
         | l when l.Length >= 0 -> None

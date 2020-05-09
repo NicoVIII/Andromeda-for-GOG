@@ -4,9 +4,9 @@ open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
 open FSharpPlus
 open GogApi.DotNet.FSharp
-open GogApi.DotNet.FSharp.GamesMovies
-open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp.Account
 open GogApi.DotNet.FSharp.GalaxyApi
+open GogApi.DotNet.FSharp.Types
 open Mono.Unix.Native
 open System
 open System.Diagnostics
@@ -15,13 +15,13 @@ open System.Net
 
 let getOwnedGameIds auth =
     async {
-        let! result = getOwnedGameIds auth
+        let! result = User.getDataGames auth
         return match result with
                | Ok { owned = owned } -> owned
                | Error _ -> []
     }
 
-let startFileDownload (url: string) gameName version =
+let startFileDownload (DownLink url) gameName version =
     let version =
         match version with
         | Some v -> "-v"
@@ -191,7 +191,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
 
 let getAvailableGamesForSearch name (authentication: Authentication) =
     async {
-        let! result = getFilteredProducts { search = name } authentication
+        let! result = getFilteredGames { search = name } authentication
         return match result with
                | Ok response -> Some response.products
                | Error _ -> None
@@ -199,7 +199,7 @@ let getAvailableGamesForSearch name (authentication: Authentication) =
 
 let getAvailableInstallersForOs gameId (authentication: Authentication) =
     async {
-        let! result = getProductInfo { ProductInfoRequest.id = gameId } authentication
+        let! result = GalaxyApi.getProduct gameId authentication
         return match result with
                | Ok response ->
                    let installers = response.downloads.installers
@@ -215,15 +215,17 @@ let getAvailableInstallersForOs gameId (authentication: Authentication) =
                | Error _ -> []
     }
 
-let downloadGame gameName installer (authentication: Authentication) =
+let downloadGame gameName (installer: InstallerInfo) (authentication: Authentication) =
     async {
         match installer.files with
         | (info :: _) ->
-            let! result = getSecureDownlink { downlink = info.downlink } authentication
+            let! result = getSecureDownlink info.downlink authentication
             match result with
             | Ok urlResponse ->
                 let (task, filepath, tmppath) = startFileDownload urlResponse.downlink gameName installer.version
                 return Some(task, filepath, tmppath, info.size)
-            | Error _ -> return None
+            | Error _ ->
+                // TODO: Add loggin
+                return None
         | [] -> return None
     }

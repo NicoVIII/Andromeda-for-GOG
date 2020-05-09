@@ -12,7 +12,6 @@ open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp.Listing
 open GogApi.DotNet.FSharp.Types
 open MessageBox.Avalonia
 open System
@@ -272,7 +271,7 @@ module Main =
         | StartGame installedGame -> state, Subs.startGame installedGame
         | StartGameDownload productInfo ->
             let installerInfoList =
-                Games.getAvailableInstallersForOs productInfo.id state.authentication.Value |> Async.RunSynchronously
+                Games.getAvailableInstallersForOs (uint32 productInfo.id) state.authentication.Value |> Async.RunSynchronously
             match installerInfoList.Length with
             | 1 ->
                 let installerInfo = installerInfoList.[0]

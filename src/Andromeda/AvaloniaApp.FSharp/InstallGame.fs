@@ -11,7 +11,7 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp.Types
 
 module InstallGame =
     type IInstallGameWindow =
