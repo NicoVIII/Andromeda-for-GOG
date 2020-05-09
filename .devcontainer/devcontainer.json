@@ -1,8 +1,8 @@
 // For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.106.0/containers/dotnetcore-3.1-fsharp
 {
-	"name": "F# (.NET Core 3.1)",
-	"dockerFile": "Dockerfile",
+    "name": "F# (.NET Core 3.1)",
+    "dockerFile": "Dockerfile",
 
 	// Set *default* container specific settings.json values on container create.
 	//
@@ -21,6 +21,13 @@
         "ms-dotnettools.csharp",
         "editorconfig.editorconfig",
 	],
+
+    // To run the application we need to expose XServer to the container
+    "runArgs": [
+        "--net", "host",
+        "-e", "DISPLAY=${env:DISPLAY}",
+        "-v", "/tmp/.X11-unix:/tmp/.X11-unix"
+    ],
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
 	// "forwardPorts": [],

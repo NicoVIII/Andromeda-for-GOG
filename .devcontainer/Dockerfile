@@ -34,6 +34,9 @@ RUN apt-get update \
     # Add helpful tools
     && apt-get -y install bash-completion nano \
     #
+    # Provide dependencies for gui application
+    && apt-get -y install xorg \
+    #
     # Clean up
     && apt-get autoremove -y \
     && apt-get clean -y \
