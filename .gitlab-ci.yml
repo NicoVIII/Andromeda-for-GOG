@@ -1,7 +1,0 @@
-image: microsoft/dotnet
-stages:
-  - build
-build:
-  stage: build
-  script:
-    - './build-scripts/build-fsharp.sh'
