@@ -1,9 +1,11 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
+open GogApi.DotNet.FSharp.Types
+
 [<AutoOpen>]
 module DomainTypes =
     type DownloadStatus =
-        { gameId: int
+        { gameId: ProductId
           gameTitle: string
           filePath: string
           fileSize: float

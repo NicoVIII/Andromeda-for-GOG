@@ -3,6 +3,7 @@ module Andromeda.Core.FSharp.Installed
 open FSharp.Json
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.Account
+open GogApi.DotNet.FSharp.Types
 open System.IO
 
 type UpdateData =
@@ -18,7 +19,7 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
     installedGames
     |> List.filter (fun game -> game.updateable)
     |> List.fold (fun (lst, authentication: Authentication) game ->
-        GalaxyApi.getProduct (uint32 game.id) authentication
+        GalaxyApi.getProduct game.id authentication
         |> Async.RunSynchronously
         |> function
         | Error _ -> (lst, authentication)
@@ -71,7 +72,7 @@ let getInstalledOnLinux gameDir (authentication: Authentication) =
     | None -> None
     | Some lines when lines.Length > 3 ->
         let game =
-            InstalledGame.create ((int) lines.[4]) lines.[0] gameDir lines.[1]
+            InstalledGame.create (lines.[4] |> uint32 |> ProductId) lines.[0] gameDir lines.[1]
             |> InstalledGame.setUpdateable true
             |> Some
         game
@@ -91,7 +92,7 @@ let getInstalledOnWindows gameDir (_: Authentication) =
             |> Seq.fold (+) ""
             |> Json.deserialize<WindowsGameInfoFile>
         // TODO: determine version and updateability
-        InstalledGame.create ((int) gameInfo.gameId) gameInfo.name gameDir "1"
+        InstalledGame.create (gameInfo.gameId  |> uint32 |> ProductId) gameInfo.name gameDir "1"
         |> InstalledGame.setIcon (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
 
     // Find info file of game

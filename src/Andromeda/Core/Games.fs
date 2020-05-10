@@ -21,7 +21,7 @@ let getOwnedGameIds auth =
                | Error _ -> []
     }
 
-let startFileDownload (DownLink url) gameName version =
+let startFileDownload (SafeDownLink url) gameName version =
     let version =
         match version with
         | Some v -> "-v"

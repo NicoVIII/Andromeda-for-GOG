@@ -64,7 +64,7 @@ module Main =
         | StartGameDownload of ProductInfo
         | UnpackGame of Tuple<Settings, DownloadStatus>
         | FinishGameDownload of Tuple<string, Settings>
-        | UpdateDownloadSize of Tuple<int, int>
+        | UpdateDownloadSize of Tuple<ProductId, int>
         | UpdateDownloadInstalling of string
         | UpgradeGames
 
@@ -271,7 +271,7 @@ module Main =
         | StartGame installedGame -> state, Subs.startGame installedGame
         | StartGameDownload productInfo ->
             let installerInfoList =
-                Games.getAvailableInstallersForOs (uint32 productInfo.id) state.authentication.Value |> Async.RunSynchronously
+                Games.getAvailableInstallersForOs productInfo.id state.authentication.Value |> Async.RunSynchronously
             match installerInfoList.Length with
             | 1 ->
                 let installerInfo = installerInfoList.[0]
