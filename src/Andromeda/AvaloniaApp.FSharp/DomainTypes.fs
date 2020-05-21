@@ -1,6 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
-open GogApi.DotNet.FSharp.Types
+open GogApi.DotNet.FSharp.DomainTypes
 
 [<AutoOpen>]
 module DomainTypes =

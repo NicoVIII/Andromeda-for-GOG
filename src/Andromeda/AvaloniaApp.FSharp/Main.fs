@@ -12,7 +12,7 @@ open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp.Types
+open GogApi.DotNet.FSharp.DomainTypes
 open MessageBox.Avalonia
 open System
 open System.ComponentModel

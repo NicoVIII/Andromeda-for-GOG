@@ -6,7 +6,7 @@ open FSharpPlus
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.Account
 open GogApi.DotNet.FSharp.GalaxyApi
-open GogApi.DotNet.FSharp.Types
+open GogApi.DotNet.FSharp.DomainTypes
 open Mono.Unix.Native
 open System
 open System.Diagnostics
@@ -191,7 +191,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
 
 let getAvailableGamesForSearch name (authentication: Authentication) =
     async {
-        let! result = getFilteredGames { search = name } authentication
+        let! result = getFilteredGames { feature = None; language = None; system = None; search = Some name; page = None; sort = None } authentication
         return match result with
                | Ok response -> Some response.products
                | Error _ -> None

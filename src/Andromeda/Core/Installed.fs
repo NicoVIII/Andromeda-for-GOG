@@ -3,7 +3,7 @@ module Andromeda.Core.FSharp.Installed
 open FSharp.Json
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.Account
-open GogApi.DotNet.FSharp.Types
+open GogApi.DotNet.FSharp.DomainTypes
 open System.IO
 
 type UpdateData =
@@ -44,7 +44,7 @@ let checkAllForUpdates (installedGames: InstalledGame list) (authentication: Aut
             | None -> failwith "OS is invalid for some reason!") ([], authentication)
 
 let private getGameId (authentication: Authentication) name =
-    getFilteredGames { search = name } authentication
+    getFilteredGames { feature = None; page = None; search = Some name; sort = None; language = None; system = None } authentication
     |> Async.RunSynchronously
     |> function
     | Error _ -> None

@@ -1,11 +1,11 @@
 namespace Andromeda.Core.FSharp
 
-open GogApi.DotNet.FSharp.Types
+open GogApi.DotNet.FSharp.DomainTypes
 
 [<AutoOpen>]
 module DomainTypes =
     // Provide an important type from GogApi over Andromeda.Core to avoid dependency of app to api
-    type Authentication = GogApi.DotNet.FSharp.Types.Authentication
+    type Authentication = GogApi.DotNet.FSharp.DomainTypes.Authentication
 
     type InstalledGame =
         { id: ProductId
