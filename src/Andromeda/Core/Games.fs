@@ -4,8 +4,6 @@ open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
 open FSharpPlus
 open GogApi.DotNet.FSharp
-open GogApi.DotNet.FSharp.Account
-open GogApi.DotNet.FSharp.GalaxyApi
 open GogApi.DotNet.FSharp.DomainTypes
 open Mono.Unix.Native
 open System
@@ -191,7 +189,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
 
 let getAvailableGamesForSearch name (authentication: Authentication) =
     async {
-        let! result = getFilteredGames { feature = None; language = None; system = None; search = Some name; page = None; sort = None } authentication
+        let! result = Account.getFilteredGames { feature = None; language = None; system = None; search = Some name; page = None; sort = None } authentication
         return match result with
                | Ok response -> Some response.products
                | Error _ -> None
@@ -219,7 +217,7 @@ let downloadGame gameName (installer: InstallerInfo) (authentication: Authentica
     async {
         match installer.files with
         | (info :: _) ->
-            let! result = getSecureDownlink info.downlink authentication
+            let! result = GalaxyApi.getSecureDownlink info.downlink authentication
             match result with
             | Ok urlResponse ->
                 let (task, filepath, tmppath) = startFileDownload urlResponse.downlink gameName installer.version
