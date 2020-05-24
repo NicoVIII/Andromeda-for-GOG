@@ -9,6 +9,8 @@
 This project aims at providing a Galaxy-like client for GOG with the help of <https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1> also for Linux systems. It will focus the downloading, installing and updating of games at first.  
 If you need something to play Multiplayer over Galaxy on linux, have a look at the comet project from the brilliant guy who started the unofficial documentation:
 <https://gitlab.com/Yepoleb/comet>
+There is an alternative for Linux systems written in Python called Minigalaxy:  
+<https://github.com/sharkwouter/minigalaxy>
 
 ## Dependencies
 

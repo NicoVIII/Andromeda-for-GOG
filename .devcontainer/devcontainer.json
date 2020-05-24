@@ -20,6 +20,7 @@
         "ionide.ionide-paket",
         "ms-dotnettools.csharp",
         "editorconfig.editorconfig",
+        "ybaumes.highlight-trailing-white-spaces",
 	],
 
     // To run the application we need to expose XServer to the container
