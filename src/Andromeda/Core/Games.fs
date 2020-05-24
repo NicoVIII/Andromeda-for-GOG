@@ -139,7 +139,7 @@ let generateRandomString length =
     helper length ""
 
 let createVersionFile gameDir version =
-    File.WriteAllText(Path.Combine(gameDir, "version.txt"), version + "\n")
+    File.WriteAllText(Path.Combine(gameDir, Constants.versionFile), version + "\n")
 
 let extractLibrary (settings: Settings) (gamename: string) filepath version =
     async {

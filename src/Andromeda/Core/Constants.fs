@@ -4,3 +4,4 @@ namespace Andromeda.Core.FSharp
 module Constants =
     let folderName = "andromeda"
     let databaseFile = "andromeda.db"
+    let versionFile = "version.txt"
