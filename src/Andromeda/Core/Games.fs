@@ -138,7 +138,10 @@ let generateRandomString length =
 
     helper length ""
 
-let extractLibrary (settings: Settings) (gamename: string) filepath =
+let createVersionFile gameDir version =
+    File.WriteAllText(Path.Combine(gameDir, "version.txt"), version + "\n")
+
+let extractLibrary (settings: Settings) (gamename: string) filepath version =
     async {
         let target = Path.Combine(settings.gamePath, gamename)
         match SystemInfo.os with
@@ -185,6 +188,11 @@ let extractLibrary (settings: Settings) (gamename: string) filepath =
                     Process.Start(filepath, "/DIR=\"" + target + "\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
                 p.WaitForExit()
         | SystemInfo.OS.MacOS -> failwith "Not supported yet :/"
+
+        match version with
+        | Some version ->
+            createVersionFile target version
+        | None -> ()
     }
 
 let getAvailableGamesForSearch name (authentication: Authentication) =

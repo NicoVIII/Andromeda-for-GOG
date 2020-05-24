@@ -62,7 +62,7 @@ module Main =
         | SetSettings of Settings
         | StartGame of InstalledGame
         | StartGameDownload of ProductInfo
-        | UnpackGame of Tuple<Settings, DownloadStatus>
+        | UnpackGame of Tuple<Settings, DownloadStatus, string option>
         | FinishGameDownload of Tuple<string, Settings>
         | UpdateDownloadSize of Tuple<ProductId, int>
         | UpdateDownloadInstalling of string
@@ -293,12 +293,12 @@ module Main =
                                   async {
                                       let! _ = Async.AwaitTask task
                                       File.Move(tmppath, filePath) }
-                              Cmd.OfAsync.perform invoke () (fun _ -> UnpackGame(state.settings.Value, downloadInfo))
-                          | None -> Cmd.ofMsg <| UnpackGame(state.settings.Value, downloadInfo) ]
+                              Cmd.OfAsync.perform invoke () (fun _ -> UnpackGame(state.settings.Value, downloadInfo, installerInfo.version))
+                          | None -> Cmd.ofMsg <| UnpackGame(state.settings.Value, downloadInfo, installerInfo.version) ]
             | 0 -> state, Cmd.ofMsg <| AddNotification "Found no installer for this OS..."
             | _ -> state, Cmd.ofMsg <| AddNotification "Found multiple installers, this is not supported yet..."
-        | UnpackGame(settings, downloadInfo) ->
-            let invoke() = Games.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath
+        | UnpackGame(settings, downloadInfo, version) ->
+            let invoke() = Games.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath version
             state,
             Cmd.batch
                 [ Cmd.ofMsg <| UpdateDownloadInstalling downloadInfo.filePath
