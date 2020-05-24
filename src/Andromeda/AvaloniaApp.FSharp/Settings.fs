@@ -17,6 +17,7 @@ module Settings =
 
         [<CLIEvent>]
         abstract OnSave: IEvent<ISettingsWindow * Settings>
+
         abstract Save: Settings -> unit
 
     type State =
@@ -29,10 +30,8 @@ module Settings =
 
     let stateToSettings state =
         match state.gamePath with
-        | gamePath when gamePath |> Directory.Exists ->
-            { gamePath = gamePath } |> Some
-        | _ ->
-            None
+        | gamePath when gamePath |> Directory.Exists -> { gamePath = gamePath } |> Some
+        | _ -> None
 
     let init (settings: Settings option, window: ISettingsWindow) =
         let state =
@@ -40,9 +39,8 @@ module Settings =
             | Some settings ->
                 { gamePath = settings.gamePath
                   window = window }
-            | None ->
-                { gamePath = ""
-                  window = window }
+            | None -> { gamePath = ""; window = window }
+
         state, Cmd.none
 
     let update (msg: Msg) (state: State) =
@@ -50,9 +48,9 @@ module Settings =
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
             match stateToSettings state with
-            | Some settings ->
-                state.window.Save settings
+            | Some settings -> state.window.Save settings
             | None -> ()
+            state.window.Close()
             state, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
@@ -66,8 +64,8 @@ module Settings =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.spacing 5.0
                           StackPanel.children
-                              [ TextBox.create [
-                                    TextBox.text state.gamePath
+                              [ TextBox.create
+                                  [ TextBox.text state.gamePath
                                     TextBox.width 300.0
                                     TextBox.onTextChanged (SetGamepath >> dispatch) ] ] ]
                     Button.create
@@ -75,7 +73,7 @@ module Settings =
                           Button.isEnabled (stateToSettings state |> Option.isSome)
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type SettingsWindow(settings: Settings option) as this =
+    type SettingsWindow(settings: Settings option, closeEventHandler, initial) as this =
         inherit HostWindow()
 
         let saveEvent = new Event<_>()
@@ -86,6 +84,10 @@ module Settings =
             base.ShowInTaskbar <- false
             base.Width <- 600.0
             base.Height <- 260.0
+
+            if initial
+            then this.Closing.AddHandler closeEventHandler
+            else ()
 
 #if DEBUG
             this.AttachDevTools(KeyGesture(Key.F12))
@@ -99,8 +101,14 @@ module Settings =
             |> Program.runWith (settings, this)
 
         interface ISettingsWindow with
-            member __.Close () = this.Close()
+            member __.Close() =
+                if initial
+                then this.Closing.RemoveHandler closeEventHandler
+                else ()
+                this.Close()
 
             [<CLIEvent>]
-            member __.OnSave = saveEvent.Publish
-            member __.Save(settings: Settings) = saveEvent.Trigger(this :> ISettingsWindow, settings)
+            override __.OnSave = saveEvent.Publish
+
+            member __.Save(settings: Settings) =
+                saveEvent.Trigger(this :> ISettingsWindow, settings)

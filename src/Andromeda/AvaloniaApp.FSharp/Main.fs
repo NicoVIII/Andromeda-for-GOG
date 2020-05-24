@@ -223,8 +223,7 @@ module Main =
                 | _ -> newLine + Environment.NewLine + state.terminalOutput
             { state with terminalOutput = terminalOutput }, Cmd.none
         | OpenAuthenticationWindow ->
-            let window = Authentication.AuthenticationWindow()
-            window.Closing.AddHandler cancelClosingEventHandler
+            let window = Authentication.AuthenticationWindow cancelClosingEventHandler
             window.ShowDialog(state.window) |> ignore
             let state = { state with authenticationWindow = window |> Some }
             state, Subs.saveAuthentication state
@@ -234,10 +233,7 @@ module Main =
             let state = { state with installGameWindow = window |> Some }
             state, Subs.installGameWindow state
         | OpenSettingsWindow initial ->
-            let window = Settings.SettingsWindow(state.settings)
-            if initial
-            then window.Closing.AddHandler cancelClosingEventHandler
-            else ()
+            let window = Settings.SettingsWindow(state.settings, cancelClosingEventHandler, initial)
             window.ShowDialog(state.window) |> ignore
             let state = { state with settingsWindow = window |> Some }
             state, Subs.saveSettings state

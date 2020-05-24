@@ -78,7 +78,7 @@ module Authentication =
                           Button.isEnabled (state.authCode <> "")
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type AuthenticationWindow() as this =
+    type AuthenticationWindow(closeEventHandler) as this =
         inherit HostWindow()
 
         let saveEvent = new Event<_>()
@@ -89,6 +89,8 @@ module Authentication =
             base.WindowStartupLocation <- WindowStartupLocation.CenterOwner
             base.Width <- 600.0
             base.Height <- 260.0
+
+            this.Closing.AddHandler closeEventHandler
 
 #if DEBUG
             this.AttachDevTools(KeyGesture(Key.F12))
@@ -102,7 +104,9 @@ module Authentication =
             |> Program.runWith (this)
 
         interface IAuthenticationWindow with
-            member __.Close() = this.Close()
+            member __.Close() =
+                this.Closing.RemoveHandler closeEventHandler
+                this.Close()
 
             [<CLIEvent>]
             member __.OnSave = saveEvent.Publish
