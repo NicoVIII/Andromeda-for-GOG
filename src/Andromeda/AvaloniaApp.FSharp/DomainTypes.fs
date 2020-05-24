@@ -1,5 +1,6 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
+open Andromeda.Core.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 
 [<AutoOpen>]

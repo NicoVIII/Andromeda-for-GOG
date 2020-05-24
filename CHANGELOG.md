@@ -1,10 +1,19 @@
-# Changelog of Andromeda for GOG
+# Changelog
+All notable changes to this project will be documented in this file.
 
-## v0.4.0 (Alpha)
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
--   add ability to choose a game from the list of found games (Install game)
+## [0.4.0-alpha.2]
 
-## v0.3.0
+### Added
+-   Add ability to choose a game from the list of found games (Install game)
+
+### Changed
+-   Improve subwindow closing behavior
+-   Adjusted look
+
+## [0.3.0]
 
 -   a first very basic GUI (for now without browser with workaround buttons) which can install games, update games and start (some) games
 -   supports basic notifications
@@ -15,11 +24,11 @@
 -   settings window where gamepath can be provided
 -   terminal output of games in Andromeda
 
-## v0.2.0
+## [0.2.0]
 
 -   add automatic downloading and installing of games
 -   add ability to automatically upgrade installed games
 
-## v0.1.0
+## [0.1.0]
 
 initial, very basic version with console interface

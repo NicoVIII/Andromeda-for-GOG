@@ -19,6 +19,7 @@
     <Compile Include="Icons.fs" />
     <Compile Include="DomainTypes.fs" />
     <Compile Include="AvaloniaHelper.fs" />
+    <Compile Include="Global.fs" />
     <!-- Main window components -->
     <Compile Include="LeftBar.fs" />
     <!-- Own windows -->
