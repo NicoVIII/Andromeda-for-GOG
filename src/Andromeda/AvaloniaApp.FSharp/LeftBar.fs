@@ -93,7 +93,7 @@ module LeftBar =
         | _ -> filledGamesListView filteredGamesList startGame dispatch :> IView
 
     // TODO: icon
-    let menuItem currentMode gDispatch (text: string) badge mode =
+    let private menuItem currentMode gDispatch (text: string) badge mode =
         Button.create
             [ Button.classes [ if mode = currentMode then "active" else () ]
               Button.content
@@ -109,7 +109,7 @@ module LeftBar =
                                 TextBlock.verticalAlignment VerticalAlignment.Center ] ] ])
               Button.onClick (fun _ -> Global.ChangeMode mode |> gDispatch) ]
 
-    let middleView state (gState: Global.State) _ gDispatch =
+    let private middleView state (gState: Global.State) _ gDispatch =
         let menuItem = menuItem gState.mode gDispatch
 
         ScrollViewer.create
@@ -161,7 +161,7 @@ module LeftBar =
                         [ TextBlock.isVisible (downloadList.Length = 0)
                           TextBlock.text "No downloads" ] ] ]
 
-    let bottomBarView (gState: Global.State) =
+    let private bottomBarView (gState: Global.State) =
         StackPanel.create
             [ StackPanel.dock Dock.Bottom
               StackPanel.orientation Orientation.Vertical

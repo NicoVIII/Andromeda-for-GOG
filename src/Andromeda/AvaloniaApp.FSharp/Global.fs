@@ -2,6 +2,7 @@ namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
 open FSharpPlus.Lens
+open GogApi.DotNet.FSharp.DomainTypes
 
 [<RequireQualifiedAccess>]
 module Global =

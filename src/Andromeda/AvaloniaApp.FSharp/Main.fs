@@ -560,7 +560,9 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ]
                                 else
-                                    () ] ] ] ]
+                                    state ^. _installedGames
+                                    |> List.map (fun game -> game.id)
+                                    |> Games.view ] ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)
