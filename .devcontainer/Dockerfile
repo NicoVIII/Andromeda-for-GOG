@@ -32,7 +32,7 @@ RUN apt-get update \
     && chmod 0440 /etc/sudoers.d/$USERNAME \
     #
     # Add helpful tools
-    && apt-get -y install bash-completion nano \
+    && apt-get -y install xz-utils zip bash-completion nano \
     #
     # Provide dependencies for gui application
     && apt-get -y install xorg \
