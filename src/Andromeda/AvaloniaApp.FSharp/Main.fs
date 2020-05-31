@@ -564,7 +564,7 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ]
                                 else
-                                    Games.view gDispatch (state ^. _installedGames) ] ] ] ]
+                                    Games.view gDispatch (state ^. _installedGames) (state ^. _authentication).Value ] ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)

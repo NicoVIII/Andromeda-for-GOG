@@ -1,5 +1,6 @@
 namespace Andromeda.Core.FSharp
 
+open GogApi.DotNet.FSharp.DomainTypes
 open Microsoft.FSharp.Collections
 open System
 open System.IO
@@ -58,3 +59,9 @@ module SystemInfo =
         | Windows ->
             Path.Combine
                 (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.folderName, "save")
+
+    let gameInfoPath (ProductId id) =
+        Path.Combine(cachePath, "gameInfo", id |> string)
+
+    let logo2xPath productId =
+        Path.Combine(gameInfoPath productId, "logo_2x.jpg")

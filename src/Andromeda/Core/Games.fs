@@ -1,8 +1,8 @@
 module Andromeda.Core.FSharp.Games
 
-open ICSharpCode.SharpZipLib.Core
 open ICSharpCode.SharpZipLib.Zip
 open FSharpPlus
+open FsHttp.DslCE
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open Mono.Unix.Native
@@ -25,16 +25,27 @@ let startFileDownload (SafeDownLink url) gameName version =
         | Some v -> "-v"
         | None -> ""
 
-    let dir = Path.Combine(SystemInfo.cachePath, "installers")
-    let filepath = Path.Combine(dir, sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
-    let tmppath = Path.Combine(dir, "tmp", sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
-    Directory.CreateDirectory(Path.Combine(dir, "tmp")) |> ignore
+    let dir =
+        Path.Combine(SystemInfo.cachePath, "installers")
+
+    let filepath =
+        Path.Combine(dir, sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
+
+    let tmppath =
+        Path.Combine
+            (dir, "tmp", sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
+
+    Directory.CreateDirectory(Path.Combine(dir, "tmp"))
+    |> ignore
     let file = FileInfo(filepath)
     match not file.Exists with
     | true ->
         let url = url.Replace("http://", "https://")
         use client = new WebClient()
-        let task = client.DownloadFileTaskAsync(url, tmppath)
+
+        let task =
+            client.DownloadFileTaskAsync(url, tmppath)
+
         (task |> Some, filepath, tmppath)
     | false -> (None, filepath, tmppath)
 
@@ -49,7 +60,8 @@ let private startWindowsGameProcess (prepareGameProcess: Process -> Process) pat
         |> List.ofArray
         |> List.filter (fun path ->
             let fileName = Path.GetFileName path
-            fileName.StartsWith "Launch " && fileName.EndsWith ".lnk")
+            fileName.StartsWith "Launch "
+            && fileName.EndsWith ".lnk")
         |> List.item 0
 
     let proc =
@@ -79,13 +91,16 @@ let startGameProcess processStandardOutput path =
     | SystemInfo.OS.Linux
     | SystemInfo.OS.MacOS ->
         let filepath = Path.Combine(path, "start.sh")
-        Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
+        Syscall.chmod (filepath, FilePermissions.ALLPERMS)
+        |> ignore
+
         let proc =
             new Process()
             |> fun proc ->
                 proc.StartInfo.FileName <- filepath
                 proc
             |> prepareGameProcess
+
         proc.Start() |> ignore
         proc.BeginOutputReadLine()
         proc |> Some
@@ -98,7 +113,10 @@ let rec copyDirectory (sourceDirName: string) (destDirName: string) (copySubDirs
     match (dir.Exists, Directory.Exists(destDirName)) with
     | (false, _) ->
         // If the source directory does not exist, throw an exception.
-        raise (DirectoryNotFoundException("Source directory does not exist or could not be found: " + sourceDirName))
+        raise
+            (DirectoryNotFoundException
+                ("Source directory does not exist or could not be found: "
+                 + sourceDirName))
     | (true, false) ->
         // If the destination directory does not exist, create it.
         Directory.CreateDirectory(destDirName) |> ignore
@@ -127,11 +145,16 @@ let rec copyDirectory (sourceDirName: string) (destDirName: string) (copySubDirs
     | false -> ()
 
 let generateRandomString length =
-    let chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    let chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
     let random = Random()
 
     let rec helper rest result =
-        let result = result + (string chars.[random.Next(chars.Length)])
+        let result =
+            result
+            + (string chars.[random.Next(chars.Length)])
+
         match rest with
         | x when x > 1 -> helper (x - 1) result
         | x -> result
@@ -143,29 +166,33 @@ let createVersionFile gameDir version =
 
 let extractLibrary (settings: Settings) (gamename: string) filepath version =
     async {
-        let target = Path.Combine(settings.gamePath, gamename)
+        let target =
+            Path.Combine(settings.gamePath, gamename)
+
         match SystemInfo.os with
         | SystemInfo.OS.Linux ->
-            Syscall.chmod (filepath, FilePermissions.ALLPERMS) |> ignore
+            Syscall.chmod (filepath, FilePermissions.ALLPERMS)
+            |> ignore
 
-            let tmp = Path.Combine(settings.gamePath, ".tmp", gamename)
+            let tmp =
+                Path.Combine(settings.gamePath, ".tmp", gamename)
             // If there are some rests, remove them
-            if Directory.Exists tmp then
-                Directory.Delete (tmp, true)
-            else
-                ()
+            if Directory.Exists tmp then Directory.Delete(tmp, true) else ()
             Directory.CreateDirectory(tmp) |> ignore
             try
                 // Unzip linux installer with ZipLibrary
                 let fastZip = FastZip()
                 fastZip.ExtractZip(filepath, tmp, null)
             with :? ZipException ->
-                let p = Process.Start("unzip", "-qq \"" + filepath + "\" -d \"" + tmp + "\"")
+                let p =
+                    Process.Start("unzip", "-qq \"" + filepath + "\" -d \"" + tmp + "\"")
+
                 p.WaitForExit()
 
             // Move files to install folder
             let folderPath = Path.Combine(tmp, "data", "noarch")
-            Syscall.chmod (folderPath, FilePermissions.ALLPERMS) |> ignore
+            Syscall.chmod (folderPath, FilePermissions.ALLPERMS)
+            |> ignore
             let folder = DirectoryInfo(folderPath)
             match folder.Exists with
             | true ->
@@ -176,7 +203,10 @@ let extractLibrary (settings: Settings) (gamename: string) filepath version =
             let p =
                 Process.Start
                     (filepath,
-                     "/DIR=\"" + target + "\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+                     "/DIR=\""
+                     + target
+                     + "\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+
             p.WaitForExit()
             match p.ExitCode with
             | 0 ->
@@ -185,19 +215,30 @@ let extractLibrary (settings: Settings) (gamename: string) filepath version =
             | _ ->
                 // Try again with non-silent install
                 let p =
-                    Process.Start(filepath, "/DIR=\"" + target + "\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+                    Process.Start
+                        (filepath,
+                         "/DIR=\""
+                         + target
+                         + "\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+
                 p.WaitForExit()
         | SystemInfo.OS.MacOS -> failwith "Not supported yet :/"
 
         match version with
-        | Some version ->
-            createVersionFile target version
+        | Some version -> createVersionFile target version
         | None -> ()
     }
 
 let getAvailableGamesForSearch name (authentication: Authentication) =
     async {
-        let! result = Account.getFilteredGames { feature = None; language = None; system = None; search = Some name; page = None; sort = None } authentication
+        let! result =
+            Account.getFilteredGames
+                { feature = None
+                  language = None
+                  system = None
+                  search = Some name
+                  page = None
+                  sort = None } authentication
         return match result with
                | Ok response -> Some response.products
                | Error _ -> None
@@ -214,9 +255,14 @@ let getAvailableInstallersForOs gameId (authentication: Authentication) =
                        installers
                        |> fun info ->
                            match SystemInfo.os with
-                           | SystemInfo.OS.Linux -> List.filter (fun (i: InstallerInfo) -> i.os = "linux") info
-                           | SystemInfo.OS.Windows -> List.filter (fun (i: InstallerInfo) -> i.os = "windows") info
-                           | SystemInfo.OS.MacOS -> List.filter (fun (i: InstallerInfo) -> i.os = "mac") info
+                           | SystemInfo.OS.Linux ->
+                               List.filter (fun (i: InstallerInfo) -> i.os = "linux") info
+                           | SystemInfo.OS.Windows ->
+                               List.filter (fun (i: InstallerInfo) -> i.os = "windows")
+                                   info
+                           | SystemInfo.OS.MacOS ->
+                               List.filter (fun (i: InstallerInfo) -> i.os = "mac") info
+
                    installers'
                | Error _ -> []
     }
@@ -228,10 +274,44 @@ let downloadGame gameName (installer: InstallerInfo) (authentication: Authentica
             let! result = GalaxyApi.getSecureDownlink info.downlink authentication
             match result with
             | Ok urlResponse ->
-                let (task, filepath, tmppath) = startFileDownload urlResponse.downlink gameName installer.version
+                let (task, filepath, tmppath) =
+                    startFileDownload urlResponse.downlink gameName installer.version
+
                 return Some(task, filepath, tmppath, info.size)
             | Error _ ->
                 // TODO: Add loggin
                 return None
         | [] -> return None
     }
+
+let getProductImg productId authentication =
+    let imgPath = SystemInfo.logo2xPath productId
+
+    if File.Exists imgPath then
+        async { return imgPath }
+    else
+        // Lade das Bild erstmal herunter
+        async {
+            let! response = GalaxyApi.getProduct productId authentication
+            match response with
+            | Ok productResponse ->
+                let imgUrl = "https:" + productResponse.images.logo2x
+
+                let imgResponse =
+                    http {
+                        GET imgUrl
+                        CacheControl "no-cache"
+                    }
+
+                let! imgData =
+                    imgResponse.content.ReadAsByteArrayAsync()
+                    |> Async.AwaitTask
+
+                imgPath
+                |> Path.GetDirectoryName
+                |> Directory.CreateDirectory
+                |> ignore
+                File.WriteAllBytes(imgPath, imgData)
+                return imgPath
+            | Error _ -> return failwith "Fetching product info failed!"
+        }
