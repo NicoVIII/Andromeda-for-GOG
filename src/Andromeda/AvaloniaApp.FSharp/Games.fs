@@ -22,7 +22,7 @@ module Games =
 
     let update (_: Msg) (_: State) = ()
 
-    let gameTile dispatch (i: int, game: InstalledGame): IView =
+    let gameTile gDispatch (i: int, game: InstalledGame): IView =
         Border.create
             [ Border.borderBrush "#FF333333"
               Border.borderThickness 1.0
@@ -33,13 +33,13 @@ module Games =
                           [ MenuItem.create
                               [ MenuItem.header "Start"
                                 MenuItem.onClick (fun _ ->
-                                    game |> Global.StartGame |> dispatch) ] ] ])
+                                    game |> Global.StartGame |> gDispatch) ] ] ])
               Border.cornerRadius 5.0
               Border.padding 5.0
               Border.row (i / 3 * 2)
               Border.child (TextBlock.create [ TextBlock.text (game.name |> string) ]) ] :> IView
 
-    let view dispatch games =
+    let view gDispatch games =
         let gap = 5 |> string
         Grid.create
             [ Grid.columnDefinitions
@@ -53,4 +53,4 @@ module Games =
               Grid.children
                   (games
                    |> List.indexed
-                   |> List.map (gameTile dispatch)) ]
+                   |> List.map (gameTile gDispatch)) ]

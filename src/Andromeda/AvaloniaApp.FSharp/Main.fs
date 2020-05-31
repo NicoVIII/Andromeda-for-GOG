@@ -323,7 +323,11 @@ module Main =
             state, Subs.saveAuthentication state
         | OpenInstallGameWindow ->
             let window =
-                InstallGame.InstallGameWindow((state ^. _authentication).Value)
+                InstallGame.InstallGameWindow
+                    ((state ^. _authentication).Value,
+                     state
+                     ^. _installedGames
+                     |> List.map (fun game -> game.id))
 
             window.ShowDialog(state.window) |> ignore
 

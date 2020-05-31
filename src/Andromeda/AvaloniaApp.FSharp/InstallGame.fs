@@ -24,6 +24,7 @@ module InstallGame =
 
     type State =
         { authentication: Authentication
+          installedGames: ProductId list
           productInfos: ProductInfo list option
           search: string
           selected: ProductInfo option
@@ -36,12 +37,14 @@ module InstallGame =
         | SetProductInfos of ProductInfo list
         | SetSelected of ProductInfo
 
-    let init authentication (window: IInstallGameWindow) =
+    let init authentication installedGames (window: IInstallGameWindow) =
         { authentication = authentication
+          installedGames = installedGames
           productInfos = None
           search = ""
           selected = None
-          window = window }, Cmd.none
+          window = window },
+        Cmd.none
 
     let update (msg: Msg) (state: State) =
         match msg with
@@ -54,25 +57,35 @@ module InstallGame =
             | None -> ()
             state, Cmd.none
         | SearchGame ->
-            let invoke() =
+            let invoke () =
                 async {
-                    let! (productList, _) = Authentication.withAutoRefresh
-                                                (Games.getAvailableGamesForSearch state.search) state.authentication
+                    let! (productList, _) =
+                        Authentication.withAutoRefresh
+                            (Games.getAvailableGamesForSearch state.search)
+                            state.authentication
                     return match productList with
                            | Some products -> products
                            | None -> []
                 }
+
             { state with
                   productInfos = None
-                  selected = None }, Cmd.OfAsync.perform invoke () SetProductInfos
+                  selected = None },
+            Cmd.OfAsync.perform invoke () SetProductInfos
         | SetProductInfos productInfos ->
             let cmd =
                 // Preselect, if there is only one ProductInfo
                 match productInfos with
                 | [ productInfo ] -> Cmd.ofMsg <| SetSelected productInfo
                 | _ -> Cmd.none
-            { state with productInfos = Some productInfos }, cmd
-        | SetSelected productInfo -> { state with selected = Some productInfo }, Cmd.none
+
+            { state with
+                  productInfos = Some productInfos },
+            cmd
+        | SetSelected productInfo ->
+            { state with
+                  selected = Some productInfo },
+            Cmd.none
 
     let productInfoView (state: State) (dispatch: Msg -> unit) =
         let productInfoList =
@@ -84,23 +97,25 @@ module InstallGame =
             [ StackPanel.children
                 [ TextBlock.create
                     [ TextBlock.text "No games found!"
-                      TextBlock.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length = 0) ]
+                      TextBlock.isVisible
+                          (state.productInfos.IsSome
+                           && state.productInfos.Value.Length = 0) ]
                   ListBox.create
-                      [ yield ListBox.dataItems productInfoList
-                        yield ListBox.itemTemplate
-                                  (DataTemplateView<ProductInfo>.create
-                                   <| fun productInfo -> TextBlock.create [ TextBlock.text productInfo.title ])
-                        yield ListBox.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length > 0)
+                      [ ListBox.dataItems productInfoList
+                        ListBox.itemTemplate
+                            (DataTemplateView<ProductInfo>.create
+                             <| fun productInfo ->
+                                 TextBlock.create [ TextBlock.text productInfo.title ])
+                        ListBox.isVisible
+                            (state.productInfos.IsSome
+                             && state.productInfos.Value.Length > 0)
                         match state.selected with
-                        | Some selected -> yield ListBox.selectedItem selected
+                        | Some selected -> ListBox.selectedItem selected
                         | None -> ()
-                        yield ListBox.onSelectedItemChanged (fun obj ->
-                                  match obj with
-                                  | :? ProductInfo as p ->
-                                      p
-                                      |> SetSelected
-                                      |> dispatch
-                                  | _ -> ()) ] ] ]
+                        ListBox.onSelectedItemChanged (fun obj ->
+                            match obj with
+                            | :? ProductInfo as p -> p |> SetSelected |> dispatch
+                            | _ -> ()) ] ] ]
 
     let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create
@@ -123,13 +138,30 @@ module InstallGame =
                                         | true -> ()
                                         | false -> ChangeSearch text |> dispatch) ] ] ]
                     productInfoView state dispatch
+                    TextBlock.create
+                        [ TextBlock.isVisible
+                            (match state.selected with
+                             | Some selected ->
+                                 state.installedGames
+                                 |> List.contains selected.id
+                             | None -> false)
+                          TextBlock.text "This game is already installed" ]
                     Button.create
                         [ Button.content "Install"
-                          Button.isEnabled state.selected.IsSome
-                          Button.isVisible (state.productInfos.IsSome && state.productInfos.Value.Length > 0)
+                          // Nur aktivieren, wenn ein Game ausgewählt ist und dieses noch nicht installiert ist
+                          Button.isEnabled
+                              (match state.selected with
+                               | Some selected ->
+                                   state.installedGames
+                                   |> List.contains selected.id
+                                   |> not
+                               | None -> false)
+                          Button.isVisible
+                              (state.productInfos.IsSome
+                               && state.productInfos.Value.Length > 0)
                           Button.onClick (fun _ -> CloseWindow |> dispatch) ] ] ]
 
-    type InstallGameWindow(authentication: Authentication) as this =
+    type InstallGameWindow(authentication: Authentication, installedGames) as this =
         inherit HostWindow()
 
         let saveEvent = new Event<_>()
@@ -150,7 +182,7 @@ module InstallGame =
                 | true -> fun msg -> Dispatcher.UIThread.Post(fun () -> dispatch msg)
                 | false -> dispatch
 
-            Program.mkProgram (init authentication) update view
+            Program.mkProgram (init authentication installedGames) update view
             |> Program.withHost this
             |> Program.withSyncDispatch syncDispatch
 #if DEBUG
@@ -162,6 +194,7 @@ module InstallGame =
             member __.Close() = this.Close()
 
             [<CLIEvent>]
-            member __.OnSave = saveEvent.Publish
+            override __.OnSave = saveEvent.Publish
             // TODO: return authentication
-            member __.Save(downloadInfo: ProductInfo) = saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo)
+            member __.Save(downloadInfo: ProductInfo) =
+                saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo)
