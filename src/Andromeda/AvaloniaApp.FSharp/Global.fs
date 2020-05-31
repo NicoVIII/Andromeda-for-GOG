@@ -44,4 +44,4 @@ module Global =
         { authentication = authentication
           downloads = []
           installedGames = []
-          mode = Empty }
+          mode = Installed }

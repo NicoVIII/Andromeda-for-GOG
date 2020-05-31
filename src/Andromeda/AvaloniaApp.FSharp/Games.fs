@@ -23,11 +23,11 @@ module Games =
 
     let update (_: Msg) (_: State) = ()
 
-    let gameTile gDispatch authentication (i: int, game: InstalledGame): IView =
+    let gameTile gDispatch authentication columns (i: int, game: InstalledGame): IView =
         Border.create
             [ Border.borderBrush "#FF333333"
               Border.borderThickness 1.0
-              Border.column (i % 3 * 2)
+              Border.column (i % columns * 2)
               Border.contextMenu
                   (ContextMenu.create
                       [ ContextMenu.viewItems
@@ -36,7 +36,7 @@ module Games =
                                 MenuItem.onClick (fun _ ->
                                     game |> Global.StartGame |> gDispatch) ] ] ])
               Border.cornerRadius 5.0
-              Border.row (i / 3 * 2)
+              Border.row (i / columns * 2)
               Border.child
                   (Image.create
                       [ Image.source
@@ -58,4 +58,4 @@ module Games =
               Grid.children
                   (games
                    |> List.indexed
-                   |> List.map (gameTile gDispatch authentication)) ]
+                   |> List.map (gameTile gDispatch authentication columns)) ]

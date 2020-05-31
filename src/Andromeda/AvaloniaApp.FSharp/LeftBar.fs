@@ -32,7 +32,8 @@ module LeftBar =
                   [ Button.create
                       [ Button.classes [ "iconButton" ]
                         Button.content Icons.settings
-                        Button.onClick (fun _ -> Global.OpenSettingsWindow false |> gDispatch) ] ] ]
+                        Button.onClick (fun _ ->
+                            Global.OpenSettingsWindow false |> gDispatch) ] ] ]
 
     let private emptyGamesListView (state: State) (dispatch: Msg -> unit) =
         TextBlock.create
@@ -97,16 +98,21 @@ module LeftBar =
         Button.create
             [ Button.classes [ if mode = currentMode then "active" else () ]
               Button.content
-                (DockPanel.create
-                    [ DockPanel.children
-                        [ Border.create
-                            [ Border.classes [ "badge" ]
-                              Border.dock Dock.Right
-                              Border.margin (5.0, 0.0, 0.0, 0.0)
-                              Border.child (TextBlock.create [ TextBlock.text (badge |> string) ]) ]
-                          TextBlock.create
-                              [ TextBlock.text text
-                                TextBlock.verticalAlignment VerticalAlignment.Center ] ] ])
+                  (DockPanel.create
+                      [ DockPanel.children
+                          [ match badge with
+                            | Some badge ->
+                                Border.create
+                                    [ Border.classes [ "badge" ]
+                                      Border.dock Dock.Right
+                                      Border.margin (5.0, 0.0, 0.0, 0.0)
+                                      Border.child
+                                          (TextBlock.create
+                                              [ TextBlock.text (badge |> string) ]) ]
+                            | None -> ()
+                            TextBlock.create
+                                [ TextBlock.text text
+                                  TextBlock.verticalAlignment VerticalAlignment.Center ] ] ])
               Button.onClick (fun _ -> Global.ChangeMode mode |> gDispatch) ]
 
     let private middleView state (gState: Global.State) _ gDispatch =
@@ -117,8 +123,9 @@ module LeftBar =
                 (StackPanel.create
                     [ StackPanel.orientation Orientation.Vertical
                       StackPanel.children
-                          [ menuItem "Owned Games" 7 Global.Empty
-                            menuItem "Installed" gState.installedGames.Length Global.Installed ] ]) ]
+                          [ //menuItem "Owned Games" None Global.Empty
+                            menuItem "Installed" (gState.installedGames.Length |> Some)
+                                Global.Installed ] ]) ]
 
     let private downloadTemplateView (downloadStatus: DownloadStatus) =
         Grid.create
