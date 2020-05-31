@@ -1,13 +1,29 @@
-module Andromeda.Core.FSharp.InstalledGame
+namespace Andromeda.Core.FSharp
 
-let create id name path version =
-    { InstalledGame.id = id
-      name = name
-      path = path
-      version = version
-      updateable = false
-      icon = None }
+open FSharpPlus.Lens
+open GogApi.DotNet.FSharp.DomainTypes
 
-let setUpdateable value game = { game with updateable = value }
+type InstalledGame =
+    { id: ProductId
+      name: string
+      path: string
+      version: string
+      updateable: bool
+      icon: string option }
 
-let setIcon iconpath game = { game with icon = iconpath }
+module InstalledGame =
+    let create id name path version =
+        { InstalledGame.id = id
+          name = name
+          path = path
+          version = version
+          updateable = false
+          icon = None }
+
+    // Lenses
+    let inline _icon f a =
+        f a.icon
+        <&> fun b -> { a with icon = b }
+    let inline _updateable f a =
+        f a.updateable
+        <&> fun b -> { a with updateable = b }

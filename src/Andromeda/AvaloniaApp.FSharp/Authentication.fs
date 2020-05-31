@@ -10,6 +10,7 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
+open GogApi.DotNet.FSharp.DomainTypes
 open System.Web
 
 module Authentication =
