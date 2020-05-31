@@ -515,7 +515,7 @@ module Main =
                                 (DataTemplateView<string>.create notificationItemView) ] ] ]
         | _ -> StackPanel.create [ StackPanel.dock Dock.Top ]
 
-    let private mainAreaView (state: State) (dispatch: Msg -> unit) =
+    let private mainAreaView (state: State) dispatch gDispatch =
         DockPanel.create
             [ Grid.column 1
               DockPanel.horizontalAlignment HorizontalAlignment.Stretch
@@ -560,15 +560,14 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ]
                                 else
-                                    state ^. _installedGames
-                                    |> List.map (fun game -> game.id)
-                                    |> Games.view ] ] ] ]
+                                    Games.view gDispatch (state ^. _installedGames) ] ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)
             (GlobalMessage >> dispatch)
 
-    let view (state: State) (dispatch: Msg -> unit) =
+    let view (state: State) dispatch =
+        let gDispatch = (GlobalMessage >> dispatch)
         DockPanel.create
             [ DockPanel.verticalAlignment VerticalAlignment.Stretch
               DockPanel.horizontalAlignment HorizontalAlignment.Stretch
@@ -578,7 +577,7 @@ module Main =
                       [ Grid.columnDefinitions "1*, 3*"
                         Grid.children
                             [ leftBarView state dispatch
-                              mainAreaView state dispatch ] ] ] ]
+                              mainAreaView state dispatch gDispatch ] ] ] ]
 
     type MainWindow() as this =
         inherit HostWindow()

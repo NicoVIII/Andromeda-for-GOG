@@ -22,10 +22,35 @@ module Games =
 
     let update (_: Msg) (_: State) = ()
 
-    let gameTile (productId: ProductId) : IView =
-        TextBlock.create [ TextBlock.text (productId |> string) ] :> IView
+    let gameTile dispatch (i: int, game: InstalledGame): IView =
+        Border.create
+            [ Border.borderBrush "#FF333333"
+              Border.borderThickness 1.0
+              Border.column (i % 3 * 2)
+              Border.contextMenu
+                  (ContextMenu.create
+                      [ ContextMenu.viewItems
+                          [ MenuItem.create
+                              [ MenuItem.header "Start"
+                                MenuItem.onClick (fun _ ->
+                                    game |> Global.StartGame |> dispatch) ] ] ])
+              Border.cornerRadius 5.0
+              Border.padding 5.0
+              Border.row (i / 3 * 2)
+              Border.child (TextBlock.create [ TextBlock.text (game.name |> string) ]) ] :> IView
 
-    let view games =
+    let view dispatch games =
+        let gap = 5 |> string
         Grid.create
-            [ Grid.columnDefinitions "1* 1* 1*"
-              Grid.children (games |> List.map gameTile) ]
+            [ Grid.columnDefinitions
+                ((3, "1*")
+                 ||> List.replicate
+                 |> List.reduce (fun a b -> a + " " + gap + " " + b))
+              Grid.rowDefinitions
+                  ((List.length games / 3 + 1, "1*")
+                   ||> List.replicate
+                   |> List.reduce (fun a b -> a + " " + gap + " " + b))
+              Grid.children
+                  (games
+                   |> List.indexed
+                   |> List.map (gameTile dispatch)) ]
