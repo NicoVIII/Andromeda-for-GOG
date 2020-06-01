@@ -7,7 +7,8 @@ nuget FSharp.Core ~> 4.7
 
 nuget FSharpPlus ~> 1.0
 nuget FSharp.Json ~> 0.4.0
-nuget GogApi.DotNet ~> 2.0 prerelease
+nuget SchlenkR.FsHttp ~> 3.0.0
+nuget GogApi.DotNet ~> 2.0
 nuget JaggerJo.Avalonia.FuncUI ~> 0.3
 nuget JaggerJo.Avalonia.FuncUI.DSL ~> 0.3
 nuget JaggerJo.Avalonia.FuncUI.Elmish ~> 0.2
