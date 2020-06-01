@@ -1,4 +1,4 @@
-version 5.241.2
+version 5.245.1
 
 source https://www.myget.org/F/avalonia-ci/api/v2
 source https://api.nuget.org/v3/index.json
