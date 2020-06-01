@@ -40,13 +40,13 @@ module Games =
                         Image.stretch Stretch.UniformToFill
                         Image.width 200.0
                         Image.source
-                          // TODO: Load Images asynchronously
-                          (new Bitmap(Games.getProductImg game.id authentication
-                                      |> Async.RunSynchronously)) ]) ] :> IView
+                            // TODO: Load Images asynchronously
+                            (new Bitmap(Games.getProductImg game.id authentication
+                                        |> Async.RunSynchronously)) ]) ] :> IView
 
-    let view gDispatch games authentication =
+    let view gDispatch games authentication: IView =
         WrapPanel.create
             [ WrapPanel.children
-                  (games
-                   |> List.indexed
-                   |> List.map (gameTile gDispatch authentication)) ]
+                (games
+                 |> List.indexed
+                 |> List.map (gameTile gDispatch authentication)) ] :> IView

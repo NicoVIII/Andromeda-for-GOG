@@ -1,7 +1,9 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Avalonia
+open Avalonia.Controls
 open Avalonia.Platform
+open Avalonia.FuncUI.DSL
 open System
 
 module AvaloniaHelper =
@@ -13,3 +15,8 @@ module AvaloniaHelper =
 
         let assets = AvaloniaLocator.Current.GetService<IAssetLoader>();
         assets.Open(uri)
+
+    let simpleTextBlock text =
+        TextBlock.create [
+            TextBlock.text text
+        ]

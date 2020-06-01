@@ -3,10 +3,12 @@ namespace Andromeda.AvaloniaApp.FSharp
 open Andromeda.Core.FSharp
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.Components.Hosts
-open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Elmish
+open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
@@ -59,8 +61,7 @@ module Main =
 
     let inline _mode s = _globalState << Global._mode <| s
 
-    let inline _settings s =
-        _globalState << Global._settings <| s
+    let inline _settings s = _globalState << Global._settings <| s
 
     type Msg =
         | GlobalMessage of Global.Message
@@ -239,8 +240,7 @@ module Main =
         info.Show() |> ignore
         event.Cancel <- true)
 
-    let closeWindow (window: ISubWindow) =
-        window.Close()
+    let closeWindow (window: ISubWindow) = window.Close()
 
     let updateGlobal (msg: Global.Message) (state: State) =
         match msg with
@@ -350,8 +350,7 @@ module Main =
         | SetSettings settings ->
             SettingsPersistence.save settings |> ignore
 
-            let state =
-                setl _settings (Some settings) state
+            let state = setl _settings (Some settings) state
 
             let msg = Cmd.ofMsg (settings |> SearchInstalled)
 
@@ -529,11 +528,11 @@ module Main =
                           TextBox.height 100.0
                           TextBox.isReadOnly true
                           TextBox.text state.terminalOutput ]
-                    StackPanel.create
-                        [ StackPanel.orientation Orientation.Vertical
-                          StackPanel.margin 10.0
-                          StackPanel.children
-                              [ if state ^. _mode = Global.Empty then
+                    ScrollViewer.create
+                        [ ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
+                          ScrollViewer.padding 10.0
+                          ScrollViewer.content
+                              (if state ^. _mode = Global.Empty then
                                   TextBlock.create
                                       [ TextBlock.textWrapping TextWrapping.Wrap
                                         TextBlock.text "Because I couldn't make a browser control for Avalonia work, we have to live for now \
@@ -547,13 +546,13 @@ module Main =
                                     from outside Andromeda for now.\n\
                                     Upgrading will not work on windows as well. This will hopefully be fixed for v0.4.0.\n\
                                     \n\
-                                    Working on a solution for those problems!" ]
-                                else
-                                    match state ^. _authentication with
-                                    | Some authentication ->
-                                        Games.view gDispatch (state ^. _installedGames)
-                                            authentication
-                                    | None -> () ] ] ] ]
+                                    Working on a solution for those problems!" ] :> IView
+                               else
+                                   match state ^. _authentication with
+                                   | Some authentication ->
+                                       Games.view gDispatch (state ^. _installedGames)
+                                           authentication
+                                   | None -> (AvaloniaHelper.simpleTextBlock "Please log in.") :> IView ) ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)
