@@ -37,10 +37,9 @@ module Main =
     type State =
         { globalState: Global.State
           leftBarState: LeftBar.State
-          authenticationWindow: Authentication.AuthenticationWindow option
+          authenticationWindow: Authentication.Window option
           installGameWindow: InstallGame.InstallGameWindow option
           notifications: string list
-          settings: Settings option
           settingsWindow: Settings.SettingsWindow option
           terminalOutput: string
           window: HostWindow }
@@ -60,6 +59,9 @@ module Main =
 
     let inline _mode s = _globalState << Global._mode <| s
 
+    let inline _settings s =
+        _globalState << Global._settings <| s
+
     type Msg =
         | GlobalMessage of Global.Message
         | LeftBarMsg of LeftBar.Msg
@@ -69,9 +71,9 @@ module Main =
         | OpenAuthenticationWindow
         | OpenInstallGameWindow
         | CloseMainWindow
-        | CloseAuthenticationWindow of Authentication
+        | CloseAuthenticationWindow of Authentication.IWindow * Authentication
+        | CloseSettingsWindow of Settings.IWindow * Settings
         | CloseInstallGameWindow of ProductInfo
-        | CloseSettingsWindow of Settings
         | SearchInstalled of Settings
         | SetSettings of Settings
         | StartGameDownload of ProductInfo
@@ -161,18 +163,10 @@ module Main =
 
             Cmd.ofSub sub
 
-        let saveAuthentication state =
+        let saveAuthentication (wind: Authentication.IWindow) =
             let sub dispatch =
-                match state.authenticationWindow with
-                | Some window ->
-                    let wind =
-                        window :> Authentication.IAuthenticationWindow
-
-                    wind.OnSave.Subscribe(fun (_, authentication) ->
-                        CloseAuthenticationWindow authentication
-                        |> dispatch)
-                    |> ignore
-                | None -> ()
+                wind.OnSave.Subscribe(CloseAuthenticationWindow >> dispatch)
+                |> ignore
 
             Cmd.ofSub sub
 
@@ -188,15 +182,10 @@ module Main =
 
             Cmd.ofSub sub
 
-        let saveSettings state =
+        let saveSettings (window: Settings.IWindow) =
             let sub dispatch =
-                match state.settingsWindow with
-                | Some window ->
-                    let wind = window :> Settings.ISettingsWindow
-                    wind.OnSave.Subscribe(fun (_, settings) ->
-                        CloseSettingsWindow settings |> dispatch)
-                    |> ignore
-                | None -> ()
+                window.OnSave.Subscribe(CloseSettingsWindow >> dispatch)
+                |> ignore
 
             Cmd.ofSub sub
 
@@ -212,12 +201,11 @@ module Main =
         |> ignore
 
         let state =
-            { globalState = Global.init authentication
+            { globalState = Global.init authentication settings
               leftBarState = LeftBar.init ()
               authenticationWindow = None
               installGameWindow = None
               notifications = []
-              settings = None
               settingsWindow = None
               terminalOutput = ""
               window = window }
@@ -251,12 +239,8 @@ module Main =
         info.Show() |> ignore
         event.Cancel <- true)
 
-    let closeWindow<'T when 'T :> Window> (window: 'T option) =
-        match window with
-        | Some window ->
-            window.Closing.RemoveHandler cancelClosingEventHandler
-            window.Close()
-        | None -> ()
+    let closeWindow (window: ISubWindow) =
+        window.Close()
 
     let updateGlobal (msg: Global.Message) (state: State) =
         match msg with
@@ -265,21 +249,21 @@ module Main =
         | Global.OpenSettingsWindow initial ->
             let window =
                 Settings.SettingsWindow
-                    (state.settings, cancelClosingEventHandler, initial)
+                    (state ^. _settings, cancelClosingEventHandler, initial)
 
             window.ShowDialog(state.window) |> ignore
 
             { state with
                   settingsWindow = window |> Some },
-            Subs.saveSettings state
+            Subs.saveSettings window
         | Global.StartGame installedGame -> state, Subs.startGame installedGame
 
     let update (msg: Msg) (state: State) =
         match msg with
         | GlobalMessage msg -> updateGlobal msg state
         | CloseMainWindow ->
-            closeWindow state.authenticationWindow
-            closeWindow state.settingsWindow
+            Option.iter closeWindow state.authenticationWindow
+            Option.iter closeWindow state.settingsWindow
             state, Cmd.none
         | LeftBarMsg leftBarMsg ->
             let (s, cmd) =
@@ -312,7 +296,7 @@ module Main =
             Cmd.none
         | OpenAuthenticationWindow ->
             let window =
-                Authentication.AuthenticationWindow cancelClosingEventHandler
+                Authentication.Window cancelClosingEventHandler
 
             window.ShowDialog(state.window) |> ignore
 
@@ -320,7 +304,7 @@ module Main =
                 { state with
                       authenticationWindow = window |> Some }
 
-            state, Subs.saveAuthentication state
+            state, Subs.saveAuthentication window
         | OpenInstallGameWindow ->
             let window =
                 InstallGame.InstallGameWindow
@@ -336,13 +320,11 @@ module Main =
                       installGameWindow = window |> Some }
 
             state, Subs.installGameWindow state
-        | CloseAuthenticationWindow authentication ->
+        | CloseAuthenticationWindow (window, authentication) ->
             AuthenticationPersistence.save authentication
             |> ignore
 
-            match state.authenticationWindow with
-            | Some window -> window.Closing.RemoveHandler cancelClosingEventHandler
-            | None -> ()
+            window.Close()
 
             let state =
                 { state with
@@ -353,10 +335,8 @@ module Main =
         | CloseInstallGameWindow downloadInfo ->
             { state with installGameWindow = None },
             Cmd.ofMsg <| StartGameDownload downloadInfo
-        | CloseSettingsWindow settings ->
-            match state.settingsWindow with
-            | Some window -> window.Closing.RemoveHandler cancelClosingEventHandler
-            | None -> ()
+        | CloseSettingsWindow (window, settings) ->
+            window.Close()
 
             { state with settingsWindow = None }, Cmd.ofMsg (SetSettings settings)
         | SearchInstalled settings ->
@@ -366,11 +346,16 @@ module Main =
             let state =
                 setl _installedGames installedGames state
 
-            state, Cmd.none
+            (state, Cmd.none)
         | SetSettings settings ->
             SettingsPersistence.save settings |> ignore
-            { state with settings = Some settings },
-            Cmd.ofMsg (settings |> SearchInstalled)
+
+            let state =
+                setl _settings (Some settings) state
+
+            let msg = Cmd.ofMsg (settings |> SearchInstalled)
+
+            (state, msg)
         | FinishGameDownload (filePath, settings) ->
             let statusList =
                 state
@@ -414,13 +399,13 @@ module Main =
 
                               Cmd.OfAsync.perform invoke () (fun _ ->
                                   UnpackGame
-                                      (state.settings.Value,
+                                      ((state ^. _settings).Value,
                                        downloadInfo,
                                        installerInfo.version))
                           | None ->
                               Cmd.ofMsg
                               <| UnpackGame
-                                  (state.settings.Value,
+                                  ((state ^. _settings).Value,
                                    downloadInfo,
                                    installerInfo.version) ]
             | 0 -> state, Cmd.ofMsg (AddNotification "Found no installer for this OS...")
@@ -564,7 +549,11 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ]
                                 else
-                                    Games.view gDispatch (state ^. _installedGames) (state ^. _authentication).Value ] ] ] ]
+                                    match state ^. _authentication with
+                                    | Some authentication ->
+                                        Games.view gDispatch (state ^. _installedGames)
+                                            authentication
+                                    | None -> () ] ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)

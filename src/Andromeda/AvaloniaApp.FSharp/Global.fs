@@ -22,7 +22,8 @@ module Global =
         { authentication: Authentication option
           downloads: DownloadStatus list
           installedGames: InstalledGame list
-          mode: Mode }
+          mode: Mode
+          settings: Settings option }
 
     // Lenses
     let inline _authentication f s =
@@ -40,8 +41,13 @@ module Global =
     let inline _mode f s =
         f s.mode <&> fun m -> { s with mode = m }
 
-    let init authentication =
+    let inline _settings f s =
+        f s.settings
+        <&> fun a -> { s with settings = a }
+
+    let init authentication settings =
         { authentication = authentication
           downloads = []
           installedGames = []
-          mode = Installed }
+          mode = Installed
+          settings = settings }

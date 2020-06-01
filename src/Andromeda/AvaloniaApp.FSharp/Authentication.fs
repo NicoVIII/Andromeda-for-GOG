@@ -14,11 +14,11 @@ open GogApi.DotNet.FSharp.DomainTypes
 open System.Web
 
 module Authentication =
-    type IAuthenticationWindow =
-        abstract Close: unit -> unit
+    type IWindow =
+        inherit ISubWindow
 
         [<CLIEvent>]
-        abstract OnSave: IEvent<IAuthenticationWindow * Authentication>
+        abstract OnSave: IEvent<IWindow * Authentication>
 
         abstract Save: Authentication -> unit
 
@@ -26,14 +26,14 @@ module Authentication =
 
     type State =
         { authCode: string
-          window: IAuthenticationWindow }
+          window: IWindow }
 
     type Msg =
         | CloseWindow of Authentication
         | Save
         | SetCode of string
 
-    let init (window: IAuthenticationWindow) =
+    let init (window: IWindow) =
         { authCode = ""
           window = window }, Cmd.none
 
@@ -41,7 +41,6 @@ module Authentication =
         match msg with
         | CloseWindow authentication ->
             authentication |> state.window.Save
-            state.window.Close()
             state, Cmd.none
         | Save ->
             let getAuth() =
@@ -79,7 +78,7 @@ module Authentication =
                           Button.isEnabled (state.authCode <> "")
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type AuthenticationWindow(closeEventHandler) as this =
+    type Window(closeEventHandler) as this =
         inherit HostWindow()
 
         let saveEvent = new Event<_>()
@@ -104,13 +103,14 @@ module Authentication =
 #endif
             |> Program.runWith (this)
 
-        interface IAuthenticationWindow with
+        interface ISubWindow with
             member __.Close() =
                 this.Closing.RemoveHandler closeEventHandler
                 this.Close()
 
+        interface IWindow with
             [<CLIEvent>]
             member __.OnSave = saveEvent.Publish
 
             member __.Save(authentication: Authentication) =
-                saveEvent.Trigger(this :> IAuthenticationWindow, authentication)
+                saveEvent.Trigger(this :> IWindow, authentication)

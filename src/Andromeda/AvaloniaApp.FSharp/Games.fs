@@ -23,9 +23,10 @@ module Games =
 
     let update (_: Msg) (_: State) = ()
 
-    let gameTile gDispatch authentication columns (i: int, game: InstalledGame): IView =
+    let gameTile gDispatch authentication (i: int, game: InstalledGame): IView =
+        let gap = 5.0
         Border.create
-            [ Border.column (i % columns * 2)
+            [ Border.margin (0.0, 0.0, gap, gap)
               Border.contextMenu
                   (ContextMenu.create
                       [ ContextMenu.viewItems
@@ -33,26 +34,19 @@ module Games =
                               [ MenuItem.header "Start"
                                 MenuItem.onClick (fun _ ->
                                     game |> Global.StartGame |> gDispatch) ] ] ])
-              Border.row (i / columns * 2)
               Border.child
                   (Image.create
-                      [ Image.source
+                      [ Image.height 120.0
+                        Image.stretch Stretch.UniformToFill
+                        Image.width 200.0
+                        Image.source
+                          // TODO: Load Images asynchronously
                           (new Bitmap(Games.getProductImg game.id authentication
                                       |> Async.RunSynchronously)) ]) ] :> IView
 
     let view gDispatch games authentication =
-        let columns = 4
-        let gap = 5 |> string
-        Grid.create
-            [ Grid.columnDefinitions
-                ((columns, "1*")
-                 ||> List.replicate
-                 |> List.reduce (fun a b -> a + " " + gap + " " + b))
-              Grid.rowDefinitions
-                  ((List.length games / columns + 1, "1*")
-                   ||> List.replicate
-                   |> List.reduce (fun a b -> a + " " + gap + " " + b))
-              Grid.children
+        WrapPanel.create
+            [ WrapPanel.children
                   (games
                    |> List.indexed
-                   |> List.map (gameTile gDispatch authentication columns)) ]
+                   |> List.map (gameTile gDispatch authentication)) ]

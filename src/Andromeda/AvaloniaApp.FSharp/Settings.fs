@@ -12,17 +12,17 @@ open Elmish
 open System.IO
 
 module Settings =
-    type ISettingsWindow =
-        abstract Close: unit -> unit
+    type IWindow =
+        inherit ISubWindow
 
         [<CLIEvent>]
-        abstract OnSave: IEvent<ISettingsWindow * Settings>
+        abstract OnSave: IEvent<IWindow * Settings>
 
         abstract Save: Settings -> unit
 
     type State =
         { gamePath: string
-          window: ISettingsWindow }
+          window: IWindow }
 
     type Msg =
         | SetGamepath of string
@@ -33,7 +33,7 @@ module Settings =
         | gamePath when gamePath |> Directory.Exists -> { gamePath = gamePath } |> Some
         | _ -> None
 
-    let init (settings: Settings option, window: ISettingsWindow) =
+    let init (settings: Settings option, window: IWindow) =
         let state =
             match settings with
             | Some settings ->
@@ -48,9 +48,9 @@ module Settings =
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
             match stateToSettings state with
-            | Some settings -> state.window.Save settings
+            | Some settings ->
+                state.window.Save settings
             | None -> ()
-            state.window.Close()
             state, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
@@ -100,15 +100,16 @@ module Settings =
 #endif
             |> Program.runWith (settings, this)
 
-        interface ISettingsWindow with
+        interface ISubWindow with
             member __.Close() =
                 if initial
                 then this.Closing.RemoveHandler closeEventHandler
                 else ()
                 this.Close()
 
+        interface IWindow with
             [<CLIEvent>]
             override __.OnSave = saveEvent.Publish
 
             member __.Save(settings: Settings) =
-                saveEvent.Trigger(this :> ISettingsWindow, settings)
+                saveEvent.Trigger(this :> IWindow, settings)

@@ -12,3 +12,6 @@ module DomainTypes =
           fileSize: float
           installing: bool
           downloaded: int }
+
+    type ISubWindow =
+        abstract Close: unit -> unit
