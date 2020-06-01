@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Improve subwindow closing behavior
 -   Move gamelist from left bar to main window
 
+### Fixed
+-   Versioning of cached installers now works correctly
+
 ## [0.3.0]
 
 -   a first very basic GUI (for now without browser with workaround buttons) which can install games, update games and start (some) games
