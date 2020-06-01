@@ -22,7 +22,7 @@ let getOwnedGameIds auth =
 let startFileDownload (SafeDownLink url) gameName version =
     let version =
         match version with
-        | Some v -> "-v"
+        | Some v -> "-" + v
         | None -> ""
 
     let dir =
