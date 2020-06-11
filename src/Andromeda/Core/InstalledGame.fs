@@ -1,11 +1,10 @@
 namespace Andromeda.Core.FSharp
 
-open Lenses
+open Myriad.Plugins
 
-open GogApi.DotNet.FSharp.DomainTypes
-
+[<Generator.Lenses("Lenses.Lens")>]
 type InstalledGame =
-    { id: ProductId
+    { id: GogApi.DotNet.FSharp.DomainTypes.ProductId
       name: string
       path: string
       version: string
@@ -20,11 +19,3 @@ module InstalledGame =
           version = version
           updateable = false
           icon = None }
-
-module InstalledGameLenses =
-    // Lenses
-    let icon =
-        Lens((fun r -> r.icon), (fun r v -> { r with icon = v }))
-
-    let updateable =
-        Lens((fun r -> r.updateable), (fun r v -> { r with updateable = v }))

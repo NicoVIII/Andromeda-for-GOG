@@ -17,7 +17,7 @@ module HelperFunctions =
         input
 
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
-    let getShortcutTarget file =
+    let getShortcutTarget (file: string) =
         try
             if Path.GetExtension(file).ToLower().Equals(".lnk") |> not then
                 Exception("Supplied file must be a .LNK file") |> raise

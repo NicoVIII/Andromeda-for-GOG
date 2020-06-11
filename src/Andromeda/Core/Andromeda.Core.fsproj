@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RestoreSources>$(RestoreSources);../../../tmp-dependencies;https://api.nuget.org/v3/index.json</RestoreSources>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.fs" />
@@ -11,12 +14,21 @@
     <Compile Include="PersistenceTypes.fs" />
     <Compile Include="Authentication.fs" />
     <Compile Include="InstalledGame.fs" />
+    <Compile Include="InstalledGameGenerated.fs">
+      <MyriadFile>InstalledGame.fs</MyriadFile>
+      <MyriadNamespace>Andromeda.Core.FSharp</MyriadNamespace>
+    </Compile>
     <Compile Include="Games.fs" />
     <Compile Include="Installed.fs" />
     <Compile Include="User.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="AuthenticationPersistence.fs" />
     <Compile Include="SettingsPersistence.fs" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Myriad.Core" Version="0.3.0-alpha.0" />
+    <PackageReference Include="Myriad.Plugins" Version="0.3.0-alpha.0" />
+    <PackageReference Include="Myriad.Sdk" Version="0.3.0-alpha.0" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>
