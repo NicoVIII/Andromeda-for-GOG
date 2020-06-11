@@ -43,8 +43,7 @@ module Main =
           installGameWindow: InstallGame.InstallGameWindow option
           notifications: string list
           settingsWindow: Settings.SettingsWindow option
-          terminalOutput: string
-          window: HostWindow }
+          terminalOutput: string }
 
     module StateLenses =
         // Lenses
@@ -87,12 +86,6 @@ module Main =
         | UpgradeGames
 
     module Subs =
-        let closeWindow (window: Window) =
-            let sub dispatch =
-                window.Closing.Subscribe(fun _ -> CloseMainWindow |> dispatch)
-                |> ignore
-
-            Cmd.ofSub sub
 
         let startGame (game: InstalledGame) =
             let sub dispatch =
@@ -192,8 +185,7 @@ module Main =
 
             Cmd.ofSub sub
 
-    let init (settings: Settings option, authentication: Authentication option,
-              window: HostWindow)
+    let init (settings: Settings option, authentication: Authentication option)
         =
         let authentication =
             Option.bind
@@ -210,8 +202,7 @@ module Main =
               installGameWindow = None
               notifications = []
               settingsWindow = None
-              terminalOutput = ""
-              window = window }
+              terminalOutput = ""}
 
         let authenticationCommand =
             match authentication with
@@ -229,8 +220,7 @@ module Main =
         state,
         Cmd.batch
             [ authenticationCommand
-              settingsCommand
-              Subs.closeWindow window ]
+              settingsCommand ]
 
     let cancelClosingEventHandler =
         new EventHandler<CancelEventArgs>(fun _ event ->
@@ -244,7 +234,7 @@ module Main =
 
     let closeWindow (window: ISubWindow) = window.Close()
 
-    let updateGlobal (msg: Global.Message) (state: State) =
+    let updateGlobal (msg: Global.Message) (state: State) (mainWindow: HostWindow) =
         match msg with
         | Global.ChangeMode mode ->
             setl StateLenses.mode mode state, Cmd.none
@@ -253,16 +243,16 @@ module Main =
                 Settings.SettingsWindow
                     (getl StateLenses.settings state, cancelClosingEventHandler, initial)
 
-            window.ShowDialog(state.window) |> ignore
+            window.ShowDialog(mainWindow) |> ignore
 
             { state with
                   settingsWindow = window |> Some },
             Subs.saveSettings window
         | Global.StartGame installedGame -> state, Subs.startGame installedGame
 
-    let update (msg: Msg) (state: State) =
+    let update (msg: Msg) (state: State) (mainWindow: HostWindow) =
         match msg with
-        | GlobalMessage msg -> updateGlobal msg state
+        | GlobalMessage msg -> updateGlobal msg state mainWindow
         | CloseMainWindow ->
             Option.iter closeWindow state.authenticationWindow
             Option.iter closeWindow state.settingsWindow
@@ -300,7 +290,7 @@ module Main =
             let window =
                 Authentication.Window cancelClosingEventHandler
 
-            window.ShowDialog(state.window) |> ignore
+            window.ShowDialog(mainWindow) |> ignore
 
             let state =
                 { state with
@@ -314,7 +304,7 @@ module Main =
                      getl StateLenses.installedGames state
                      |> List.map (fun game -> game.id))
 
-            window.ShowDialog(state.window) |> ignore
+            window.ShowDialog(mainWindow) |> ignore
 
             let state =
                 { state with
@@ -587,6 +577,13 @@ module Main =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
+            let closeWindow _ =
+                let sub dispatch =
+                    this.Closing.Subscribe(fun _ -> CloseMainWindow |> dispatch)
+                    |> ignore
+
+                Cmd.ofSub sub
+
             let settings = SettingsPersistence.load ()
 
             let authentication =
@@ -594,15 +591,13 @@ module Main =
                 | Some authentication -> Some authentication
                 | None -> None
 
-            let syncDispatch (dispatch: Dispatch<'msg>): Dispatch<'msg> =
-                match Dispatcher.UIThread.CheckAccess() with
-                | true -> fun msg -> Dispatcher.UIThread.Post(fun () -> dispatch msg)
-                | false -> dispatch
+            let updateWithServices msg state =
+                update msg state this
 
-            Program.mkProgram init update view
+            Program.mkProgram init updateWithServices view
             |> Program.withHost this
-            |> Program.withSyncDispatch syncDispatch
+            |> Program.withSubscription closeWindow
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
-            |> Program.runWith (settings, authentication, this)
+            |> Program.runWith (settings, authentication)
