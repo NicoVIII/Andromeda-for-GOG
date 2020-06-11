@@ -1,7 +1,8 @@
 module Andromeda.Core.FSharp.Installed
 
+open Lenses
+
 open FSharp.Json
-open FSharpPlus.Lens
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open System.IO
@@ -87,7 +88,7 @@ let getInstalledOnLinux gameDir (authentication: Authentication) version =
         let game =
             InstalledGame.create (lines.[4] |> uint32 |> ProductId) lines.[0] gameDir
                 version
-            |> setl InstalledGame._updateable true
+            |> setl InstalledGameLenses.updateable true
             |> Some
 
         game
@@ -122,8 +123,8 @@ let getInstalledOnWindows gameDir (_: Authentication) version =
 
         InstalledGame.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name
             gameDir versionString
-        |> setl InstalledGame._updateable version.IsSome
-        |> setl InstalledGame._icon (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
+        |> setl InstalledGameLenses.updateable version.IsSome
+        |> setl InstalledGameLenses.icon (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
 
     // Find info file of game
     let files =

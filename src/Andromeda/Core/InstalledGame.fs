@@ -1,6 +1,7 @@
 namespace Andromeda.Core.FSharp
 
-open FSharpPlus.Lens
+open Lenses
+
 open GogApi.DotNet.FSharp.DomainTypes
 
 type InstalledGame =
@@ -20,10 +21,10 @@ module InstalledGame =
           updateable = false
           icon = None }
 
+module InstalledGameLenses =
     // Lenses
-    let inline _icon f a =
-        f a.icon
-        <&> fun b -> { a with icon = b }
-    let inline _updateable f a =
-        f a.updateable
-        <&> fun b -> { a with updateable = b }
+    let icon =
+        Lens((fun r -> r.icon), (fun r v -> { r with icon = v }))
+
+    let updateable =
+        Lens((fun r -> r.updateable), (fun r v -> { r with updateable = v }))

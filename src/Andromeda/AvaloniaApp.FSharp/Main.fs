@@ -1,6 +1,7 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.Lenses
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.Primitives
@@ -14,7 +15,6 @@ open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
 open Elmish
-open FSharpPlus.Lens
 open GogApi.DotNet.FSharp.DomainTypes
 open MessageBox.Avalonia
 open System
@@ -46,22 +46,24 @@ module Main =
           terminalOutput: string
           window: HostWindow }
 
-    // Lenses
-    let inline _globalState f s =
-        f s.globalState
-        <&> fun g -> { s with globalState = g }
+    module StateLenses =
+        // Lenses
+        let globalState =
+            Lens((fun s -> s.globalState), (fun s g -> { s with globalState = g }))
 
-    let inline _authentication s =
-        _globalState << Global._authentication <| s
+        let authentication =
+            globalState << Global.StateLenses.authentication
 
-    let inline _downloads s = _globalState << Global._downloads <| s
+        let downloads =
+            globalState << Global.StateLenses.downloads
 
-    let inline _installedGames s =
-        _globalState << Global._installedGames <| s
+        let installedGames =
+            globalState << Global.StateLenses.installedGames
 
-    let inline _mode s = _globalState << Global._mode <| s
+        let mode = globalState << Global.StateLenses.mode
 
-    let inline _settings s = _globalState << Global._settings <| s
+        let settings =
+            globalState << Global.StateLenses.settings
 
     type Msg =
         | GlobalMessage of Global.Message
@@ -245,11 +247,11 @@ module Main =
     let updateGlobal (msg: Global.Message) (state: State) =
         match msg with
         | Global.ChangeMode mode ->
-            setl (_globalState << Global._mode) mode state, Cmd.none
+            setl StateLenses.mode mode state, Cmd.none
         | Global.OpenSettingsWindow initial ->
             let window =
                 Settings.SettingsWindow
-                    (state ^. _settings, cancelClosingEventHandler, initial)
+                    (getl StateLenses.settings state, cancelClosingEventHandler, initial)
 
             window.ShowDialog(state.window) |> ignore
 
@@ -308,9 +310,8 @@ module Main =
         | OpenInstallGameWindow ->
             let window =
                 InstallGame.InstallGameWindow
-                    ((state ^. _authentication).Value,
-                     state
-                     ^. _installedGames
+                    ((getl StateLenses.authentication state).Value,
+                     getl StateLenses.installedGames state
                      |> List.map (fun game -> game.id))
 
             window.ShowDialog(state.window) |> ignore
@@ -329,7 +330,7 @@ module Main =
             let state =
                 { state with
                       authenticationWindow = None }
-                |> setl _authentication (Some authentication)
+                |> setl StateLenses.authentication (Some authentication)
 
             state, Cmd.none
         | CloseInstallGameWindow downloadInfo ->
@@ -341,31 +342,30 @@ module Main =
             { state with settingsWindow = None }, Cmd.ofMsg (SetSettings settings)
         | SearchInstalled settings ->
             let installedGames =
-                Installed.searchInstalled settings (state ^. _authentication).Value
+                Installed.searchInstalled settings (getl StateLenses.authentication state).Value
 
             let state =
-                setl _installedGames installedGames state
+                setl StateLenses.installedGames installedGames state
 
             (state, Cmd.none)
         | SetSettings settings ->
             SettingsPersistence.save settings |> ignore
 
-            let state = setl _settings (Some settings) state
+            let state = setl StateLenses.settings (Some settings) state
 
             let msg = Cmd.ofMsg (settings |> SearchInstalled)
 
             (state, msg)
         | FinishGameDownload (filePath, settings) ->
             let statusList =
-                state
-                ^. _downloads
+                getl StateLenses.downloads state
                 |> List.filter (fun ds -> ds.filePath <> filePath)
 
-            setl _downloads statusList state, Cmd.ofMsg (settings |> SearchInstalled)
+            setl StateLenses.downloads statusList state, Cmd.ofMsg (settings |> SearchInstalled)
         | StartGameDownload productInfo ->
             let installerInfoList =
                 Games.getAvailableInstallersForOs productInfo.id
-                    (state ^. _authentication).Value
+                    (getl StateLenses.authentication state).Value
                 |> Async.RunSynchronously
 
             match installerInfoList.Length with
@@ -374,7 +374,7 @@ module Main =
 
                 let result =
                     Games.downloadGame productInfo.title installerInfo
-                        (state ^. _authentication).Value
+                        (getl StateLenses.authentication state).Value
                     |> Async.RunSynchronously
 
                 match result with
@@ -384,8 +384,8 @@ module Main =
                         createDownloadStatus productInfo.id (productInfo.title) filePath
                             (float (size) / 1000000.0)
 
-                    (downloadInfo :: (state ^. _downloads), state)
-                    ||> setl _downloads,
+                    (downloadInfo :: (getl StateLenses.downloads state), state)
+                    ||> setl StateLenses.downloads,
                     Cmd.batch
                         [ Subs.registerDownloadTimer task tmppath downloadInfo
                           match task with
@@ -398,13 +398,13 @@ module Main =
 
                               Cmd.OfAsync.perform invoke () (fun _ ->
                                   UnpackGame
-                                      ((state ^. _settings).Value,
+                                      ((getl StateLenses.settings state).Value,
                                        downloadInfo,
                                        installerInfo.version))
                           | None ->
                               Cmd.ofMsg
                               <| UnpackGame
-                                  ((state ^. _settings).Value,
+                                  ((getl StateLenses.settings state).Value,
                                    downloadInfo,
                                    installerInfo.version) ]
             | 0 -> state, Cmd.ofMsg (AddNotification "Found no installer for this OS...")
@@ -429,12 +429,12 @@ module Main =
             state, cmd
         | UpgradeGames ->
             let (updateDataList, authentication) =
-                (state ^. _installedGames, (state ^. _authentication).Value)
+                (getl StateLenses.installedGames state, (getl StateLenses.authentication state).Value)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication, if it was refreshed
             let state =
-                setl _authentication (Some authentication) state
+                setl StateLenses.authentication (Some authentication) state
 
             // Download updated installers or show notification
             let cmd =
@@ -453,27 +453,25 @@ module Main =
             state, cmd
         | UpdateDownloadSize (gameId, fileSize) ->
             let state =
-                state
-                ^. _downloads
+                getl StateLenses.downloads state
                 |> List.map (fun download ->
                     if download.gameId = gameId then
                         { download with downloaded = fileSize }
                     else
                         download)
-                |> setl _downloads
+                |> setl StateLenses.downloads
                 <| state
 
             state, Cmd.none
         | UpdateDownloadInstalling filePath ->
             let state =
-                state
-                ^. _downloads
+                getl StateLenses.downloads state
                 |> List.map (fun download ->
                     if download.filePath = filePath then
                         { download with installing = true }
                     else
                         download)
-                |> setl _downloads
+                |> setl StateLenses.downloads
                 <| state
 
             state, Cmd.none
@@ -529,10 +527,11 @@ module Main =
                           TextBox.isReadOnly true
                           TextBox.text state.terminalOutput ]
                     ScrollViewer.create
-                        [ ScrollViewer.horizontalScrollBarVisibility ScrollBarVisibility.Disabled
+                        [ ScrollViewer.horizontalScrollBarVisibility
+                            ScrollBarVisibility.Disabled
                           ScrollViewer.padding 10.0
                           ScrollViewer.content
-                              (if state ^. _mode = Global.Empty then
+                              (if getl StateLenses.mode state = Global.Empty then
                                   TextBlock.create
                                       [ TextBlock.textWrapping TextWrapping.Wrap
                                         TextBlock.text "Because I couldn't make a browser control for Avalonia work, we have to live for now \
@@ -548,11 +547,12 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ] :> IView
                                else
-                                   match state ^. _authentication with
+                                   match getl StateLenses.authentication state with
                                    | Some authentication ->
-                                       Games.view gDispatch (state ^. _installedGames)
+                                       Games.view gDispatch (getl StateLenses.installedGames state)
                                            authentication
-                                   | None -> (AvaloniaHelper.simpleTextBlock "Please log in.") :> IView ) ] ] ]
+                                   | None ->
+                                       (AvaloniaHelper.simpleTextBlock "Please log in.") :> IView) ] ] ]
 
     let leftBarView state dispatch =
         LeftBar.view state.leftBarState state.globalState (LeftBarMsg >> dispatch)

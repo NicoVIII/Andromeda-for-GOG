@@ -1,7 +1,7 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
-open FSharpPlus.Lens
+open Andromeda.Core.FSharp.Lenses
 open GogApi.DotNet.FSharp.DomainTypes
 
 [<RequireQualifiedAccess>]
@@ -25,25 +25,22 @@ module Global =
           mode: Mode
           settings: Settings option }
 
-    // Lenses
-    let inline _authentication f s =
-        f s.authentication
-        <&> fun a -> { s with authentication = a }
+    module StateLenses =
+        // Lenses
+        let authentication =
+            Lens((fun r -> r.authentication), (fun r v -> { r with authentication = v }))
 
-    let inline _downloads f s =
-        f s.downloads
-        <&> fun d -> { s with downloads = d }
+        let downloads =
+            Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
 
-    let inline _installedGames f s =
-        f s.installedGames
-        <&> fun d -> { s with installedGames = d }
+        let installedGames =
+            Lens((fun r -> r.installedGames), (fun r v -> { r with installedGames = v }))
 
-    let inline _mode f s =
-        f s.mode <&> fun m -> { s with mode = m }
+        let mode =
+            Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
 
-    let inline _settings f s =
-        f s.settings
-        <&> fun a -> { s with settings = a }
+        let settings =
+            Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
     let init authentication settings =
         { authentication = authentication

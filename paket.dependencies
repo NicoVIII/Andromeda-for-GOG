@@ -5,7 +5,6 @@ source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core ~> 4.7
 
-nuget FSharpPlus ~> 1.0
 nuget FSharp.Json ~> 0.4.0
 nuget SchlenkR.FsHttp ~> 3.0.0
 nuget GogApi.DotNet ~> 2.0

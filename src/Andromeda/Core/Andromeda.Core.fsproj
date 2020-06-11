@@ -5,6 +5,7 @@
   <ItemGroup>
     <Compile Include="Constants.fs" />
     <Compile Include="HelperFunctions.fs" />
+    <Compile Include="Lens.fs" />
     <Compile Include="SystemInfo.fs" />
     <Compile Include="DomainTypes.fs" />
     <Compile Include="PersistenceTypes.fs" />
