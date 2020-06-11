@@ -1,5 +1,7 @@
 namespace Andromeda.Core.FSharp
 
+// Stolen from:
+// https://github.com/MoiraeSoftware/myriad/blob/71a7994744d6651c291427d7fa6b8a39c607b1f3/test/Myriad.IntegrationPluginTests/Lenses.fs
 module Lenses =
     type Lens<'r, 't> = Lens of (('r -> 't) * ('r -> 't -> 'r))
 
