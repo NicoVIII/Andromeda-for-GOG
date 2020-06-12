@@ -25,22 +25,20 @@ module Authentication =
     let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
     type State =
-        { authCode: string
-          window: IWindow }
+        { authCode: string }
 
     type Msg =
         | CloseWindow of Authentication
         | Save
         | SetCode of string
 
-    let init (window: IWindow) =
-        { authCode = ""
-          window = window }, Cmd.none
+    let init () =
+        { authCode = "" }, Cmd.none
 
-    let update (msg: Msg) (state: State) =
+    let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
         | CloseWindow authentication ->
-            authentication |> state.window.Save
+            authentication |> window.Save
             state, Cmd.none
         | Save ->
             let getAuth() =
@@ -96,12 +94,15 @@ module Authentication =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            Program.mkProgram init update view
+            let updateWithServices =
+                update this
+
+            Program.mkProgram init updateWithServices view
             |> Program.withHost this
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
-            |> Program.runWith (this)
+            |> Program.runWith ()
 
         interface ISubWindow with
             member __.Close() =
