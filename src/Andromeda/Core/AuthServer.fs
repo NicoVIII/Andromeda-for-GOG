@@ -13,6 +13,9 @@ module AuthServer =
         | MissingCode
 
     let openUrl url =
+        // FIXME: For some reason using this, removes most of the "url encoded"
+        // parts of the URL, you can still manually copy paste the URL on the browser
+        // but that's not ideal
         if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
             let start = sprintf "/c start %s" url
             Process.Start(ProcessStartInfo("cmd", start)) |> ignore
@@ -32,9 +35,11 @@ module AuthServer =
             </body>
             """
         Encoding.UTF8.GetBytes(content)
+
     let private errorResponse (error: AuthError) : array<byte> =
         let msg =
             match error with
+            // may address github's #33?
             | InvalidCode -> "The Code provided in the Url is not valid, please try again."
             | MissingCode -> "We were unable to get the code from GOG, please try again."
         let content: string =
@@ -66,16 +71,17 @@ module AuthServer =
             | Some port -> port
             | None -> 9952
         let url = sprintf "http://127.0.0.1:%i/" port
-        let mutable stopThread = false
-
-        [<DefaultValue(true)>]
-        val mutable responseThread: Thread
-
         let validCode = new Event<string>()
+
         [<CLIEvent>]
         member __.OnValidCode = validCode.Publish
 
-        let threadResponse _ =
+        [<DefaultValue(true)>]
+        val mutable responseThread: Thread
+        let mutable stopThread = false
+
+
+        let threadResponse () =
             while not stopThread do
                 let ctx = httpListener.GetContext()
                 let response =
@@ -93,7 +99,7 @@ module AuthServer =
             printfn "Starting Auth server in  %s" url
             httpListener.Start()
             stopThread <- false
-            __.responseThread <- Thread(ParameterizedThreadStart(threadResponse))
+            __.responseThread <- Thread(ThreadStart(threadResponse))
             __.responseThread.Start()
 
         member __.Stop() =
