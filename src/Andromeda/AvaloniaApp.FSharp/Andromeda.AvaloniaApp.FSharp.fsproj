@@ -25,7 +25,6 @@
     <Compile Include="Games.fs" />
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />
-    <Compile Include="Authentication.fs" />
     <Compile Include="Settings.fs" />
 
     <Compile Include="Main.fs" />
