@@ -22,8 +22,17 @@ open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Threading.Tasks
-
+open Andromeda.Core.FSharp.AuthServer
+open System.Web
 module Main =
+
+    let redirectUri = "http://127.0.0.1:9952/on_login_success?origin=client"
+
+    let startUrl =
+        "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri="
+        + (HttpUtility.UrlEncode redirectUri)
+        + "&response_type=code&layout=client2"
+
     let createDownloadStatus id gameTitle filePath fileSize =
         { DownloadStatus.gameId = id
           gameTitle = gameTitle
@@ -39,10 +48,10 @@ module Main =
     type State =
         { globalState: Global.State
           leftBarState: LeftBar.State
-          authenticationWindow: Authentication.Window option
           installGameWindow: InstallGame.InstallGameWindow option
           notifications: string list
           settingsWindow: Settings.SettingsWindow option
+          authentication: Option<Authentication>
           terminalOutput: string }
 
     module StateLenses =
@@ -70,10 +79,10 @@ module Main =
         | AddNotification of string
         | RemoveNotification of string
         | AddToTerminalOutput of string
-        | OpenAuthenticationWindow
         | OpenInstallGameWindow
         | CloseMainWindow
-        | CloseAuthenticationWindow of Authentication.IWindow * Authentication
+        | Authenticate of string
+        | AuthSuccess of Option<Authentication>
         | CloseSettingsWindow of Settings.IWindow * Settings
         | CloseInstallGameWindow of ProductInfo
         | SearchInstalled of Settings
@@ -159,13 +168,6 @@ module Main =
 
             Cmd.ofSub sub
 
-        let saveAuthentication (wind: Authentication.IWindow) =
-            let sub dispatch =
-                wind.OnSave.Subscribe(CloseAuthenticationWindow >> dispatch)
-                |> ignore
-
-            Cmd.ofSub sub
-
         let installGameWindow state =
             let sub dispatch =
                 match state.installGameWindow with
@@ -198,16 +200,11 @@ module Main =
         let state =
             { globalState = Global.init authentication settings
               leftBarState = LeftBar.init ()
-              authenticationWindow = None
               installGameWindow = None
               notifications = []
               settingsWindow = None
+              authentication = authentication
               terminalOutput = ""}
-
-        let authenticationCommand =
-            match authentication with
-            | Some _ -> Cmd.none
-            | None -> Cmd.ofMsg OpenAuthenticationWindow
 
         let settingsCommand =
             match settings with
@@ -217,10 +214,9 @@ module Main =
                 |> GlobalMessage
                 |> Cmd.ofMsg
 
+
         state,
-        Cmd.batch
-            [ authenticationCommand
-              settingsCommand ]
+        Cmd.batch [ settingsCommand ]
 
     let cancelClosingEventHandler =
         new EventHandler<CancelEventArgs>(fun _ event ->
@@ -254,7 +250,6 @@ module Main =
         match msg with
         | GlobalMessage msg -> updateGlobal msg state mainWindow
         | CloseMainWindow ->
-            Option.iter closeWindow state.authenticationWindow
             Option.iter closeWindow state.settingsWindow
             state, Cmd.none
         | LeftBarMsg leftBarMsg ->
@@ -286,17 +281,16 @@ module Main =
             { state with
                   terminalOutput = terminalOutput },
             Cmd.none
-        | OpenAuthenticationWindow ->
-            let window =
-                Authentication.Window cancelClosingEventHandler
-
-            window.ShowDialog(mainWindow) |> ignore
-
-            let state =
-                { state with
-                      authenticationWindow = window |> Some }
-
-            state, Subs.saveAuthentication window
+        | Authenticate code ->
+            let getAuth() =
+                Authentication.getNewToken redirectUri code
+            state, Cmd.OfAsync.perform getAuth () AuthSuccess
+        | AuthSuccess result ->
+          match result with
+          | Some auth ->
+                AuthenticationPersistence.save auth |> ignore
+          | None -> ()
+          state, Cmd.none
         | OpenInstallGameWindow ->
             let window =
                 InstallGame.InstallGameWindow
@@ -311,18 +305,6 @@ module Main =
                       installGameWindow = window |> Some }
 
             state, Subs.installGameWindow state
-        | CloseAuthenticationWindow (window, authentication) ->
-            AuthenticationPersistence.save authentication
-            |> ignore
-
-            window.Close()
-
-            let state =
-                { state with
-                      authenticationWindow = None }
-                |> setl StateLenses.authentication (Some authentication)
-
-            state, Cmd.none
         | CloseInstallGameWindow downloadInfo ->
             { state with installGameWindow = None },
             Cmd.ofMsg <| StartGameDownload downloadInfo
@@ -550,6 +532,21 @@ module Main =
 
     let view (state: State) dispatch =
         let gDispatch = (GlobalMessage >> dispatch)
+        let content :list<IView> =
+            match state.authentication with
+            | Some _ ->
+                [ leftBarView state dispatch
+                  mainAreaView state dispatch gDispatch ]
+            | None ->
+                [ StackPanel.create
+                    [ StackPanel.spacing 12.0
+                      StackPanel.children
+                        [ TextBlock.create
+                            [ TextBlock.text "Please Login on your browser first." ]
+                          TextBlock.create
+                            [ TextBlock.text "If your browser has not opened yet, please copy this URL in the address bar." ]
+                          TextBox.create [ TextBox.text startUrl; TextBox.isReadOnly true] ] ] ]
+
         DockPanel.create
             [ DockPanel.verticalAlignment VerticalAlignment.Stretch
               DockPanel.horizontalAlignment HorizontalAlignment.Stretch
@@ -557,9 +554,7 @@ module Main =
               DockPanel.children
                   [ Grid.create
                       [ Grid.columnDefinitions "1*, 3*"
-                        Grid.children
-                            [ leftBarView state dispatch
-                              mainAreaView state dispatch gDispatch ] ] ] ]
+                        Grid.children content ] ] ]
 
     type MainWindow() as this =
         inherit HostWindow()
@@ -576,12 +571,23 @@ module Main =
 #if DEBUG
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
+            // could this be added to the updateWithServices in case
+            // of a re-auth maybe?
+            let server = new AuthServer()
 
             let closeWindow _ =
                 let sub dispatch =
                     this.Closing.Subscribe(fun _ -> CloseMainWindow |> dispatch)
                     |> ignore
 
+                Cmd.ofSub sub
+
+            let onAuth _ =
+                let sub dispatch =
+                    server.OnValidCode.Subscribe(
+                        fun code ->
+                            server.Stop()
+                            dispatch (Authenticate code)) |> ignore
                 Cmd.ofSub sub
 
             let settings = SettingsPersistence.load ()
@@ -594,9 +600,16 @@ module Main =
             let updateWithServices msg state =
                 update msg state this
 
+            match authentication with
+            | None ->
+                AuthServer.openUrl startUrl
+                server.Start()
+            | Some _ -> ()
+
             Program.mkProgram init updateWithServices view
             |> Program.withHost this
             |> Program.withSubscription closeWindow
+            |> Program.withSubscription onAuth
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
