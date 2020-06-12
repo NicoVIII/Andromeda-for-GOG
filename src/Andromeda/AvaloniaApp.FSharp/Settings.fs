@@ -21,8 +21,7 @@ module Settings =
         abstract Save: Settings -> unit
 
     type State =
-        { gamePath: string
-          window: IWindow }
+        { gamePath: string }
 
     type Msg =
         | SetGamepath of string
@@ -30,26 +29,25 @@ module Settings =
 
     let stateToSettings state =
         match state.gamePath with
-        | gamePath when gamePath |> Directory.Exists -> { gamePath = gamePath } |> Some
+        | gamePath when gamePath |> Directory.Exists -> { Settings.gamePath = gamePath } |> Some
         | _ -> None
 
-    let init (settings: Settings option, window: IWindow) =
+    let init (settings: Settings option) =
         let state =
             match settings with
             | Some settings ->
-                { gamePath = settings.gamePath
-                  window = window }
-            | None -> { gamePath = ""; window = window }
+                { gamePath = settings.gamePath }
+            | None -> { gamePath = "" }
 
         state, Cmd.none
 
-    let update (msg: Msg) (state: State) =
+    let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
             match stateToSettings state with
             | Some settings ->
-                state.window.Save settings
+                window.Save settings
             | None -> ()
             state, Cmd.none
 
@@ -93,12 +91,15 @@ module Settings =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            Program.mkProgram init update view
+            let updateWithServices =
+                update this
+
+            Program.mkProgram init updateWithServices view
             |> Program.withHost this
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
-            |> Program.runWith (settings, this)
+            |> Program.runWith settings
 
         interface ISubWindow with
             member __.Close() =
