@@ -16,6 +16,7 @@
     <Compile Include="User.fs" />
     <Compile Include="Database.fs" />
     <Compile Include="AuthenticationPersistence.fs" />
+    <Compile Include="AuthServer.fs" />
     <Compile Include="SettingsPersistence.fs" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
