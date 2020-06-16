@@ -11,6 +11,8 @@ open Avalonia.Layout
 open Avalonia.Media
 open Elmish
 open GogApi.DotNet.FSharp.DomainTypes
+open System.Diagnostics
+open System.Runtime.InteropServices
 open System.Web
 
 module Authentication =
@@ -23,11 +25,15 @@ module Authentication =
         abstract Save: Authentication -> unit
 
     let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
+    let authUri = "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri="
+                             + (HttpUtility.UrlEncode redirectUri)
+                             + "&response_type=code&layout=client2"
 
     type State =
         { authCode: string }
 
     type Msg =
+        | OpenBrowser
         | CloseWindow of Authentication
         | Save
         | SetCode of string
@@ -37,6 +43,20 @@ module Authentication =
 
     let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
+        | OpenBrowser ->
+            // Open url in browser (from: https://brockallen.com/2016/09/24/process-start-for-urls-on-net-core/)
+            if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
+                let command =
+                    authUri.Replace("&", "^&")
+                    |> sprintf "/c start %s"
+                Process.Start(ProcessStartInfo("cmd", command)) |> ignore
+            else if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) then
+                Process.Start("xdg-open", authUri) |> ignore
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) then
+                Process.Start("open", authUri) |> ignore
+            else
+                ()
+            state, Cmd.none
         | CloseWindow authentication ->
             authentication |> window.Save
             state, Cmd.none
@@ -55,17 +75,17 @@ module Authentication =
               StackPanel.orientation Orientation.Vertical
               StackPanel.spacing 5.0
               StackPanel.children
-                  [ TextBlock.create [ TextBlock.text "Please go to" ]
+                  [ TextBlock.create [ TextBlock.text "Open this url in a browser and login:" ]
                     TextBox.create
                         [ TextBox.background "Transparent"
                           TextBox.borderThickness 0.0
                           TextBox.isReadOnly true
                           TextBox.textWrapping (TextWrapping.Wrap)
-                          TextBox.text
-                          <| "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri="
-                             + (HttpUtility.UrlEncode redirectUri)
-                             + "&response_type=code&layout=client2" ]
-                    TextBlock.create [ TextBlock.text "and log in." ]
+                          TextBox.text authUri ]
+                    Button.create [
+                        Button.content "Open in browser"
+                        Button.onClick (fun _ -> OpenBrowser |> dispatch)
+                    ]
                     TextBlock.create
                         [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
                     TextBox.create
