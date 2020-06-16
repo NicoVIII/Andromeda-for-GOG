@@ -13,7 +13,7 @@ open System.IO
 
 module Settings =
     type IWindow =
-        inherit ISubWindow
+        inherit IAndromedaWindow
 
         [<CLIEvent>]
         abstract OnSave: IEvent<IWindow * Settings>
@@ -71,8 +71,8 @@ module Settings =
                           Button.isEnabled (stateToSettings state |> Option.isSome)
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type SettingsWindow(settings: Settings option, closeEventHandler, initial) as this =
-        inherit HostWindow()
+    type SettingsWindow(settings: Settings option, initial) as this =
+        inherit AndromedaWindow()
 
         let saveEvent = new Event<_>()
 
@@ -82,10 +82,6 @@ module Settings =
             base.ShowInTaskbar <- false
             base.Width <- 600.0
             base.Height <- 260.0
-
-            if initial
-            then this.Closing.AddHandler closeEventHandler
-            else ()
 
 #if DEBUG
             this.AttachDevTools(KeyGesture(Key.F12))
@@ -100,13 +96,6 @@ module Settings =
             |> Program.withConsoleTrace
 #endif
             |> Program.runWith settings
-
-        interface ISubWindow with
-            member __.Close() =
-                if initial
-                then this.Closing.RemoveHandler closeEventHandler
-                else ()
-                this.Close()
 
         interface IWindow with
             [<CLIEvent>]

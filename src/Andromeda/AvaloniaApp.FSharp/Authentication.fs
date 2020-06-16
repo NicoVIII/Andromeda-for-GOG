@@ -17,7 +17,7 @@ open System.Web
 
 module Authentication =
     type IWindow =
-        inherit ISubWindow
+        inherit IAndromedaWindow
 
         [<CLIEvent>]
         abstract OnSave: IEvent<IWindow * Authentication>
@@ -96,8 +96,8 @@ module Authentication =
                           Button.isEnabled (state.authCode <> "")
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type Window(closeEventHandler) as this =
-        inherit HostWindow()
+    type Window() as this =
+        inherit AndromedaWindow()
 
         let saveEvent = new Event<_>()
 
@@ -107,8 +107,6 @@ module Authentication =
             base.WindowStartupLocation <- WindowStartupLocation.CenterOwner
             base.Width <- 600.0
             base.Height <- 260.0
-
-            this.Closing.AddHandler closeEventHandler
 
 #if DEBUG
             this.AttachDevTools(KeyGesture(Key.F12))
@@ -123,11 +121,6 @@ module Authentication =
             |> Program.withConsoleTrace
 #endif
             |> Program.runWith ()
-
-        interface ISubWindow with
-            member __.Close() =
-                this.Closing.RemoveHandler closeEventHandler
-                this.Close()
 
         interface IWindow with
             [<CLIEvent>]

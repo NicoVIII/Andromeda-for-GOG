@@ -6,7 +6,6 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Types
@@ -16,7 +15,6 @@ open Avalonia.Media
 open Avalonia.Threading
 open Elmish
 open GogApi.DotNet.FSharp.DomainTypes
-open MessageBox.Avalonia
 open System
 open System.ComponentModel
 open System.Diagnostics
@@ -72,7 +70,7 @@ module Main =
         | AddToTerminalOutput of string
         | OpenAuthenticationWindow
         | OpenInstallGameWindow
-        | CloseMainWindow
+        | CloseAllWindows
         | CloseAuthenticationWindow of Authentication.IWindow * Authentication
         | CloseSettingsWindow of Settings.IWindow * Settings
         | CloseInstallGameWindow of ProductInfo
@@ -86,7 +84,6 @@ module Main =
         | UpgradeGames
 
     module Subs =
-
         let startGame (game: InstalledGame) =
             let sub dispatch =
                 let showGameOutput _ (outLine: DataReceivedEventArgs) =
@@ -166,6 +163,13 @@ module Main =
 
             Cmd.ofSub sub
 
+        let closeWindow (wind: IAndromedaWindow) =
+            let sub (dispatch: Msg -> unit) =
+                wind.AddClosedHandler (fun _ -> CloseAllWindows |> dispatch)
+                |> ignore
+
+            Cmd.ofSub sub
+
         let installGameWindow state =
             let sub dispatch =
                 match state.installGameWindow with
@@ -185,8 +189,7 @@ module Main =
 
             Cmd.ofSub sub
 
-    let init (settings: Settings option, authentication: Authentication option)
-        =
+    let init (settings: Settings option, authentication: Authentication option) =
         let authentication =
             Option.bind
                 (Authentication.getRefreshToken
@@ -202,7 +205,7 @@ module Main =
               installGameWindow = None
               notifications = []
               settingsWindow = None
-              terminalOutput = ""}
+              terminalOutput = "" }
 
         let authenticationCommand =
             match authentication with
@@ -222,40 +225,41 @@ module Main =
             [ authenticationCommand
               settingsCommand ]
 
-    let cancelClosingEventHandler =
-        new EventHandler<CancelEventArgs>(fun _ event ->
-        let info =
-            MessageBoxManager.GetMessageBoxStandardWindow
-                ("Required",
-                 "Please fill this out, it is required... To exit this, close main window.")
-
-        info.Show() |> ignore
-        event.Cancel <- true)
-
-    let closeWindow (window: ISubWindow) = window.Close()
-
-    let updateGlobal (msg: Global.Message) (state: State) (mainWindow: HostWindow) =
+    let updateGlobal (msg: Global.Message) (state: State) (mainWindow: AndromedaWindow) =
         match msg with
-        | Global.ChangeMode mode ->
-            setl StateLenses.mode mode state, Cmd.none
+        | Global.ChangeMode mode -> setl StateLenses.mode mode state, Cmd.none
         | Global.OpenSettingsWindow initial ->
             let window =
-                Settings.SettingsWindow
-                    (getl StateLenses.settings state, cancelClosingEventHandler, initial)
+                Settings.SettingsWindow(getl StateLenses.settings state, initial)
 
             window.ShowDialog(mainWindow) |> ignore
 
+            let cmd =
+                Cmd.batch
+                    [ if initial then Subs.closeWindow window else ()
+                      Subs.saveSettings window ]
+
             { state with
                   settingsWindow = window |> Some },
-            Subs.saveSettings window
+            cmd
         | Global.StartGame installedGame -> state, Subs.startGame installedGame
 
-    let update (msg: Msg) (state: State) (mainWindow: HostWindow) =
+    let update (msg: Msg) (state: State) (mainWindow: AndromedaWindow) =
         match msg with
         | GlobalMessage msg -> updateGlobal msg state mainWindow
-        | CloseMainWindow ->
+        | CloseAllWindows ->
+            let closeWindow (window: IAndromedaWindow) =
+                window.CloseWithoutCustomHandler()
+
             Option.iter closeWindow state.authenticationWindow
             Option.iter closeWindow state.settingsWindow
+            closeWindow mainWindow
+
+            let state =
+                { state with
+                      authenticationWindow = None
+                      settingsWindow = None }
+
             state, Cmd.none
         | LeftBarMsg leftBarMsg ->
             let (s, cmd) =
@@ -287,8 +291,7 @@ module Main =
                   terminalOutput = terminalOutput },
             Cmd.none
         | OpenAuthenticationWindow ->
-            let window =
-                Authentication.Window cancelClosingEventHandler
+            let window = Authentication.Window()
 
             window.ShowDialog(mainWindow) |> ignore
 
@@ -296,7 +299,12 @@ module Main =
                 { state with
                       authenticationWindow = window |> Some }
 
-            state, Subs.saveAuthentication window
+            let cmd =
+                Cmd.batch
+                    [ Subs.saveAuthentication window
+                      Subs.closeWindow window ]
+
+            state, cmd
         | OpenInstallGameWindow ->
             let window =
                 InstallGame.InstallGameWindow
@@ -315,7 +323,7 @@ module Main =
             AuthenticationPersistence.save authentication
             |> ignore
 
-            window.Close()
+            window.CloseWithoutCustomHandler()
 
             let state =
                 { state with
@@ -327,12 +335,13 @@ module Main =
             { state with installGameWindow = None },
             Cmd.ofMsg <| StartGameDownload downloadInfo
         | CloseSettingsWindow (window, settings) ->
-            window.Close()
+            window.CloseWithoutCustomHandler()
 
             { state with settingsWindow = None }, Cmd.ofMsg (SetSettings settings)
         | SearchInstalled settings ->
             let installedGames =
-                Installed.searchInstalled settings (getl StateLenses.authentication state).Value
+                Installed.searchInstalled settings
+                    (getl StateLenses.authentication state).Value
 
             let state =
                 setl StateLenses.installedGames installedGames state
@@ -341,7 +350,8 @@ module Main =
         | SetSettings settings ->
             SettingsPersistence.save settings |> ignore
 
-            let state = setl StateLenses.settings (Some settings) state
+            let state =
+                setl StateLenses.settings (Some settings) state
 
             let msg = Cmd.ofMsg (settings |> SearchInstalled)
 
@@ -351,7 +361,8 @@ module Main =
                 getl StateLenses.downloads state
                 |> List.filter (fun ds -> ds.filePath <> filePath)
 
-            setl StateLenses.downloads statusList state, Cmd.ofMsg (settings |> SearchInstalled)
+            setl StateLenses.downloads statusList state,
+            Cmd.ofMsg (settings |> SearchInstalled)
         | StartGameDownload productInfo ->
             let installerInfoList =
                 Games.getAvailableInstallersForOs productInfo.id
@@ -419,7 +430,8 @@ module Main =
             state, cmd
         | UpgradeGames ->
             let (updateDataList, authentication) =
-                (getl StateLenses.installedGames state, (getl StateLenses.authentication state).Value)
+                (getl StateLenses.installedGames state,
+                 (getl StateLenses.authentication state).Value)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication, if it was refreshed
@@ -539,7 +551,8 @@ module Main =
                                else
                                    match getl StateLenses.authentication state with
                                    | Some authentication ->
-                                       Games.view gDispatch (getl StateLenses.installedGames state)
+                                       Games.view gDispatch
+                                           (getl StateLenses.installedGames state)
                                            authentication
                                    | None ->
                                        (AvaloniaHelper.simpleTextBlock "Please log in.") :> IView) ] ] ]
@@ -562,7 +575,7 @@ module Main =
                               mainAreaView state dispatch gDispatch ] ] ] ]
 
     type MainWindow() as this =
-        inherit HostWindow()
+        inherit AndromedaWindow()
 
         do
             base.Title <- "Andromeda"
@@ -577,13 +590,6 @@ module Main =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            let closeWindow _ =
-                let sub dispatch =
-                    this.Closing.Subscribe(fun _ -> CloseMainWindow |> dispatch)
-                    |> ignore
-
-                Cmd.ofSub sub
-
             let settings = SettingsPersistence.load ()
 
             let authentication =
@@ -591,12 +597,11 @@ module Main =
                 | Some authentication -> Some authentication
                 | None -> None
 
-            let updateWithServices msg state =
-                update msg state this
+            let updateWithServices msg state = update msg state this
 
             Program.mkProgram init updateWithServices view
             |> Program.withHost this
-            |> Program.withSubscription closeWindow
+            |> Program.withSubscription (fun _ -> Subs.closeWindow this)
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
