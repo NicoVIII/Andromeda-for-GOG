@@ -65,3 +65,16 @@ module SystemInfo =
 
     let logo2xPath productId =
         Path.Combine(gameInfoPath productId, "logo_2x.jpg")
+
+    let defaultSettings () =
+        let gamePath =
+            match os with
+            | Linux
+            | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
+            | Windows ->
+                Path.Combine
+                    (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GOG Games")
+
+        {
+            gamePath = gamePath
+        }

@@ -10,20 +10,22 @@ module Global =
         | Empty
         | Installed
 
-    /// <summary>
-    /// Messages which are sendable from every component
-    /// </summary>
-    type Message =
-        | ChangeMode of Mode
-        | OpenSettingsWindow of initial: bool
-        | StartGame of InstalledGame
-
     type State =
         { authentication: Authentication option
           downloads: DownloadStatus list
           installedGames: InstalledGame list
           mode: Mode
-          settings: Settings option }
+          settings: Settings }
+
+    /// <summary>
+    /// Messages which are sendable from every component
+    /// </summary>
+    type Msg<'T> =
+        | UseLens of Lens<State, 'T> * 'T
+        | Authenticate of Authentication
+        | ChangeMode of Mode
+        | OpenSettingsWindow of Authentication
+        | StartGame of InstalledGame
 
     module StateLenses =
         // Lenses
@@ -43,6 +45,11 @@ module Global =
             Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
     let init authentication settings =
+        let settings =
+            match settings with
+            | Some settings -> settings
+            | None -> SystemInfo.defaultSettings ()
+
         { authentication = authentication
           downloads = []
           installedGames = []

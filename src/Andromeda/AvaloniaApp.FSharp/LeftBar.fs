@@ -23,7 +23,7 @@ module LeftBar =
         match msg with
         | Search search -> { state with searchString = search }, Cmd.none
 
-    let private iconBarView state dispatch gDispatch =
+    let private iconBarView authentication state dispatch gDispatch =
         StackPanel.create
             [ StackPanel.dock Dock.Top
               StackPanel.margin (Thickness.Parse("0, 10"))
@@ -33,7 +33,7 @@ module LeftBar =
                       [ Button.classes [ "iconButton" ]
                         Button.content Icons.settings
                         Button.onClick (fun _ ->
-                            Global.OpenSettingsWindow false |> gDispatch) ] ] ]
+                            Global.OpenSettingsWindow authentication |> gDispatch) ] ] ]
 
     let private emptyGamesListView (state: State) (dispatch: Msg -> unit) =
         TextBlock.create
@@ -179,7 +179,7 @@ module LeftBar =
                           TextBlock.fontSize 10.0
                           TextBlock.text Config.version ] ] ]
 
-    let view state gState dispatch gDispatch =
+    let view authentication state gState dispatch gDispatch =
         Border.create
             [ Border.classes [ "leftBar" ]
               Border.column 0
@@ -187,6 +187,6 @@ module LeftBar =
               Border.child
                   (DockPanel.create
                       [ DockPanel.children
-                          [ iconBarView state dispatch gDispatch
+                          [ iconBarView authentication state dispatch gDispatch
                             bottomBarView gState
                             middleView state gState dispatch gDispatch ] ]) ]

@@ -32,12 +32,9 @@ module Settings =
         | gamePath when gamePath |> Directory.Exists -> { Settings.gamePath = gamePath } |> Some
         | _ -> None
 
-    let init (settings: Settings option) =
+    let init (settings: Settings) =
         let state =
-            match settings with
-            | Some settings ->
-                { gamePath = settings.gamePath }
-            | None -> { gamePath = "" }
+            { gamePath = settings.gamePath }
 
         state, Cmd.none
 
@@ -71,7 +68,7 @@ module Settings =
                           Button.isEnabled (stateToSettings state |> Option.isSome)
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type SettingsWindow(settings: Settings option, initial) as this =
+    type SettingsWindow(settings: Settings) as this =
         inherit AndromedaWindow()
 
         let saveEvent = new Event<_>()
