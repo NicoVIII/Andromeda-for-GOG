@@ -22,6 +22,7 @@ open System.ComponentModel
 open System.Diagnostics
 open System.IO
 open System.Threading.Tasks
+open Xilium.CefGlue.Avalonia
 
 module Main =
     let createDownloadStatus id gameTitle filePath fileSize =

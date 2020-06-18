@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
+    <ProjectReference Include="../../../vendor/cefglue/CefGlue.Avalonia/CefGlue.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />

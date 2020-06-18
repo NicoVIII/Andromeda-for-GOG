@@ -1,6 +1,6 @@
 version 5.245.1
 
-source https://www.myget.org/F/avalonia-ci/api/v2
+source https://nuget.avaloniaui.net/repository/outsystems-feed/
 source https://api.nuget.org/v3/index.json
 
 nuget FSharp.Core ~> 4.7
@@ -8,6 +8,8 @@ nuget FSharp.Core ~> 4.7
 nuget FSharp.Json ~> 0.4.0
 nuget SchlenkR.FsHttp ~> 3.0.0
 nuget GogApi.DotNet ~> 2.0
+nuget Avalonia 0.9.11-preview-cibuild0007447-beta prerelease
+nuget Avalonia.Remote.Protocol 0.9.11-preview-cibuild0007447-beta prerelease
 nuget JaggerJo.Avalonia.FuncUI ~> 0.3
 nuget JaggerJo.Avalonia.FuncUI.DSL ~> 0.3
 nuget JaggerJo.Avalonia.FuncUI.Elmish ~> 0.2

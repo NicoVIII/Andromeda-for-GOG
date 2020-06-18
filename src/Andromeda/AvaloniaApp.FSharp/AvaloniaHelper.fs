@@ -20,3 +20,15 @@ module AvaloniaHelper =
         TextBlock.create [
             TextBlock.text text
         ]
+
+[<AutoOpen>]
+module AvaloniaCefBrowser =
+    open Avalonia.FuncUI.Builder
+    open Avalonia.FuncUI.Types
+    open Xilium.CefGlue.Avalonia
+
+    let create (attrs: IAttr<AvaloniaCefBrowser> list): IView<AvaloniaCefBrowser> =
+        ViewBuilder.Create<AvaloniaCefBrowser>(attrs)
+
+    type ContextMenu with
+        end
