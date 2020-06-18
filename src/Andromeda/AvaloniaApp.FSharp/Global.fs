@@ -50,8 +50,15 @@ module Global =
             | Some settings -> settings
             | None -> SystemInfo.defaultSettings ()
 
+        let installedGames =
+            match authentication with
+            | Some authentication ->
+                Installed.searchInstalled settings authentication
+            | None ->
+                []
+
         { authentication = authentication
           downloads = []
-          installedGames = []
+          installedGames = installedGames
           mode = Installed
           settings = settings }
