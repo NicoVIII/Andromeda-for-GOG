@@ -137,36 +137,39 @@ let getInstalledOnWindows gameDir (_: Authentication) version =
     | _ -> None
 
 let searchInstalled (settings: Settings) (authentication: Authentication) =
-    Directory.EnumerateDirectories(settings.gamePath)
-    |> List.ofSeq
-    |> List.fold (fun installedGames gameDir ->
-        // Ignore folders starting with '!'
-        match gameDir with
-        | dir when (dir |> Path.GetFileName).StartsWith "!" -> installedGames
-        | gameDir ->
-            // Read version file if existing
-            let version =
-                let versionFilePath =
-                    Path.Combine(gameDir, Constants.versionFile)
+    match Directory.Exists(settings.gamePath) with
+    | false -> []
+    | true ->
+        Directory.EnumerateDirectories(settings.gamePath)
+        |> List.ofSeq
+        |> List.fold (fun installedGames gameDir ->
+            // Ignore folders starting with '!'
+            match gameDir with
+            | dir when (dir |> Path.GetFileName).StartsWith "!" -> installedGames
+            | gameDir ->
+                // Read version file if existing
+                let version =
+                    let versionFilePath =
+                        Path.Combine(gameDir, Constants.versionFile)
 
-                if versionFilePath |> File.Exists then
-                    versionFilePath
-                    |> File.ReadAllText
-                    |> (fun s -> s.Trim())
-                    |> Some
-                else
-                    None
+                    if versionFilePath |> File.Exists then
+                        versionFilePath
+                        |> File.ReadAllText
+                        |> (fun s -> s.Trim())
+                        |> Some
+                    else
+                        None
 
-            let fnc =
-                match SystemInfo.os with
-                | SystemInfo.OS.Linux -> Some getInstalledOnLinux
-                | SystemInfo.OS.Windows -> Some getInstalledOnWindows
-                | SystemInfo.OS.MacOS -> None // TODO: implement
+                let fnc =
+                    match SystemInfo.os with
+                    | SystemInfo.OS.Linux -> Some getInstalledOnLinux
+                    | SystemInfo.OS.Windows -> Some getInstalledOnWindows
+                    | SystemInfo.OS.MacOS -> None // TODO: implement
 
-            match fnc with
-            | Some fnc ->
-                let installedGame = fnc gameDir authentication version
-                match installedGame with
-                | Some installedGame -> installedGame :: installedGames
-                | None -> installedGames
-            | None -> installedGames) []
+                match fnc with
+                | Some fnc ->
+                    let installedGame = fnc gameDir authentication version
+                    match installedGame with
+                    | Some installedGame -> installedGame :: installedGames
+                    | None -> installedGames
+                | None -> installedGames) []
