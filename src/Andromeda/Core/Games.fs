@@ -1,7 +1,6 @@
 module Andromeda.Core.FSharp.Games
 
 open ICSharpCode.SharpZipLib.Zip
-open FSharpPlus
 open FsHttp.DslCE
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
@@ -24,6 +23,9 @@ let startFileDownload (SafeDownLink url) gameName version =
         match version with
         | Some v -> "-" + v
         | None -> ""
+
+    // Remove invalid characters from gameName
+    let gameName = removeInvalidFileNameChars gameName
 
     let dir =
         Path.Combine(SystemInfo.cachePath, "installers")
@@ -164,10 +166,12 @@ let generateRandomString length =
 let createVersionFile gameDir version =
     File.WriteAllText(Path.Combine(gameDir, Constants.versionFile), version + "\n")
 
-let extractLibrary (settings: Settings) (gamename: string) filepath version =
+let extractLibrary (settings: Settings) (gameName: string) filepath version =
     async {
+        let gameName = removeInvalidFileNameChars gameName
+
         let target =
-            Path.Combine(settings.gamePath, gamename)
+            Path.Combine(settings.gamePath, gameName)
 
         match SystemInfo.os with
         | SystemInfo.OS.Linux ->
@@ -175,7 +179,7 @@ let extractLibrary (settings: Settings) (gamename: string) filepath version =
             |> ignore
 
             let tmp =
-                Path.Combine(settings.gamePath, ".tmp", gamename)
+                Path.Combine(settings.gamePath, ".tmp", gameName)
             // If there are some rests, remove them
             if Directory.Exists tmp then Directory.Delete(tmp, true) else ()
             Directory.CreateDirectory(tmp) |> ignore

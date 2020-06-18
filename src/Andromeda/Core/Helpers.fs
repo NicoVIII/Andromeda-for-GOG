@@ -4,18 +4,7 @@ open System
 open System.IO
 
 [<AutoOpen>]
-module HelperFunctions =
-    let exeFst fnc (a, b) = (fnc a, b)
-
-    let exeSnd fnc (a, b) = (a, fnc b)
-
-    /// <summary>Execute function and return input instead of output.</summary>
-    /// <param name="fnc">Function to execute</param>
-    /// <param name="input">Input to function and output of helper</param>
-    let fluent fnc input =
-        fnc input |> ignore
-        input
-
+module Helpers =
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
     let getShortcutTarget file =
         try
@@ -65,3 +54,7 @@ module HelperFunctions =
         member this.Bind(xResult,f) = Result.bind f xResult
 
     let result = ResultBuilder()
+
+    let removeInvalidFileNameChars part =
+        Path.GetInvalidFileNameChars()
+        |> Seq.fold (fun name c -> String.replace (string c) "" name) part
