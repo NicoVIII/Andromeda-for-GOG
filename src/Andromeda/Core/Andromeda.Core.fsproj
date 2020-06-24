@@ -4,8 +4,9 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.fs" />
-    <Compile Include="String.fs" />
-    <Compile Include="Helpers.fs" />
+    <Compile Include="Helpers/String.fs" />
+    <Compile Include="Helpers/Path.fs" />
+    <Compile Include="Helpers/Result.fs" />
     <Compile Include="Lens.fs" />
     <Compile Include="DomainTypes.fs" />
     <Compile Include="SystemInfo.fs" />

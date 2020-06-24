@@ -1,12 +1,12 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core.FSharp.Helpers
 
 open System
 open System.IO
 
-[<AutoOpen>]
-module Helpers =
+[<RequireQualifiedAccess>]
+module Path =
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
-    let getShortcutTarget file =
+    let getShortcutTarget (file: string) =
         try
             if Path.GetExtension(file).ToLower().Equals(".lnk")
                |> not then
@@ -57,13 +57,6 @@ module Helpers =
             else
                 link
         with _ -> ""
-
-    type ResultBuilder() =
-        member this.Return x = Ok x
-        member this.Zero() = Ok()
-        member this.Bind(xResult, f) = Result.bind f xResult
-
-    let result = ResultBuilder()
 
     let removeInvalidFileNameChars part =
         Path.GetInvalidFileNameChars()
