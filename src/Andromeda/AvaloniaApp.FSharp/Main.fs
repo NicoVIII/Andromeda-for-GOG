@@ -98,7 +98,7 @@ module Main =
                     else
                         ()
 
-                Games.startGameProcess showGameOutput game.path
+                Installed.startGameProcess showGameOutput game.path
                 |> ignore
 
             Cmd.ofSub sub
@@ -341,7 +341,7 @@ module Main =
             Cmd.ofMsg (authentication |> SearchInstalled)
         | StartGameDownload (productInfo, authentication) ->
             let installerInfoList =
-                Games.getAvailableInstallersForOs productInfo.id authentication
+                Diverse.getAvailableInstallersForOs productInfo.id authentication
                 |> Async.RunSynchronously
 
             match installerInfoList.Length with
@@ -349,7 +349,7 @@ module Main =
                 let installerInfo = installerInfoList.[0]
 
                 let result =
-                    Games.downloadGame productInfo.title installerInfo authentication
+                    Download.downloadGame productInfo.title installerInfo authentication
                     |> Async.RunSynchronously
 
                 match result with
@@ -392,7 +392,7 @@ module Main =
                         "Found multiple installers, this is not supported yet...")
         | UnpackGame (settings, downloadInfo, version, authentication) ->
             let invoke () =
-                Games.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath
+                Download.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath
                     version
 
             let cmd =

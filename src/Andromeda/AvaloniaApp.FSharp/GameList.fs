@@ -37,7 +37,7 @@ module GameList =
                         Image.width 200.0
                         Image.source
                             // TODO: Load Images asynchronously
-                            (new Bitmap(Games.getProductImg game.id authentication
+                            (new Bitmap(Diverse.getProductImg game.id authentication
                                         |> Async.RunSynchronously)) ]) ] :> IView
 
     let view gDispatch games authentication: IView =

@@ -4,24 +4,15 @@ open Andromeda.Core.FSharp.DomainTypes
 open Andromeda.Core.FSharp.Helpers
 
 open ICSharpCode.SharpZipLib.Zip
-open FsHttp.DslCE
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open Mono.Unix.Native
-open System
 open System.Diagnostics
 open System.IO
 open System.Net
 
-module Games =
-    let getOwnedGameIds auth =
-        async {
-            let! result = User.getDataGames auth
-            return match result with
-                   | Ok { owned = owned } -> owned
-                   | Error _ -> []
-        }
-
+/// A module for everything which helps to download and install games
+module Download =
     let startFileDownload (SafeDownLink url) gameName version =
         let version =
             match version with
@@ -55,63 +46,6 @@ module Games =
 
             (task |> Some, filepath, tmppath)
         | false -> (None, filepath, tmppath)
-
-    let private prepareGameProcess processOutput (proc: Process) =
-        proc.StartInfo.RedirectStandardOutput <- true
-        proc.OutputDataReceived.AddHandler(new DataReceivedEventHandler(processOutput))
-        proc
-
-    let private startWindowsGameProcess (prepareGameProcess: Process -> Process) path =
-        let file =
-            Directory.GetFiles(path)
-            |> List.ofArray
-            |> List.filter (fun path ->
-                let fileName = Path.GetFileName path
-                fileName.StartsWith "Launch "
-                && fileName.EndsWith ".lnk")
-            |> List.item 0
-
-        let proc =
-            new Process()
-            |> fun proc ->
-                proc.StartInfo.FileName <- Path.getShortcutTarget file
-                proc
-            |> prepareGameProcess
-
-        try
-            proc.Start() |> ignore
-            proc.BeginOutputReadLine()
-            proc |> Some
-        with _ ->
-            try
-                // Try again with admin rights
-                proc.StartInfo.UseShellExecute <- true
-                proc.StartInfo.Verb <- "runas"
-                proc.Start() |> ignore
-                proc.BeginOutputReadLine()
-                Some proc
-            with _ -> None
-
-    let startGameProcess processStandardOutput path =
-        let prepareGameProcess = prepareGameProcess processStandardOutput
-        match SystemInfo.os with
-        | SystemInfo.OS.Linux
-        | SystemInfo.OS.MacOS ->
-            let filepath = Path.Combine(path, "start.sh")
-            Syscall.chmod (filepath, FilePermissions.ALLPERMS)
-            |> ignore
-
-            let proc =
-                new Process()
-                |> fun proc ->
-                    proc.StartInfo.FileName <- filepath
-                    proc
-                |> prepareGameProcess
-
-            proc.Start() |> ignore
-            proc.BeginOutputReadLine()
-            proc |> Some
-        | SystemInfo.OS.Windows -> startWindowsGameProcess prepareGameProcess path
 
     let rec copyDirectory
             (sourceDirName: string)
@@ -154,23 +88,6 @@ module Games =
                 // Copy the subdirectories.
                 copyDirectory subdir.FullName temppath copySubDirs)
         | false -> ()
-
-    let generateRandomString length =
-        let chars =
-            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-
-        let random = Random()
-
-        let rec helper rest result =
-            let result =
-                result
-                + (string chars.[random.Next(chars.Length)])
-
-            match rest with
-            | x when x > 1 -> helper (x - 1) result
-            | x -> result
-
-        helper length ""
 
     let createVersionFile gameDir version =
         File.WriteAllText(Path.Combine(gameDir, Constants.versionFile), version + "\n")
@@ -243,46 +160,6 @@ module Games =
             | None -> ()
         }
 
-    let getAvailableGamesForSearch name (authentication: Authentication) =
-        async {
-            let! result =
-                Account.getFilteredGames
-                    { feature = None
-                      language = None
-                      system = None
-                      search = Some name
-                      page = None
-                      sort = None } authentication
-            return match result with
-                   | Ok response -> Some response.products
-                   | Error _ -> None
-        }
-
-    let getAvailableInstallersForOs gameId (authentication: Authentication) =
-        async {
-            let! result = GalaxyApi.getProduct gameId authentication
-            return match result with
-                   | Ok response ->
-                       let installers = response.downloads.installers
-
-                       let installers' =
-                           installers
-                           |> fun info ->
-                               match SystemInfo.os with
-                               | SystemInfo.OS.Linux ->
-                                   List.filter (fun (i: InstallerInfo) -> i.os = "linux")
-                                       info
-                               | SystemInfo.OS.Windows ->
-                                   List.filter (fun (i: InstallerInfo) -> i.os = "windows")
-                                       info
-                               | SystemInfo.OS.MacOS ->
-                                   List.filter (fun (i: InstallerInfo) -> i.os = "mac")
-                                       info
-
-                       installers'
-                   | Error _ -> []
-        }
-
     let downloadGame gameName (installer: InstallerInfo) (authentication: Authentication) =
         async {
             match installer.files with
@@ -299,35 +176,3 @@ module Games =
                     return None
             | [] -> return None
         }
-
-    let getProductImg productId authentication =
-        let imgPath = SystemInfo.logo2xPath productId
-
-        if File.Exists imgPath then
-            async { return imgPath }
-        else
-            // Lade das Bild erstmal herunter
-            async {
-                let! response = GalaxyApi.getProduct productId authentication
-                match response with
-                | Ok productResponse ->
-                    let imgUrl = "https:" + productResponse.images.logo2x
-
-                    let imgResponse =
-                        http {
-                            GET imgUrl
-                            CacheControl "no-cache"
-                        }
-
-                    let! imgData =
-                        imgResponse.content.ReadAsByteArrayAsync()
-                        |> Async.AwaitTask
-
-                    imgPath
-                    |> Path.GetDirectoryName
-                    |> Directory.CreateDirectory
-                    |> ignore
-                    File.WriteAllBytes(imgPath, imgData)
-                    return imgPath
-                | Error _ -> return failwith "Fetching product info failed!"
-            }

@@ -63,7 +63,7 @@ module InstallGame =
                 async {
                     let! (productList, _) =
                         Helpers.withAutoRefresh
-                            (Games.getAvailableGamesForSearch state.search)
+                            (Diverse.getAvailableGamesForSearch state.search)
                             state.authentication
                     return match productList with
                            | Some products -> products

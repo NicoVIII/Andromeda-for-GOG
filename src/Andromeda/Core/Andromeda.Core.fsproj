@@ -12,7 +12,8 @@
     <Compile Include="Types/InstalledGame.fs" />
     <Compile Include="Types/Persistence.fs" />
     <Compile Include="SystemInfo.fs" />
-    <Compile Include="Games.fs" />
+    <Compile Include="Diverse.fs" />
+    <Compile Include="Download.fs" />
     <Compile Include="Installed.fs" />
     <Compile Include="Persistence/Database.fs" />
     <Compile Include="Persistence/Authentication.fs" />
