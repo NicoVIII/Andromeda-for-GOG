@@ -3,18 +3,13 @@ namespace Andromeda.AvaloniaApp.FSharp
 open DomainTypes
 
 open Andromeda.Core.FSharp
-open Avalonia
 open Avalonia.Controls
-open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
-open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Media.Imaging
-open Elmish
-open GogApi.DotNet.FSharp.DomainTypes
 
-module Games =
+module GameList =
     type State = unit
 
     type Msg = unit

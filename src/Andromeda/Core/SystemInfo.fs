@@ -6,6 +6,7 @@ open System
 open System.IO
 open System.Runtime.InteropServices
 
+/// Contains everything specific for different platforms
 module SystemInfo =
     type OS =
         | Linux

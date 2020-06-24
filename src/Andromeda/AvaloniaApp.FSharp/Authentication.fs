@@ -1,6 +1,5 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
-open Andromeda.Core.FSharp
 open Andromeda.Core.FSharp.Lenses
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
@@ -8,6 +7,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
+open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open System.Diagnostics
 open System.Runtime.InteropServices

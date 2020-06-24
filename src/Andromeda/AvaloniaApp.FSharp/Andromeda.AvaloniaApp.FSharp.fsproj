@@ -22,7 +22,7 @@
     <Compile Include="Global.fs" />
     <!-- Main window components -->
     <Compile Include="LeftBar.fs" />
-    <Compile Include="Games.fs" />
+    <Compile Include="GameList.fs" />
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />
     <Compile Include="Authentication.fs" />

@@ -14,6 +14,7 @@ open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Threading
 open Elmish
+open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open System
 open System.Diagnostics
@@ -527,7 +528,7 @@ module Main =
                                     \n\
                                     Working on a solution for those problems!" ] :> IView
                                else
-                                   Games.view gDispatch
+                                   GameList.view gDispatch
                                        (getl StateLenses.installedGames state)
                                        authentication) ] ] ]
 

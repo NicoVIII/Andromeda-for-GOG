@@ -1,6 +1,7 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
@@ -11,6 +12,7 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Threading
 open Elmish
+open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 
 module InstallGame =
@@ -60,7 +62,7 @@ module InstallGame =
             let invoke () =
                 async {
                     let! (productList, _) =
-                        Authentication.withAutoRefresh
+                        Helpers.withAutoRefresh
                             (Games.getAvailableGamesForSearch state.search)
                             state.authentication
                     return match productList with
