@@ -1,5 +1,6 @@
 module Andromeda.Core.FSharp.Installed
 
+open Andromeda.Core.FSharp.DomainTypes
 open Lenses
 
 open FSharp.Json

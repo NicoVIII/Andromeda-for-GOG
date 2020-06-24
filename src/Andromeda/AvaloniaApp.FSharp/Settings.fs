@@ -1,6 +1,7 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.DomainTypes
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components.Hosts

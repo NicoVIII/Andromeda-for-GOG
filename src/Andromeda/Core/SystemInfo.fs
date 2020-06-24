@@ -1,5 +1,7 @@
 namespace Andromeda.Core.FSharp
 
+open Andromeda.Core.FSharp.DomainTypes
+
 open GogApi.DotNet.FSharp.DomainTypes
 open Microsoft.FSharp.Collections
 open System

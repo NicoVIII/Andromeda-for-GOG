@@ -3,6 +3,7 @@ namespace Andromeda.AvaloniaApp.FSharp
 open DomainTypes
 
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.DomainTypes
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types

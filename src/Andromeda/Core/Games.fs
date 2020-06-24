@@ -1,5 +1,6 @@
 namespace Andromeda.Core.FSharp
 
+open Andromeda.Core.FSharp.DomainTypes
 open Andromeda.Core.FSharp.Helpers
 
 open ICSharpCode.SharpZipLib.Zip

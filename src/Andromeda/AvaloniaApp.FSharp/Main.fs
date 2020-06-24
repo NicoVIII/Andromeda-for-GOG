@@ -1,6 +1,7 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.DomainTypes
 open Andromeda.Core.FSharp.Lenses
 open Avalonia
 open Avalonia.Controls
@@ -192,8 +193,7 @@ module Main =
                 (Authentication.getRefreshToken
                  >> Async.RunSynchronously) authentication
 
-        Option.map AuthenticationPersistence.save
-        |> ignore
+        Option.map Persistence.Authentication.save |> ignore
 
         let state =
             { globalState = Global.init authentication settings
@@ -217,7 +217,7 @@ module Main =
 
             state, Cmd.none
         | Global.Authenticate authentication ->
-            AuthenticationPersistence.save authentication
+            Persistence.Authentication.save authentication
             |> ignore
 
             let state =
@@ -324,7 +324,7 @@ module Main =
 
             (state, Cmd.none)
         | SetSettings (settings, authentication) ->
-            SettingsPersistence.save settings |> ignore
+            Persistence.Settings.save settings |> ignore
 
             let state = setl StateLenses.settings settings state
 
@@ -569,9 +569,9 @@ module Main =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            let settings = SettingsPersistence.load ()
+            let settings = Persistence.Settings.load ()
 
-            let authentication = AuthenticationPersistence.load ()
+            let authentication = Persistence.Authentication.load ()
 
             let updateWithServices msg state = update msg state this
 

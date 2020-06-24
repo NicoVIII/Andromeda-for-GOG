@@ -1,8 +1,10 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core.FSharp.Persistence
+
+open Andromeda.Core.FSharp.DomainTypes
 
 open TypedPersistence.FSharp
 
-module SettingsPersistence =
+module Settings =
     let load () =
         loadDocumentFromDatabase<Settings> Database.name
         |> function

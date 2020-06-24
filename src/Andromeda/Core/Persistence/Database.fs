@@ -1,4 +1,4 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core.FSharp.Persistence
 
 open System.IO
 

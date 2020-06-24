@@ -1,9 +1,9 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core.FSharp.Persistence
 
 open GogApi.DotNet.FSharp.DomainTypes
 open TypedPersistence.FSharp
 
-module AuthenticationPersistence =
+module Authentication =
     let load () =
         loadDocumentFromDatabase<Authentication> Database.name
         |> function

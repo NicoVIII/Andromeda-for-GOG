@@ -1,6 +1,6 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core.FSharp.DomainTypes
 
-open Lenses
+open Andromeda.Core.FSharp.Lenses
 
 open GogApi.DotNet.FSharp.DomainTypes
 
