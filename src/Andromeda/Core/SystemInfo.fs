@@ -21,7 +21,8 @@ module SystemInfo =
             | Windows -> OSPlatform.Windows
 
         // Wrap IsOSPlatform to use with OS record
-        let isOS = mapPlatform >> RuntimeInformation.IsOSPlatform
+        let isOS =
+            mapPlatform >> RuntimeInformation.IsOSPlatform
 
         // Determine os
         [ Linux; MacOS; Windows ]
@@ -41,10 +42,17 @@ module SystemInfo =
         let path =
             match os with
             | Linux
-            | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".cache", Constants.folderName)
+            | MacOS ->
+                Path.Combine
+                    (Environment.GetEnvironmentVariable("HOME"),
+                     ".cache",
+                     Constants.folderName)
             | Windows ->
                 Path.Combine
-                    (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.folderName, "cache")
+                    (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                     Constants.folderName,
+                     "cache")
+
         Directory.CreateDirectory(path) |> ignore
         path
 
@@ -55,10 +63,14 @@ module SystemInfo =
     let savePath =
         match os with
         | Linux
-        | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
+        | MacOS ->
+            Path.Combine
+                (Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
         | Windows ->
             Path.Combine
-                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.folderName, "save")
+                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                 Constants.folderName,
+                 "save")
 
     let gameInfoPath (ProductId id) =
         Path.Combine(cachePath, "gameInfo", id |> string)
@@ -70,11 +82,11 @@ module SystemInfo =
         let gamePath =
             match os with
             | Linux
-            | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
+            | MacOS ->
+                Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
             | Windows ->
                 Path.Combine
-                    (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GOG Games")
+                    (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                     "GOG Games")
 
-        {
-            gamePath = gamePath
-        }
+        { gamePath = gamePath }

@@ -20,8 +20,7 @@ module Settings =
 
         abstract Save: Settings -> unit
 
-    type State =
-        { gamePath: string }
+    type State = { gamePath: string }
 
     type Msg =
         | SetGamepath of string
@@ -29,12 +28,12 @@ module Settings =
 
     let stateToSettings state =
         match state.gamePath with
-        | gamePath when gamePath |> Directory.Exists -> { Settings.gamePath = gamePath } |> Some
+        | gamePath when gamePath |> Directory.Exists ->
+            { Settings.gamePath = gamePath } |> Some
         | _ -> None
 
     let init (settings: Settings) =
-        let state =
-            { gamePath = settings.gamePath }
+        let state = { gamePath = settings.gamePath }
 
         state, Cmd.none
 
@@ -43,8 +42,7 @@ module Settings =
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
             match stateToSettings state with
-            | Some settings ->
-                window.Save settings
+            | Some settings -> window.Save settings
             | None -> ()
             state, Cmd.none
 
@@ -84,8 +82,7 @@ module Settings =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            let updateWithServices =
-                update this
+            let updateWithServices = update this
 
             Program.mkProgram init updateWithServices view
             |> Program.withHost this

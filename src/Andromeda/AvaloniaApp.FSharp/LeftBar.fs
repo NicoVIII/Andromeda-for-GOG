@@ -33,7 +33,8 @@ module LeftBar =
                       [ Button.classes [ "iconButton" ]
                         Button.content Icons.settings
                         Button.onClick (fun _ ->
-                            Global.OpenSettingsWindow authentication |> gDispatch) ] ] ]
+                            Global.OpenSettingsWindow authentication
+                            |> gDispatch) ] ] ]
 
     let private emptyGamesListView (state: State) (dispatch: Msg -> unit) =
         TextBlock.create
@@ -123,8 +124,7 @@ module LeftBar =
                 (StackPanel.create
                     [ StackPanel.orientation Orientation.Vertical
                       StackPanel.children
-                          [ //menuItem "Owned Games" None Global.Empty
-                            menuItem "Installed" (gState.installedGames.Length |> Some)
+                          [ menuItem "Installed" (gState.installedGames.Length |> Some)
                                 Global.Installed ] ]) ]
 
     let private downloadTemplateView (downloadStatus: DownloadStatus) =

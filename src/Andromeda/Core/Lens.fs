@@ -13,10 +13,9 @@ module Lenses =
                 let updatedInner = set2 inner value
                 let updatedOuter = set1 outer updatedInner
                 updatedOuter
-            Lens (get1 >> get2, set)
 
-        let getl (Lens (get, _)) source =
-            get source
+            Lens(get1 >> get2, set)
 
-        let setl (Lens (_, set)) value source =
-            set source value
+        let getl (Lens (get, _)) source = get source
+
+        let setl (Lens (_, set)) value source = set source value

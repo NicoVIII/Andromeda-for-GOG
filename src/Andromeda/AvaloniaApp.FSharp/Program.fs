@@ -20,4 +20,5 @@ type App() =
 
 [<EntryPoint>]
 let main (args: string []): int =
-    AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().StartWithClassicDesktopLifetime(args)
+    AppBuilder.Configure<App>().UsePlatformDetect().UseSkia()
+        .StartWithClassicDesktopLifetime(args)

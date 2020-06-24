@@ -124,7 +124,8 @@ let getInstalledOnWindows gameDir (_: Authentication) version =
         InstalledGame.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name
             gameDir versionString
         |> setl InstalledGameLenses.updateable version.IsSome
-        |> setl InstalledGameLenses.icon (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
+        |> setl InstalledGameLenses.icon
+               (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
 
     // Find info file of game
     let files =

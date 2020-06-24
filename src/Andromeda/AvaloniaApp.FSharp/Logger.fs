@@ -16,7 +16,8 @@ module Logger =
 
     let Log level message =
         match level with
-        | level when logLevel <= level -> Console.WriteLine("[" + level.ToString() + "] " + message)
+        | level when logLevel <= level ->
+            Console.WriteLine("[" + level.ToString() + "] " + message)
         | _ -> ()
 
     let LogError = Log LogLevel.Error

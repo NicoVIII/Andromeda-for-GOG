@@ -65,9 +65,7 @@ module Authentication =
                     return authentication.Value
                 }
 
-            let msgFnc auth =
-                Global.Authenticate auth
-                |> toGlobalMsg
+            let msgFnc auth = Global.Authenticate auth |> toGlobalMsg
 
             state, Cmd.OfAsync.perform getAuth () msgFnc
         | SetCode code -> { state with authCode = code }, Cmd.none

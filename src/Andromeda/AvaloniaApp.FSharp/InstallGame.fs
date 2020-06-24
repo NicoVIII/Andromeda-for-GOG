@@ -142,8 +142,7 @@ module InstallGame =
                         [ TextBlock.isVisible
                             (match state.selected with
                              | Some selected ->
-                                 state.installedGames
-                                 |> List.contains selected.id
+                                 state.installedGames |> List.contains selected.id
                              | None -> false)
                           TextBlock.text "This game is already installed" ]
                     Button.create

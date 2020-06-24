@@ -52,10 +52,8 @@ module Global =
 
         let installedGames =
             match authentication with
-            | Some authentication ->
-                Installed.searchInstalled settings authentication
-            | None ->
-                []
+            | Some authentication -> Installed.searchInstalled settings authentication
+            | None -> []
 
         { authentication = authentication
           downloads = []

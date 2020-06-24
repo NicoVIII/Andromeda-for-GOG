@@ -15,9 +15,9 @@ module DomainTypes =
           downloaded: int }
 
     type IAndromedaWindow =
-        abstract member Close: unit -> unit
-        abstract member CloseWithoutCustomHandler: unit -> unit
-        abstract member AddClosedHandler: (EventArgs -> unit) -> unit
+        abstract Close: unit -> unit
+        abstract CloseWithoutCustomHandler: unit -> unit
+        abstract AddClosedHandler: (EventArgs -> unit) -> unit
 
     type AndromedaWindow() =
         inherit HostWindow()
@@ -32,11 +32,10 @@ module DomainTypes =
         interface IAndromedaWindow with
             member this.AddClosedHandler handler =
                 let disposable = this.Closed.Subscribe(handler)
-                customHandler <- disposable::customHandler
+                customHandler <- disposable :: customHandler
 
-            member __.Close () =
-                base.Close()
+            member __.Close() = base.Close()
 
-            member __.CloseWithoutCustomHandler () =
-                removeAllCustomHandler()
+            member __.CloseWithoutCustomHandler() =
+                removeAllCustomHandler ()
                 base.Close()
