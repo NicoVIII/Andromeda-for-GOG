@@ -156,7 +156,7 @@ module Main =
 
         let closeWindow (wind: IAndromedaWindow) =
             let sub dispatch =
-                wind.AddClosedHandler (fun _ -> CloseAllWindows |> dispatch)
+                wind.AddClosedHandler(fun _ -> CloseAllWindows |> dispatch)
                 |> ignore
 
             Cmd.ofSub sub
@@ -167,7 +167,9 @@ module Main =
                 | Some window ->
                     let wind = window :> InstallGame.IInstallGameWindow
                     wind.OnSave.Subscribe(fun (_, downloadInfo) ->
-                        (downloadInfo, authentication) |> CloseInstallGameWindow |> dispatch)
+                        (downloadInfo, authentication)
+                        |> CloseInstallGameWindow
+                        |> dispatch)
                     |> ignore
                 | None -> ()
 
@@ -175,7 +177,10 @@ module Main =
 
         let saveSettings authentication (window: Settings.IWindow) =
             let sub dispatch =
-                window.OnSave.Subscribe(fun (window, settings) -> (window, settings, authentication) |> CloseSettingsWindow |> dispatch)
+                window.OnSave.Subscribe(fun (window, settings) ->
+                    (window, settings, authentication)
+                    |> CloseSettingsWindow
+                    |> dispatch)
                 |> ignore
 
             Cmd.ofSub sub
@@ -206,7 +211,8 @@ module Main =
             let state =
                 state.globalState
                 |> setl lens value
-                |> setl StateLenses.globalState <| state
+                |> setl StateLenses.globalState
+                <| state
 
             state, Cmd.none
         | Global.Authenticate authentication ->
@@ -236,7 +242,8 @@ module Main =
         | GlobalMsg msg -> updateGlobal msg state mainWindow
         | AuthenticationMsg msg ->
             let (s, cmd) =
-                Authentication.update msg state.authenticationState GlobalMsg
+                Authentication.update msg state.authenticationState AuthenticationMsg
+                    GlobalMsg
 
             { state with authenticationState = s }, cmd
         | CloseAllWindows ->
@@ -248,8 +255,7 @@ module Main =
 
             state, Cmd.none
         | LeftBarMsg msg ->
-            let (s, cmd) =
-                LeftBar.update msg state.leftBarState
+            let (s, cmd) = LeftBar.update msg state.leftBarState
 
             { state with leftBarState = s }, Cmd.map LeftBarMsg cmd
         | AddNotification notification ->
@@ -307,8 +313,7 @@ module Main =
 
             { state with settingsWindow = None }, cmd
         | SearchInstalled authentication ->
-            let settings =
-                getl StateLenses.settings state
+            let settings = getl StateLenses.settings state
 
             let installedGames =
                 Installed.searchInstalled settings authentication
@@ -320,10 +325,10 @@ module Main =
         | SetSettings (settings, authentication) ->
             SettingsPersistence.save settings |> ignore
 
-            let state =
-                setl StateLenses.settings settings state
+            let state = setl StateLenses.settings settings state
 
-            let msg = Cmd.ofMsg (authentication |> SearchInstalled)
+            let msg =
+                Cmd.ofMsg (authentication |> SearchInstalled)
 
             (state, msg)
         | FinishGameDownload (filePath, authentication) ->
@@ -400,8 +405,7 @@ module Main =
             state, cmd
         | UpgradeGames authentication ->
             let (updateDataList, authentication) =
-                (getl StateLenses.installedGames state,
-                 authentication)
+                (getl StateLenses.installedGames state, authentication)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication, if it was refreshed
@@ -415,7 +419,8 @@ module Main =
                     List.map (fun (updateData: Installed.UpdateData) ->
                         updateData.game
                         |> gameToDownloadInfo
-                        |> (fun productInfo -> (productInfo, authentication) |> StartGameDownload)
+                        |> (fun productInfo ->
+                            (productInfo, authentication) |> StartGameDownload)
                         |> Cmd.ofMsg) updateDataList
                 | _ ->
                     [ AddNotification "No games found to update."
@@ -489,10 +494,13 @@ module Main =
                               [ Button.create
                                   [ Button.content "Install game"
                                     Button.onClick (fun _ ->
-                                        authentication |> OpenInstallGameWindow |> dispatch) ]
+                                        authentication
+                                        |> OpenInstallGameWindow
+                                        |> dispatch) ]
                                 Button.create
                                     [ Button.content "Upgrade games"
-                                      Button.onClick (fun _ -> authentication |> UpgradeGames |> dispatch) ] ] ]
+                                      Button.onClick (fun _ ->
+                                          authentication |> UpgradeGames |> dispatch) ] ] ]
                     TextBox.create
                         [ TextBox.dock Dock.Bottom
                           TextBox.height 100.0
@@ -521,11 +529,11 @@ module Main =
                                else
                                    Games.view gDispatch
                                        (getl StateLenses.installedGames state)
-                                       authentication)]]]
+                                       authentication) ] ] ]
 
     let leftBarView authentication state dispatch =
-        LeftBar.view authentication state.leftBarState state.globalState (LeftBarMsg >> dispatch)
-            (GlobalMsg >> dispatch)
+        LeftBar.view authentication state.leftBarState state.globalState
+            (LeftBarMsg >> dispatch) (GlobalMsg >> dispatch)
 
     let view (state: State) dispatch =
         let gDispatch = (GlobalMsg >> dispatch)

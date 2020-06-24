@@ -8,6 +8,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
+open GogApi.DotNet.FSharp.DomainTypes
 open System.Diagnostics
 open System.Runtime.InteropServices
 open System.Web
@@ -21,7 +22,7 @@ module Authentication =
         + (HttpUtility.UrlEncode redirectUri)
         + "&response_type=code&layout=client2"
 
-    type State = { authCode: string }
+    type State = { authCode: string; invalidCode: bool }
 
     module StateLenses =
         let authCode =
@@ -31,11 +32,12 @@ module Authentication =
         | UseLens of Lens<State, 'T> * 'T
         | OpenBrowser
         | SetCode of string
+        | TryAuthenticate of Authentication option
         | Save
 
-    let init () = { authCode = "" }
+    let init () = { authCode = ""; invalidCode = false }
 
-    let update msg (state: State) toGlobalMsg =
+    let update<'a> msg (state: State) toAuthMsg toGlobalMsg: State * Cmd<'a> =
         match msg with
         | UseLens (lens, value) ->
             let state = state |> setl lens value
@@ -57,18 +59,33 @@ module Authentication =
             else
                 ()
             state, Cmd.none
+        | TryAuthenticate authentication ->
+            match authentication with
+            | Some authentication ->
+                let cmd =
+                    Global.Authenticate authentication
+                    |> toGlobalMsg
+                    |> Cmd.ofMsg
+
+                state, cmd
+            | None ->
+                let state = { state with invalidCode = true }
+
+                state, Cmd.none
         | Save ->
             let getAuth () =
-                async {
-                    let! authentication =
-                        Authentication.getNewToken redirectUri state.authCode
-                    return authentication.Value
-                }
+                async { return! Authentication.getNewToken redirectUri state.authCode }
 
-            let msgFnc auth = Global.Authenticate auth |> toGlobalMsg
+            let msgFnc auth = TryAuthenticate auth |> toAuthMsg
 
             state, Cmd.OfAsync.perform getAuth () msgFnc
-        | SetCode code -> { state with authCode = code }, Cmd.none
+        | SetCode code ->
+            let state =
+                { state with
+                      authCode = code
+                      invalidCode = false }
+
+            state, Cmd.none
 
     let view (state: State) dispatch: IView =
         StackPanel.create
@@ -92,6 +109,10 @@ module Authentication =
                     TextBox.create
                         [ TextBox.text state.authCode
                           TextBox.onTextChanged (SetCode >> dispatch) ]
+                    TextBlock.create
+                        [ TextBlock.foreground "red"
+                          TextBlock.text "Invalid code!"
+                          TextBlock.isVisible state.invalidCode ]
                     Button.create
                         [ Button.content "Authenticate"
                           Button.isEnabled (state.authCode <> "")
