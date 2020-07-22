@@ -10,6 +10,10 @@
     <Compile Include="Types/Lenses.fs" />
     <Compile Include="Types/Settings.fs" />
     <Compile Include="Types/InstalledGame.fs" />
+    <Compile Include="Types/InstalledGameGenerated.fs">
+      <MyriadFile>Types/InstalledGame.fs</MyriadFile>
+      <MyriadNamespace>Andromeda.Core.FSharp.DomainTypes</MyriadNamespace>
+    </Compile>
     <Compile Include="Types/Persistence.fs" />
     <Compile Include="SystemInfo.fs" />
     <Compile Include="Diverse.fs" />

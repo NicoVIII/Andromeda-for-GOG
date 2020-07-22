@@ -2,3 +2,5 @@ GogApi.DotNet
 Mono.Posix.NETStandard
 SharpZipLib
 TypedPersistence
+Myriad.Plugins
+Myriad.Sdk
