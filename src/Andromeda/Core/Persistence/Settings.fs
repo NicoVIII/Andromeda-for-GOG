@@ -1,15 +1,15 @@
 namespace Andromeda.Core.FSharp.Persistence
 
+open TypedPersistence
+open System.IO
+
+open Andromeda.Core.FSharp
 open Andromeda.Core.FSharp.DomainTypes
 
-open TypedPersistence.FSharp
-
 module Settings =
-    let load () =
-        loadDocumentFromDatabase<Settings> Database.name
-        |> function
-        | Ok appData -> appData |> Some
-        | Error _ -> None
+    let file =
+        Path.Combine(SystemInfo.savePath, Constants.settingsFile)
 
-    let save =
-        saveDocumentToDatabase<Settings> Database.name
+    let load () = load<Settings> file
+
+    let save = save<Settings> file

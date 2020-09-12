@@ -17,7 +17,7 @@ nuget Myriad.Core ~> 0.4.0
 nuget Myriad.Plugins ~> 0.4.0
 nuget Myriad.Sdk ~> 0.4.0
 nuget SharpZipLib ~> 1.2
-nuget TypedPersistence ~> 0.5.0
+nuget TypedPersistence ~> 0.6.0-alpha.3
 
 group Build
     source https://api.nuget.org/v3/index.json

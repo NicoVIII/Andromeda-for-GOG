@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0-alpha.3]
+## [0.4.0-alpha.4]
 
 ### Added
 -   Add ability to choose a game from the list of found games (Install game)
@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Move authentication from own window into main window
 -   Move gamelist from left bar to main window
 -   Provide default game path to avoid another open window on first opening
+-   Move changed data from LiteDB into json files
 
 ### Fixed
 -   Versioning of cached installers now works correctly

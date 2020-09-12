@@ -4,9 +4,6 @@ open System.IO
 
 open Andromeda.Core.FSharp
 
-module Database =
+module SaveFiles =
     Directory.CreateDirectory(SystemInfo.savePath)
     |> ignore
-
-    let name =
-        Path.Combine(SystemInfo.savePath, Constants.databaseFile)

@@ -1,14 +1,15 @@
 namespace Andromeda.Core.FSharp.Persistence
 
 open GogApi.DotNet.FSharp.DomainTypes
-open TypedPersistence.FSharp
+open TypedPersistence
+open System.IO
+
+open Andromeda.Core.FSharp
 
 module Authentication =
-    let load () =
-        loadDocumentFromDatabase<Authentication> Database.name
-        |> function
-        | Ok authentication -> authentication |> Some
-        | Error _ -> None
+    let file =
+        Path.Combine(SystemInfo.savePath, Constants.authenticationFile)
 
-    let save =
-        saveDocumentToDatabase<Authentication> Database.name
+    let load () = load<Authentication> file
+
+    let save = save<Authentication> file

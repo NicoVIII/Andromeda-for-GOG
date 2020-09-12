@@ -19,7 +19,7 @@
     <Compile Include="Diverse.fs" />
     <Compile Include="Download.fs" />
     <Compile Include="Installed.fs" />
-    <Compile Include="Persistence/Database.fs" />
+    <Compile Include="Persistence/SavePath.fs" />
     <Compile Include="Persistence/Authentication.fs" />
     <Compile Include="Persistence/Settings.fs" />
   </ItemGroup>
