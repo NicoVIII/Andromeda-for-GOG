@@ -5,7 +5,11 @@ on: push
 jobs:
   build:
     name: Test building of Andromeda
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        dotnet: [3.1.402]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
@@ -13,7 +17,7 @@ jobs:
         fetch-depth: 1
     - uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '3.1.100'
+        dotnet-version: ${{ matrix.dotnet }}
     - uses: actions/cache@v2
       with:
         path: packages
