@@ -30,7 +30,7 @@ jobs:
         run: dotnet fake build
       - name: Get Changelog Entry
         id: changelog_reader
-        uses: mindsers/changelog-reader-action@v1.1.0
+        uses: mindsers/changelog-reader-action@v2
         with:
           version: ${{ github.ref }}
           path: ./CHANGELOG.md
@@ -45,7 +45,7 @@ jobs:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           body: ${{ steps.changelog_reader.outputs.log_entry }}
-          draft: false
+          draft: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
           prerelease: false
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
