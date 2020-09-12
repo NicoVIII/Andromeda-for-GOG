@@ -14,12 +14,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Move authentication from own window into main window
 -   Move gamelist from left bar to main window
 -   Provide default game path to avoid another open window on first opening
--   Move changed data from LiteDB into json files
+-   Move data from LiteDB into json files
 
 ### Fixed
 -   Versioning of cached installers now works correctly
 
-## [0.3.0]
+## [0.3.0] - 2020-02-29
 
 -   a first very basic GUI (for now without browser with workaround buttons) which can install games, update games and start (some) games
 -   supports basic notifications
@@ -30,11 +30,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   settings window where gamepath can be provided
 -   terminal output of games in Andromeda
 
-## [0.2.0]
+## [0.2.0] - 2018-08-25
 
 -   add automatic downloading and installing of games
 -   add ability to automatically upgrade installed games
 
-## [0.1.0]
+## [0.1.0] - 2018-07-16
 
 initial, very basic version with console interface
