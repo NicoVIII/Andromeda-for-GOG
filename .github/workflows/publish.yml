@@ -15,34 +15,40 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v1
+      - name: Get version from tag
+        id: tag_name
+        run: |
+          echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
+        shell: bash
+      - name: Checkout code
+        uses: actions/checkout@v2
       - name: Setup .NET Core
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Restore tools
         run: dotnet tool restore && dotnet restore
-      - name: Run Test
+      - name: Run build
         run: dotnet fake build
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2
         with:
-          version: ${{ github.ref }}
+          version: ${{ steps.tag_name.outputs.current_version }}
           path: ./CHANGELOG.md
       - name: Run publishing script
-        run: ./scripts/publish.sh ${{ github.ref }}
+        run: ./scripts/publish.sh ${{ steps.tag_name.outputs.current_version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
         with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
+          tag_name: ${{ steps.changelog_reader.outputs.version }}
+          release_name: Release ${{ steps.changelog_reader.outputs.version }}
           body: ${{ steps.changelog_reader.outputs.log_entry }}
-          draft: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
-          prerelease: false
+          prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
+          draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v1-release
         with:
