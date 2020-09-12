@@ -18,9 +18,5 @@ jobs:
     - uses: actions/setup-dotnet@v1
       with:
         dotnet-version: ${{ matrix.dotnet }}
-    - uses: actions/cache@v2
-      with:
-        path: packages
-        key: ${{ runner.OS }}-build-${{ hashFiles('**/paket.lock') }}
     - name: Build Andromeda
       run: dotnet tool restore && dotnet paket restore && dotnet fake build

@@ -20,10 +20,6 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
-      - uses: actions/cache@v2
-        with:
-          path: packages
-          key: ${{ runner.OS }}-build-${{ hashFiles('**/paket.lock') }}
       - name: Restore tools
         run: dotnet tool restore && dotnet restore
       - name: Run Test
