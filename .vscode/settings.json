@@ -6,5 +6,6 @@
         "**/packages/**": true
     },
     "editor.formatOnSave": true,
-    "files.trimFinalNewlines": true
+    "files.trimFinalNewlines": true,
+    "editor.formatOnSaveMode": "modifications"
 }
