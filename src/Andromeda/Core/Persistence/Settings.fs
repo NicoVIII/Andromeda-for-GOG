@@ -22,4 +22,4 @@ module Settings =
             | _ -> load<Settings> file
         | None -> None
 
-    let save = save<Settings> file
+    let save = saveVersion<Settings> file 2u

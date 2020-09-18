@@ -22,8 +22,7 @@ module Download =
         // Remove invalid characters from gameName
         let gameName = Path.removeInvalidFileNameChars gameName
 
-        let dir =
-            Path.Combine(SystemInfo.cachePath, "installers")
+        let dir = SystemInfo.installerCachePath
 
         let filepath =
             Path.Combine
@@ -36,8 +35,8 @@ module Download =
         Directory.CreateDirectory(Path.Combine(dir, "tmp"))
         |> ignore
         let file = FileInfo(filepath)
-        match not file.Exists with
-        | true ->
+        match file.Exists with
+        | false ->
             let url = url.Replace("http://", "https://")
             use client = new WebClient()
 
@@ -45,7 +44,7 @@ module Download =
                 client.DownloadFileTaskAsync(url, tmppath)
 
             (task |> Some, filepath, tmppath)
-        | false -> (None, filepath, tmppath)
+        | true -> (None, filepath, tmppath)
 
     let rec copyDirectory
             (sourceDirName: string)

@@ -53,6 +53,8 @@ module SystemInfo =
         Directory.CreateDirectory(path) |> ignore
         path
 
+    let installerCachePath = Path.Combine(cachePath, Constants.installerCacheSubPath)
+
     // TODO: Move to config?
     let tmpPath = Path.GetTempPath()
 
@@ -78,5 +80,5 @@ module SystemInfo =
             | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
             | Windows -> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GOG Games")
 
-        { cacheRemoval = RemoveWithAge 30u
+        { cacheRemoval = RemoveByAge 30u
           gamePath = gamePath }

@@ -56,6 +56,9 @@ module Global =
             | Some authentication -> Installed.searchInstalled settings authentication
             | None -> []
 
+        // After determining our settings, we perform a cache check
+        Cache.check settings
+
         { authentication = authentication
           downloads = []
           installedGames = installedGames

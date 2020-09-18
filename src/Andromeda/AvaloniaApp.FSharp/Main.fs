@@ -307,6 +307,9 @@ module Main =
         | CloseSettingsWindow (window, settings, authentication) ->
             window.CloseWithoutCustomHandler()
 
+            // After we got new settings, we perform a cache check
+            Cache.check settings
+
             let cmd =
                 (settings, authentication)
                 |> SetSettings
@@ -569,8 +572,8 @@ module Main =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
+            // Load saved stuff from dsik
             let settings = Persistence.Settings.load ()
-
             let authentication = Persistence.Authentication.load ()
 
             let updateWithServices msg state = update msg state this

@@ -18,6 +18,7 @@
     <Compile Include="SystemInfo.fs" />
     <Compile Include="Diverse.fs" />
     <Compile Include="Download.fs" />
+    <Compile Include="Cache.fs" />
     <Compile Include="Installed.fs" />
     <Compile Include="Persistence/SavePath.fs" />
     <Compile Include="Persistence/Authentication.fs" />
