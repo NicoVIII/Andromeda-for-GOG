@@ -1,3 +1,11 @@
 namespace Andromeda.Core.FSharp.DomainTypes
 
-type Settings = { gamePath: string }
+type CacheRemovalPolicy =
+    | NoRemoval
+    | RemoveWithAge of uint32
+
+type SettingsV1 = { gamePath: string }
+
+type Settings =
+    { cacheRemoval: CacheRemovalPolicy
+      gamePath: string }
