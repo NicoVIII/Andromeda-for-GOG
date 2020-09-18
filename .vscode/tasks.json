@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet fake build",
+            "command": "dotnet build",
             "type": "shell",
             "args": [],
             "group": {

@@ -4,7 +4,7 @@
     <AssemblyName>Andromeda.AvaloniaApp.FSharp</AssemblyName>
     <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
   <ItemGroup>
