@@ -28,8 +28,8 @@ module GameList =
                       [ ContextMenu.viewItems
                           [ MenuItem.create
                               [ MenuItem.header "Start"
-                                MenuItem.onClick (fun _ ->
-                                    game |> Global.StartGame |> gDispatch) ] ] ])
+                                MenuItem.onClick ((fun _ ->
+                                    game |> Global.StartGame |> gDispatch), OnChangeOf game) ] ] ])
               Border.child
                   (Image.create
                       [ Image.height 120.0
