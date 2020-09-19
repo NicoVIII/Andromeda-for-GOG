@@ -64,7 +64,7 @@ jobs:
           file: LICENSE.txt
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: false
+          file_glob: true
       - name: Upload changelog to release
         uses: svenstaro/upload-release-action@v1-release
         with:
@@ -72,7 +72,7 @@ jobs:
           file: CHANGELOG.md
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: false
+          file_glob: true
       - name: Upload readme to release
         uses: svenstaro/upload-release-action@v1-release
         with:
@@ -80,4 +80,4 @@ jobs:
           file: README.md
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: false
+          file_glob: true
