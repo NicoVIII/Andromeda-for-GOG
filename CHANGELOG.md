@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.4.0-beta.2]
+## [0.4.0-beta.3]
 
 ### Added
 -   Add ability to choose a game from the list of found games (Install game)
@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   Versioning of cached installers now works correctly
 -   Use of ENTER in authentication and game search possible
 -   After adding games now the right one should start
+-   Errors now correctly show up in the error log
 
 ## [0.3.0] - 2020-02-29
 
