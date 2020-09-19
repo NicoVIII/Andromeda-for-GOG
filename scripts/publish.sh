@@ -32,7 +32,7 @@ echo "Start publishing as single file executables."
 echo "Start publishing as AppImage."
 (
   cd "src/Andromeda/AvaloniaApp.FSharp" || exit
-  dotnet publish --verbosity quiet --configuration Release --framework "$FRAMEWORK" --runtime ubuntu.16.04-x64 | grep error --color=never
+  dotnet publish -v quiet -c Release -f "$FRAMEWORK" -r ubuntu.16.04-x64 -p:PublishTrimmed=true -p:DebugType=None
   mkdir -p "AppDir/usr"
   mv -T "bin/Release/$FRAMEWORK/ubuntu.16.04-x64/publish" "AppDir/usr/bin"
 
