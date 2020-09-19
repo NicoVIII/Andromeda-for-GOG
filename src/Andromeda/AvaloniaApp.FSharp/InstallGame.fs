@@ -135,6 +135,11 @@ module InstallGame =
                                   Button.onClick (fun _ -> SearchGame |> dispatch) ]
                               TextBox.create
                                   [ TextBox.text state.search
+                                    TextBox.onKeyDown (fun args ->
+                                      match args.Key with
+                                      | Key.Enter ->
+                                        SearchGame |> dispatch
+                                      | _ -> ())
                                     TextBox.onTextChanged (fun text ->
                                         match text = state.search with
                                         | true -> ()

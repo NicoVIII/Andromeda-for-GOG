@@ -4,6 +4,7 @@ open Andromeda.Core.FSharp.Lenses
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
@@ -73,12 +74,18 @@ module Authentication =
 
                 state, Cmd.none
         | Save ->
-            let getAuth () =
-                async { return! Authentication.getNewToken redirectUri state.authCode }
+            let msg =
+                match state.authCode with
+                | "" -> Cmd.none
+                | authCode ->
+                    let getAuth () =
+                        async { return! Authentication.getNewToken redirectUri authCode }
 
-            let msgFnc auth = TryAuthenticate auth |> toAuthMsg
+                    let msgFnc auth = TryAuthenticate auth |> toAuthMsg
 
-            state, Cmd.OfAsync.perform getAuth () msgFnc
+                    Cmd.OfAsync.perform getAuth () msgFnc
+
+            state, msg
         | SetCode code ->
             let state =
                 { state with
@@ -108,6 +115,11 @@ module Authentication =
                         [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
                     TextBox.create
                         [ TextBox.text state.authCode
+                          TextBox.onKeyDown (fun args ->
+                            match args.Key with
+                            | Key.Enter ->
+                              Save |> dispatch
+                            | _ -> ())
                           TextBox.onTextChanged (SetCode >> dispatch) ]
                     TextBlock.create
                         [ TextBlock.foreground "red"
