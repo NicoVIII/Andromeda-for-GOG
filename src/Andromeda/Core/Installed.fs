@@ -57,7 +57,9 @@ module Installed =
 
     let private prepareGameProcess processOutput (proc: Process) =
         proc.StartInfo.RedirectStandardOutput <- true
+        proc.StartInfo.RedirectStandardError <- true
         proc.OutputDataReceived.AddHandler(new DataReceivedEventHandler(processOutput))
+        proc.ErrorDataReceived.AddHandler(new DataReceivedEventHandler(processOutput))
         proc
 
     let private startWindowsGameProcess (prepareGameProcess: Process -> Process) path =
@@ -109,6 +111,7 @@ module Installed =
 
             proc.Start() |> ignore
             proc.BeginOutputReadLine()
+            proc.BeginErrorReadLine()
             proc |> Some
         | SystemInfo.OS.Windows -> startWindowsGameProcess prepareGameProcess path
 
