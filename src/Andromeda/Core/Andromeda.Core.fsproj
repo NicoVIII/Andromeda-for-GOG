@@ -1,21 +1,28 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>netstandard2.1</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.fs" />
-    <Compile Include="HelperFunctions.fs" />
+    <Compile Include="Helpers/String.fs" />
+    <Compile Include="Helpers/Path.fs" />
+    <Compile Include="Helpers/Result.fs" />
+    <Compile Include="Types/Lenses.fs" />
+    <Compile Include="Types/Settings.fs" />
+    <Compile Include="Types/InstalledGame.fs" />
+    <Compile Include="Types/InstalledGameGenerated.fs">
+      <MyriadFile>Types/InstalledGame.fs</MyriadFile>
+      <MyriadNamespace>Andromeda.Core.FSharp.DomainTypes</MyriadNamespace>
+    </Compile>
+    <Compile Include="Types/Persistence.fs" />
     <Compile Include="SystemInfo.fs" />
-    <Compile Include="DomainTypes.fs" />
-    <Compile Include="PersistenceTypes.fs" />
-    <Compile Include="Authentication.fs" />
-    <Compile Include="InstalledGame.fs" />
-    <Compile Include="Games.fs" />
+    <Compile Include="Diverse.fs" />
+    <Compile Include="Download.fs" />
+    <Compile Include="Cache.fs" />
     <Compile Include="Installed.fs" />
-    <Compile Include="User.fs" />
-    <Compile Include="Database.fs" />
-    <Compile Include="AuthenticationPersistence.fs" />
-    <Compile Include="SettingsPersistence.fs" />
+    <Compile Include="Persistence/SavePath.fs" />
+    <Compile Include="Persistence/Authentication.fs" />
+    <Compile Include="Persistence/Settings.fs" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

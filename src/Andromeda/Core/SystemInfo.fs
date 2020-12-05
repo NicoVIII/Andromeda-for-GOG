@@ -1,10 +1,14 @@
 namespace Andromeda.Core.FSharp
 
+open Andromeda.Core.FSharp.DomainTypes
+
+open GogApi.DotNet.FSharp.DomainTypes
 open Microsoft.FSharp.Collections
 open System
 open System.IO
 open System.Runtime.InteropServices
 
+/// Contains everything specific for different platforms
 module SystemInfo =
     type OS =
         | Linux
@@ -20,7 +24,8 @@ module SystemInfo =
             | Windows -> OSPlatform.Windows
 
         // Wrap IsOSPlatform to use with OS record
-        let isOS = mapPlatform >> RuntimeInformation.IsOSPlatform
+        let isOS =
+            mapPlatform >> RuntimeInformation.IsOSPlatform
 
         // Determine os
         [ Linux; MacOS; Windows ]
@@ -44,8 +49,11 @@ module SystemInfo =
             | Windows ->
                 Path.Combine
                     (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.folderName, "cache")
+
         Directory.CreateDirectory(path) |> ignore
         path
+
+    let installerCachePath = Path.Combine(cachePath, Constants.installerCacheSubPath)
 
     // TODO: Move to config?
     let tmpPath = Path.GetTempPath()
@@ -58,3 +66,19 @@ module SystemInfo =
         | Windows ->
             Path.Combine
                 (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), Constants.folderName, "save")
+
+    let gameInfoPath (ProductId id) =
+        Path.Combine(cachePath, "gameInfo", id |> string)
+
+    let logo2xPath productId =
+        Path.Combine(gameInfoPath productId, "logo_2x.jpg")
+
+    let defaultSettings () =
+        let gamePath =
+            match os with
+            | Linux
+            | MacOS -> Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
+            | Windows -> Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), "GOG Games")
+
+        { cacheRemoval = RemoveByAge 30u
+          gamePath = gamePath }

@@ -1,8 +1,10 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.DomainTypes
 open Avalonia
 open Avalonia.Controls
+open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.DSL
@@ -12,47 +14,30 @@ open Elmish
 open System.IO
 
 module Settings =
-    type ISettingsWindow =
-        abstract Close: unit -> unit
+    type IWindow =
+        inherit IAndromedaWindow
 
         [<CLIEvent>]
-        abstract OnSave: IEvent<ISettingsWindow * Settings>
+        abstract OnSave: IEvent<IWindow * Settings>
+
         abstract Save: Settings -> unit
 
-    type State =
-        { gamePath: string
-          window: ISettingsWindow }
-
     type Msg =
+        | SetCacheRemoval of CacheRemovalPolicy
         | SetGamepath of string
         | Save
 
-    let stateToSettings state =
-        match state.gamePath with
-        | gamePath when gamePath |> Directory.Exists ->
-            { gamePath = gamePath } |> Some
-        | _ ->
-            None
+    type State = Settings
 
-    let init (settings: Settings option, window: ISettingsWindow) =
-        let state =
-            match settings with
-            | Some settings ->
-                { gamePath = settings.gamePath
-                  window = window }
-            | None ->
-                { gamePath = ""
-                  window = window }
-        state, Cmd.none
+    let init (settings: Settings) =
+        settings, Cmd.none
 
-    let update (msg: Msg) (state: State) =
+    let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
+        | SetCacheRemoval policy -> { state with cacheRemoval = policy }, Cmd.none
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
-            match stateToSettings state with
-            | Some settings ->
-                state.window.Save settings
-            | None -> ()
+            window.Save state
             state, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
@@ -66,17 +51,37 @@ module Settings =
                         [ StackPanel.orientation Orientation.Horizontal
                           StackPanel.spacing 5.0
                           StackPanel.children
-                              [ TextBox.create [
-                                    TextBox.text state.gamePath
+                              [ TextBox.create
+                                  [ TextBox.text state.gamePath
                                     TextBox.width 300.0
                                     TextBox.onTextChanged (SetGamepath >> dispatch) ] ] ]
+                    TextBlock.create [ TextBlock.text "Cached installers removal" ]
+                    StackPanel.create
+                        [ StackPanel.orientation Orientation.Horizontal
+                          StackPanel.spacing 5.0
+                          StackPanel.children
+                              [ ComboBox.create
+                                  [ ComboBox.width 300.0
+                                    ComboBox.dataItems [NoRemoval; RemoveByAge 30u]
+                                    ComboBox.itemTemplate (DataTemplateView<CacheRemovalPolicy>.create
+                                      <| fun policy ->
+                                          let text =
+                                            match policy with
+                                            | NoRemoval -> "No removal"
+                                            | RemoveByAge age -> sprintf "Delete after %i days" age
+                                          TextBlock.create [ TextBlock.text text ])
+                                    ComboBox.selectedItem state.cacheRemoval
+                                    ComboBox.onSelectedItemChanged (fun x ->
+                                        match box x with
+                                        | :? CacheRemovalPolicy as policy ->
+                                            policy |> SetCacheRemoval |> dispatch
+                                        | _ -> failwith "Nope") ] ] ]
                     Button.create
                         [ Button.content "Save"
-                          Button.isEnabled (stateToSettings state |> Option.isSome)
                           Button.onClick (fun _ -> Save |> dispatch) ] ] ]
 
-    type SettingsWindow(settings: Settings option) as this =
-        inherit HostWindow()
+    type SettingsWindow(settings: Settings) as this =
+        inherit AndromedaWindow()
 
         let saveEvent = new Event<_>()
 
@@ -91,16 +96,18 @@ module Settings =
             this.AttachDevTools(KeyGesture(Key.F12))
 #endif
 
-            Program.mkProgram init update view
+            let updateWithServices = update this
+
+            Program.mkProgram init updateWithServices view
             |> Program.withHost this
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
-            |> Program.runWith (settings, this)
+            |> Program.runWith settings
 
-        interface ISettingsWindow with
-            member __.Close () = this.Close()
-
+        interface IWindow with
             [<CLIEvent>]
-            member __.OnSave = saveEvent.Publish
-            member __.Save(settings: Settings) = saveEvent.Trigger(this :> ISettingsWindow, settings)
+            override __.OnSave = saveEvent.Publish
+
+            member __.Save(settings: Settings) =
+                saveEvent.Trigger(this :> IWindow, settings)

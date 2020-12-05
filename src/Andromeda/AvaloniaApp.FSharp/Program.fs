@@ -3,7 +3,6 @@ module Andromeda.AvaloniaApp.FSharp.Program
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
-open Avalonia.Logging.Serilog
 
 type App() =
     inherit Application()
@@ -21,5 +20,5 @@ type App() =
 
 [<EntryPoint>]
 let main (args: string []): int =
-    AppBuilder.Configure<App>().UsePlatformDetect().UseSkia().LogToDebug()
+    AppBuilder.Configure<App>().UsePlatformDetect().UseSkia()
         .StartWithClassicDesktopLifetime(args)

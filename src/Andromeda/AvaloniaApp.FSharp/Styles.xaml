@@ -2,8 +2,21 @@
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-    <Style Selector="DockPanel.leftBar">
+    <Style Selector="Border.leftBar">
       <Setter Property="Background" Value="Black"/>
+    </Style>
+
+    <Style Selector="Border.leftBar Button">
+      <Setter Property="Background" Value="Transparent"/>
+      <Setter Property="BorderThickness" Value="0"/>
+    </Style>
+
+    <Style Selector="Border.leftBar Button:pointerover">
+      <Setter Property="Background" Value="#20FFFFFF"/>
+    </Style>
+
+    <Style Selector="Border.leftBar Button.active">
+      <Setter Property="Background" Value="#20FFFFFF"/>
     </Style>
 
     <Style Selector=".icon Path">
@@ -17,6 +30,12 @@
 
     <Style Selector="Button.iconButton:pointerover .icon Path">
       <Setter Property="Fill" Value="White"/>
+    </Style>
+
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="#FFA0A0A0"/>
+      <Setter Property="CornerRadius" Value="4.0"/>
+      <Setter Property="Padding" Value="3.0"/>
     </Style>
 
     <Style Selector="StackPanel.dark">

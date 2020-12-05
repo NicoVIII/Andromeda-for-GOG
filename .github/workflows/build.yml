@@ -1,11 +1,15 @@
-name: CI
+name: Build
 
-on: push
+on: [push, pull_request]
 
 jobs:
   build:
     name: Test building of Andromeda
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
+        dotnet: [3.1.402]
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v1
@@ -13,10 +17,6 @@ jobs:
         fetch-depth: 1
     - uses: actions/setup-dotnet@v1
       with:
-        dotnet-version: '3.1.100'
-    - uses: actions/cache@v1
-      with:
-        path: packages
-        key: ${{ runner.OS }}-build-${{ hashFiles('**/paket.lock') }}
+        dotnet-version: ${{ matrix.dotnet }}
     - name: Build Andromeda
       run: dotnet tool restore && dotnet paket restore && dotnet fake build

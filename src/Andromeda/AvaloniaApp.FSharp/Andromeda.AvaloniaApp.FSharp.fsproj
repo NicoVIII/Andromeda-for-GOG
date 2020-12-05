@@ -6,7 +6,6 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
-    <!--<PublishTrimmed>true</PublishTrimmed>-->
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
@@ -19,8 +18,10 @@
     <Compile Include="Icons.fs" />
     <Compile Include="DomainTypes.fs" />
     <Compile Include="AvaloniaHelper.fs" />
+    <Compile Include="Global.fs" />
     <!-- Main window components -->
     <Compile Include="LeftBar.fs" />
+    <Compile Include="GameList.fs" />
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />
     <Compile Include="Authentication.fs" />
@@ -28,9 +29,6 @@
 
     <Compile Include="Main.fs" />
     <Compile Include="Program.fs" />
-  </ItemGroup>
-  <ItemGroup>
-    <TrimmerRootAssembly Include="mscorlib" />
   </ItemGroup>
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
 </Project>

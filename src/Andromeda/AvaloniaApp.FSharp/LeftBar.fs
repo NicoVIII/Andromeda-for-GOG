@@ -1,6 +1,9 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
+open DomainTypes
+
 open Andromeda.Core.FSharp
+open Andromeda.Core.FSharp.DomainTypes
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
@@ -11,18 +14,17 @@ open Avalonia.Media
 open Elmish
 
 module LeftBar =
-    type State =
-        { searchString: string }
+    type State = { searchString: string }
 
     type Msg = Search of string
 
-    let init() = { searchString = "" }
+    let init () = { searchString = "" }
 
     let update (msg: Msg) (state: State) =
         match msg with
         | Search search -> { state with searchString = search }, Cmd.none
 
-    let private iconBarView openSettings (state: State) (dispatch: Msg -> unit) =
+    let private iconBarView authentication state dispatch gDispatch =
         StackPanel.create
             [ StackPanel.dock Dock.Top
               StackPanel.margin (Thickness.Parse("0, 10"))
@@ -31,7 +33,9 @@ module LeftBar =
                   [ Button.create
                       [ Button.classes [ "iconButton" ]
                         Button.content Icons.settings
-                        Button.onClick openSettings ] ] ]
+                        Button.onClick (fun _ ->
+                            Global.OpenSettingsWindow authentication
+                            |> gDispatch) ] ] ]
 
     let private emptyGamesListView (state: State) (dispatch: Msg -> unit) =
         TextBlock.create
@@ -63,10 +67,11 @@ module LeftBar =
                                   TextBlock.text "(not updateable for now)"
                                   TextBlock.margin (Thickness.Parse("3,0,0,0")) ] ] ] ] ]
 
-    let private filledGamesListView (gameList: InstalledGame list) startGame (dispatch: Msg -> unit) =
+    let private filledGamesListView gameList startGame dispatch =
         ScrollViewer.create
             [ Grid.row 1
-              ScrollViewer.horizontalScrollBarVisibility Primitives.ScrollBarVisibility.Disabled
+              ScrollViewer.horizontalScrollBarVisibility
+                  Primitives.ScrollBarVisibility.Disabled
               ScrollViewer.content
                   (StackPanel.create
                       [ StackPanel.orientation Orientation.Vertical
@@ -76,20 +81,57 @@ module LeftBar =
                                 [ ItemsControl.dataItems gameList
                                   ItemsControl.itemTemplate
                                       (DataTemplateView<InstalledGame>
-                                          .create(fun game -> gameTemplateView startGame game dispatch)) ] ] ]) ]
+                                          .create
+                                              (fun game ->
+                                                  gameTemplateView startGame game dispatch)) ] ] ]) ]
 
-    let private gamesListView (installedGames: InstalledGame list) startGame (state: State) (dispatch: Msg -> unit) =
+    let private gamesListView installedGames startGame state dispatch =
         let filteredGamesList =
             installedGames
-            |> List.filter (fun game -> String.contains (state.searchString.ToLower()) (game.name.ToLower()))
+            |> List.filter (fun game ->
+                game.name.ToLower().Contains(state.searchString.ToLower()))
+
         match filteredGamesList.Length with
         | 0 -> emptyGamesListView state dispatch :> IView
         | _ -> filledGamesListView filteredGamesList startGame dispatch :> IView
 
+    // TODO: icon
+    let private menuItem currentMode gDispatch (text: string) badge mode =
+        Button.create
+            [ Button.classes [ if mode = currentMode then "active" else () ]
+              Button.content
+                  (DockPanel.create
+                      [ DockPanel.children
+                          [ match badge with
+                            | Some badge ->
+                                Border.create
+                                    [ Border.classes [ "badge" ]
+                                      Border.dock Dock.Right
+                                      Border.margin (5.0, 0.0, 0.0, 0.0)
+                                      Border.child
+                                          (TextBlock.create
+                                              [ TextBlock.text (badge |> string) ]) ]
+                            | None -> ()
+                            TextBlock.create
+                                [ TextBlock.text text
+                                  TextBlock.verticalAlignment VerticalAlignment.Center ] ] ])
+              Button.onClick (fun _ -> Global.ChangeMode mode |> gDispatch) ]
+
+    let private middleView state (gState: Global.State) _ gDispatch =
+        let menuItem = menuItem gState.mode gDispatch
+
+        ScrollViewer.create
+            [ ScrollViewer.content
+                (StackPanel.create
+                    [ StackPanel.orientation Orientation.Vertical
+                      StackPanel.children
+                          [ menuItem "Installed" (gState.installedGames.Length |> Some)
+                                Global.Installed ] ]) ]
+
     let private downloadTemplateView (downloadStatus: DownloadStatus) =
         Grid.create
             [ Grid.columnDefinitions "Auto"
-              Grid.margin (Thickness.Parse "0,5")
+              Grid.margin (0.0, 5.0)
               Grid.rowDefinitions "Auto, Auto, Auto"
               Grid.children
                   [ TextBlock.create
@@ -97,55 +139,55 @@ module LeftBar =
                         TextBlock.text downloadStatus.gameTitle ]
                     ProgressBar.create
                         [ Grid.row 1
-                          ProgressBar.isVisible <| not downloadStatus.installing
+                          ProgressBar.isVisible
+                          <| not downloadStatus.installing
                           ProgressBar.maximum downloadStatus.fileSize
-                          ProgressBar.value <| double downloadStatus.downloaded ]
+                          ProgressBar.value
+                          <| double downloadStatus.downloaded ]
                     TextBlock.create
                         [ Grid.row 2
                           TextBlock.isVisible downloadStatus.installing
                           TextBlock.text "Installing..." ]
                     TextBlock.create
                         [ Grid.row 2
-                          TextBlock.isVisible <| not downloadStatus.installing
-                          TextBlock.text <| sprintf "%i MB / %i MB" downloadStatus.downloaded (int downloadStatus.fileSize) ] ] ]
+                          TextBlock.isVisible
+                          <| not downloadStatus.installing
+                          TextBlock.text
+                          <| sprintf "%i MB / %i MB" downloadStatus.downloaded
+                                 (int downloadStatus.fileSize) ] ] ]
 
     let private downloadsView (downloadList: DownloadStatus list) =
         StackPanel.create
-            [ StackPanel.dock Dock.Bottom
-              StackPanel.orientation Orientation.Vertical
+            [ StackPanel.orientation Orientation.Vertical
               StackPanel.margin (Thickness.Parse "12, 12")
               StackPanel.children
                   [ ItemsControl.create
                       [ ItemsControl.dataItems downloadList
-                        ItemsControl.itemTemplate (DataTemplateView<DownloadStatus>.create downloadTemplateView) ]
+                        ItemsControl.itemTemplate
+                            (DataTemplateView<DownloadStatus>.create downloadTemplateView) ]
                     TextBlock.create
                         [ TextBlock.isVisible (downloadList.Length = 0)
                           TextBlock.text "No downloads" ] ] ]
 
-    let view startGame openSettings (installedGames: InstalledGame list) (downloadList: DownloadStatus list)
-        (state: State) (dispatch: Msg -> unit) =
-        DockPanel.create
-            [ Grid.column 0
-              DockPanel.classes [ "leftBar" ]
-              DockPanel.children
-                  [ DockPanel.create
-                      [ DockPanel.margin (Thickness.Parse("5, 0"))
-                        DockPanel.children
-                            [ iconBarView openSettings state dispatch
-                              StackPanel.create
-                                  [ StackPanel.dock Dock.Top
-                                    StackPanel.orientation Orientation.Vertical
-                                    StackPanel.children
-                                        [ StackPanel.create
-                                            [ StackPanel.orientation Orientation.Vertical
-                                              StackPanel.margin 3.0
-                                              StackPanel.children
-                                                  [ TextBox.create
-                                                      [ TextBox.text state.searchString
-                                                        TextBox.onTextChanged (Search >> dispatch) ] ] ] ] ]
-                              TextBlock.create
-                                  [ TextBlock.dock Dock.Bottom
-                                    TextBlock.fontSize 10.0
-                                    TextBlock.text Config.version ]
-                              downloadsView downloadList
-                              gamesListView installedGames startGame state dispatch ] ] ] ]
+    let private bottomBarView (gState: Global.State) =
+        StackPanel.create
+            [ StackPanel.dock Dock.Bottom
+              StackPanel.orientation Orientation.Vertical
+              StackPanel.children
+                  [ downloadsView gState.downloads
+                    TextBlock.create
+                        [ TextBlock.dock Dock.Bottom
+                          TextBlock.fontSize 10.0
+                          TextBlock.text Config.version ] ] ]
+
+    let view authentication state gState dispatch gDispatch =
+        Border.create
+            [ Border.classes [ "leftBar" ]
+              Border.column 0
+              Border.padding (5.0, 0.0)
+              Border.child
+                  (DockPanel.create
+                      [ DockPanel.children
+                          [ iconBarView authentication state dispatch gDispatch
+                            bottomBarView gState
+                            middleView state gState dispatch gDispatch ] ]) ]

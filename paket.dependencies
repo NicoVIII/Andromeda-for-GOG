@@ -1,26 +1,31 @@
-version 5.241.2
+version 5.245.1
 
-source https://www.myget.org/F/avalonia-ci/api/v2
 source https://api.nuget.org/v3/index.json
+
+framework: netcoreapp3.1, netstandard2.0, netstandard2.1
+storage: none
 
 nuget FSharp.Core ~> 4.7
 
-nuget Avalonia ~> 0.9.0
-nuget Avalonia.Desktop ~> 0.9.0
-nuget FSharpPlus ~> 1.0
 nuget FSharp.Json ~> 0.4.0
-nuget GogApi.DotNet ~> 2.0 prerelease
-nuget JaggerJo.Avalonia.FuncUI ~> 0.3
-nuget JaggerJo.Avalonia.FuncUI.DSL ~> 0.3
-nuget JaggerJo.Avalonia.FuncUI.Elmish ~> 0.2
+nuget SchlenkR.FsHttp ~> 3.0.0
+nuget GogApi.DotNet ~> 2.0
+nuget JaggerJo.Avalonia.FuncUI ~> 0.4
+nuget JaggerJo.Avalonia.FuncUI.DSL ~> 0.4
+nuget JaggerJo.Avalonia.FuncUI.Elmish ~> 0.4
 nuget MessageBox.Avalonia ~> 0.9.0
 nuget Mono.Posix.NETStandard ~> 1.0
+nuget Myriad.Core ~> 0.4.0
+nuget Myriad.Plugins ~> 0.4.0
+nuget Myriad.Sdk ~> 0.4.0
 nuget SharpZipLib ~> 1.2
-nuget TypedPersistence ~> 0.5.0
+nuget TypedPersistence ~> 0.6.0-alpha.3
 
 group Build
     source https://api.nuget.org/v3/index.json
 
-    nuget Fake.IO.FileSystem
-    nuget Fake.DotNet.Cli
-    nuget Fake.Core.Target
+    framework: netstandard2.0
+    storage: none
+
+    nuget Fake.DotNet.Cli ~> 5.20
+    nuget Fake.Core.Target ~> 5.20

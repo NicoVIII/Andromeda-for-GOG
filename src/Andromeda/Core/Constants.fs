@@ -3,4 +3,7 @@ namespace Andromeda.Core.FSharp
 [<RequireQualifiedAccess>]
 module Constants =
     let folderName = "andromeda"
-    let databaseFile = "andromeda.db"
+    let authenticationFile = "authentication.json"
+    let settingsFile = "settings.json"
+    let versionFile = "version.txt"
+    let installerCacheSubPath = "installers"

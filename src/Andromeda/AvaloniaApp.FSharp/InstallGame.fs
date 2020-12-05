@@ -1,16 +1,19 @@
 namespace Andromeda.AvaloniaApp.FSharp
 
 open Andromeda.Core.FSharp
+
 open Avalonia
 open Avalonia.Controls
+open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.Components.Hosts
-open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.DSL
+open Avalonia.FuncUI.Elmish
 open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp.Listing
+open GogApi.DotNet.FSharp
+open GogApi.DotNet.FSharp.DomainTypes
 
 module InstallGame =
     type IInstallGameWindow =
@@ -23,46 +26,98 @@ module InstallGame =
 
     type State =
         { authentication: Authentication
-          message: string
+          installedGames: ProductId list
+          productInfos: ProductInfo list option
           search: string
+          selected: ProductInfo option
           window: IInstallGameWindow }
 
     type Msg =
         | ChangeSearch of string
+        | CloseWindow
         | SearchGame
-        | CloseWindow of ProductInfo option
+        | SetProductInfos of ProductInfo list
+        | SetSelected of ProductInfo
 
-    let init authentication (window: IInstallGameWindow) =
+    let init authentication installedGames (window: IInstallGameWindow) =
         { authentication = authentication
-          message = ""
+          installedGames = installedGames
+          productInfos = None
           search = ""
-          window = window }, Cmd.none
+          selected = None
+          window = window },
+        Cmd.none
 
     let update (msg: Msg) (state: State) =
         match msg with
-        | ChangeSearch search ->
-            { state with
-                  search = search }, Cmd.none
+        | ChangeSearch search -> { state with search = search }, Cmd.none
+        | CloseWindow ->
+            match state.selected with
+            | Some selected ->
+                selected |> state.window.Save
+                state.window.Close()
+            | None -> ()
+            state, Cmd.none
         | SearchGame ->
-            let invoke() =
+            let invoke () =
                 async {
-                    let! (productList, _) = Authentication.withAutoRefresh
-                                                (Games.getAvailableGamesForSearch state.search) state.authentication
-                    match productList with
-                    | Some [ product ] -> return Some product
-                    | Some _
-                    | None -> return None
+                    let! (productList, _) =
+                        Helpers.withAutoRefresh
+                            (Diverse.getAvailableGamesForSearch state.search)
+                            state.authentication
+                    return match productList with
+                           | Some products -> products
+                           | None -> []
                 }
-            { state with message = "" }, Cmd.OfAsync.perform invoke () CloseWindow
-        | CloseWindow downloadStatus ->
-            let message =
-                match downloadStatus with
-                | Some downloadStatus ->
-                    downloadStatus |> state.window.Save
-                    state.window.Close()
-                    ""
-                | None -> "No game/Too much games found."
-            { state with message = message }, Cmd.none
+
+            { state with
+                  productInfos = None
+                  selected = None },
+            Cmd.OfAsync.perform invoke () SetProductInfos
+        | SetProductInfos productInfos ->
+            let cmd =
+                // Preselect, if there is only one ProductInfo
+                match productInfos with
+                | [ productInfo ] -> Cmd.ofMsg <| SetSelected productInfo
+                | _ -> Cmd.none
+
+            { state with
+                  productInfos = Some productInfos },
+            cmd
+        | SetSelected productInfo ->
+            { state with
+                  selected = Some productInfo },
+            Cmd.none
+
+    let productInfoView (state: State) (dispatch: Msg -> unit) =
+        let productInfoList =
+            match state.productInfos with
+            | Some productInfoList -> productInfoList
+            | None -> []
+
+        StackPanel.create
+            [ StackPanel.children
+                [ TextBlock.create
+                    [ TextBlock.text "No games found!"
+                      TextBlock.isVisible
+                          (state.productInfos.IsSome
+                           && state.productInfos.Value.Length = 0) ]
+                  ListBox.create
+                      [ ListBox.dataItems productInfoList
+                        ListBox.itemTemplate
+                            (DataTemplateView<ProductInfo>.create
+                             <| fun productInfo ->
+                                 TextBlock.create [ TextBlock.text productInfo.title ])
+                        ListBox.isVisible
+                            (state.productInfos.IsSome
+                             && state.productInfos.Value.Length > 0)
+                        match state.selected with
+                        | Some selected -> ListBox.selectedItem selected
+                        | None -> ()
+                        ListBox.onSelectedItemChanged (fun obj ->
+                            match obj with
+                            | :? ProductInfo as p -> p |> SetSelected |> dispatch
+                            | _ -> ()) ] ] ]
 
     let view (state: State) (dispatch: Msg -> unit) =
         StackPanel.create
@@ -70,15 +125,49 @@ module InstallGame =
               StackPanel.orientation Orientation.Vertical
               StackPanel.spacing 5.0
               StackPanel.children
-                  [ TextBox.create
-                      [ TextBox.text state.search
-                        TextBox.onTextChanged (ChangeSearch >> dispatch) ]
-                    TextBlock.create [ TextBlock.text <| state.message ]
+                  [ DockPanel.create
+                      [ DockPanel.margin (Thickness.Parse "0, 0, 0, 10")
+                        DockPanel.children
+                            [ Button.create
+                                [ Button.content "Search"
+                                  Button.dock Dock.Right
+                                  Button.margin (Thickness.Parse "5, 0, 0, 0")
+                                  Button.onClick (fun _ -> SearchGame |> dispatch) ]
+                              TextBox.create
+                                  [ TextBox.text state.search
+                                    TextBox.onKeyDown (fun args ->
+                                      match args.Key with
+                                      | Key.Enter ->
+                                        SearchGame |> dispatch
+                                      | _ -> ())
+                                    TextBox.onTextChanged (fun text ->
+                                        match text = state.search with
+                                        | true -> ()
+                                        | false -> ChangeSearch text |> dispatch) ] ] ]
+                    productInfoView state dispatch
+                    TextBlock.create
+                        [ TextBlock.isVisible
+                            (match state.selected with
+                             | Some selected ->
+                                 state.installedGames |> List.contains selected.id
+                             | None -> false)
+                          TextBlock.text "This game is already installed" ]
                     Button.create
-                        [ Button.content "Search"
-                          Button.onClick (fun _ -> SearchGame |> dispatch) ] ] ]
+                        [ Button.content "Install"
+                          // Nur aktivieren, wenn ein Game ausgewählt ist und dieses noch nicht installiert ist
+                          Button.isEnabled
+                              (match state.selected with
+                               | Some selected ->
+                                   state.installedGames
+                                   |> List.contains selected.id
+                                   |> not
+                               | None -> false)
+                          Button.isVisible
+                              (state.productInfos.IsSome
+                               && state.productInfos.Value.Length > 0)
+                          Button.onClick (fun _ -> CloseWindow |> dispatch) ] ] ]
 
-    type InstallGameWindow(authentication: Authentication) as this =
+    type InstallGameWindow(authentication: Authentication, installedGames) as this =
         inherit HostWindow()
 
         let saveEvent = new Event<_>()
@@ -99,7 +188,7 @@ module InstallGame =
                 | true -> fun msg -> Dispatcher.UIThread.Post(fun () -> dispatch msg)
                 | false -> dispatch
 
-            Program.mkProgram (init authentication) update view
+            Program.mkProgram (init authentication installedGames) update view
             |> Program.withHost this
             |> Program.withSyncDispatch syncDispatch
 #if DEBUG
@@ -111,6 +200,7 @@ module InstallGame =
             member __.Close() = this.Close()
 
             [<CLIEvent>]
-            member __.OnSave = saveEvent.Publish
+            override __.OnSave = saveEvent.Publish
             // TODO: return authentication
-            member __.Save(downloadInfo: ProductInfo) = saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo)
+            member __.Save(downloadInfo: ProductInfo) =
+                saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo)
