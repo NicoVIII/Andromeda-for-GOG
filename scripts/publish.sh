@@ -4,7 +4,7 @@ rm -fr "deploy"
 mkdir -p "deploy"
 
 DEPLOYNAME="Andromeda-v$1"
-FRAMEWORK="netcoreapp3.1"
+FRAMEWORK="net5.0"
 
 echo "Start publishing as single file executables."
 (
@@ -15,15 +15,31 @@ echo "Start publishing as single file executables."
   dotnet paket restore
 
   echo "Build for Linux."
-  dotnet publish -v quiet -c Release -r linux-x64 -o "../../../deploy" -p:PublishSingleFile=true -p:PublishTrimmed=true -p:DebugType=None
+  dotnet publish -v m -c Release -r linux-x64 -o "../../../deploy" \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=Link \
+    -p:IncludeNativeLibrariesForSelfExtract=true \
+    -p:PublishReadyToRun=true \
+    -p:DebugType=None
   mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-linux-x64"
 
   echo "Build for Windows."
-  dotnet publish -v quiet -c Release -r win-x64 -o "../../../deploy" -p:PublishSingleFile=true -p:PublishTrimmed=true -p:DebugType=None
+  dotnet publish -v m -c Release -r win-x64 -o "../../../deploy" \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=Link \
+    -p:IncludeNativeLibrariesForSelfExtract=true \
+    -p:DebugType=None
   mv "../../../deploy/Andromeda.AvaloniaApp.FSharp.exe" "../../../deploy/$DEPLOYNAME-win-x64.exe"
 
   echo "Build for macOS."
-  dotnet publish -v quiet -c Release -r osx-x64 -o "../../../deploy" -p:PublishSingleFile=true -p:PublishTrimmed=true -p:DebugType=None
+  dotnet publish -v m -c Release -r osx-x64 -o "../../../deploy" \
+    -p:PublishSingleFile=true \
+    -p:PublishTrimmed=true \
+    -p:TrimMode=Link \
+    -p:IncludeNativeLibrariesForSelfExtract=true \
+    -p:DebugType=None
   mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-osx-x64"
 
   echo "Finished publishing as single file executables."
