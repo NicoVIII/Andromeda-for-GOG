@@ -20,32 +20,59 @@ echo "Start publishing as single file executables."
   dotnet paket restore
 
   echo "Build for Linux."
-  dotnet publish -v m -c Release -r linux-x64 -o "../../../deploy" \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=true \
-    -p:TrimMode=Link \
-    -p:IncludeNativeLibrariesForSelfExtract=true \
-    -p:PublishReadyToRun=true \
-    -p:DebugType=None
+  if [ $1 = 'dev' ]
+  then
+    # We don't need the time consuming trimming so much for continous deployment
+    dotnet publish -v m -c Release -r linux-x64 -o "../../../deploy" \
+      -p:PublishSingleFile=true \
+      -p:IncludeNativeLibrariesForSelfExtract=true \
+      -p:DebugType=None
+  else
+    dotnet publish -v m -c Release -r linux-x64 -o "../../../deploy" \
+      -p:PublishSingleFile=true \
+      -p:PublishTrimmed=true \
+      -p:TrimMode=Link \
+      -p:IncludeNativeLibrariesForSelfExtract=true \
+      -p:DebugType=None
+  fi
   mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-linux-x64"
 
   echo "Build for Windows."
-  dotnet publish -v m -c Release -r win-x64 -o "../../../deploy" \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=true \
-    -p:TrimMode=Link \
-    -p:IncludeNativeLibrariesForSelfExtract=true \
-    -p:DebugType=None
+  if [ $1 = 'dev' ]
+  then
+    # We don't need the time consuming trimming so much for continous deployment
+    dotnet publish -v m -c Release -r win-x64 -o "../../../deploy" \
+      -p:PublishSingleFile=true \
+      -p:IncludeNativeLibrariesForSelfExtract=true \
+      -p:DebugType=None
+  else
+    dotnet publish -v m -c Release -r win-x64 -o "../../../deploy" \
+      -p:PublishSingleFile=true \
+      -p:PublishTrimmed=true \
+      -p:TrimMode=Link \
+      -p:IncludeNativeLibrariesForSelfExtract=true \
+      -p:DebugType=None
+  fi
   mv "../../../deploy/Andromeda.AvaloniaApp.FSharp.exe" "../../../deploy/$DEPLOYNAME-win-x64.exe"
 
-  echo "Build for macOS."
-  dotnet publish -v m -c Release -r osx-x64 -o "../../../deploy" \
-    -p:PublishSingleFile=true \
-    -p:PublishTrimmed=true \
-    -p:TrimMode=Link \
-    -p:IncludeNativeLibrariesForSelfExtract=true \
-    -p:DebugType=None
-  mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-osx-x64"
+  # Don't build for macOS for now, it produces additional files (whyever)
+  # echo "Build for macOS."
+  # if [ $1 = 'dev' ]
+  # then
+  #   # We don't need the time consuming trimming so much for continous deployment
+  #   dotnet publish -v m -c Release -r osx-x64 -o "../../../deploy" \
+  #     -p:PublishSingleFile=true \
+  #     -p:IncludeNativeLibrariesForSelfExtract=true \
+  #     -p:DebugType=None
+  # else
+  #   dotnet publish -v m -c Release -r osx-x64 -o "../../../deploy" \
+  #     -p:PublishSingleFile=true \
+  #     -p:PublishTrimmed=true \
+  #     -p:TrimMode=Link \
+  #     -p:IncludeNativeLibrariesForSelfExtract=true \
+  #     -p:DebugType=None
+  # fi
+  # mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-osx-x64"
 
   echo "Finished publishing as single file executables."
 )
@@ -53,7 +80,17 @@ echo "Start publishing as single file executables."
 echo "Start publishing as AppImage."
 (
   cd "src/Andromeda/AvaloniaApp.FSharp" || exit
-  dotnet publish -v quiet -c Release -f "$FRAMEWORK" -r ubuntu.16.04-x64 -p:PublishTrimmed=true -p:DebugType=None
+  if [ $1 = 'dev' ]
+  then
+    # We don't need the time consuming trimming so much for continous deployment
+    dotnet publish -v m -c Release -f "$FRAMEWORK" -r ubuntu.16.04-x64 \
+      -p:DebugType=None
+  else
+    dotnet publish -v m -c Release -f "$FRAMEWORK" -r ubuntu.16.04-x64 \
+      -p:PublishTrimmed=true \
+      -p:TrimMode=Link \
+      -p:DebugType=None
+  fi
   mkdir -p "AppDir/usr"
   mv -T "bin/Release/$FRAMEWORK/ubuntu.16.04-x64/publish" "AppDir/usr/bin"
 
@@ -62,7 +99,7 @@ echo "Start publishing as AppImage."
 if ! [ -f "./appimagetool-x86_64.AppImage" ]
 then
   wget "https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage"
-  chmod a+x appimagetool-x86_64.AppImage
+  chmod a+x ./appimagetool-x86_64.AppImage
 fi
 ./appimagetool-x86_64.AppImage --appimage-extract
 (
