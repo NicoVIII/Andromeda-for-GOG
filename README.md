@@ -29,20 +29,27 @@ Simple start the Andromeda.FSharp(.exe) or the AppImage.
 
 ### Define settings
 
-If you start Andromeda for the first time, you will get a settings window. Please configure your desired path for the games here. (For now it is just a plain text box, but it will check, if the directory exists)
+If you start Andromeda for the first time, you should have a look at the settings of Andromeda.
+Click on the cog and configure e.b. your desired path for the games here
+(For now it is just a plain text box, but it will check, if the directory exists). You can also
+alter the caching behaviour of Andromeda.
 
 ### Install game
 
-Press the workaround "Install game" button. Type the name of the game or a part of it. You will get a list of all games matching your search. Choose the one you want to install and click "Install".  
+Press the workaround "Install game" button. Type the name of the game or a part of it. You will get
+a list of all games matching your search. Choose the one you want to install and click "Install".
+
 If everything worked, you should see a status indicator of the download and installation.
 
 ### Upgrade games
 
-To upgrade all of your installed games, press the "Upgrade games" button. If Andromeda finds updates, it will install them. If there are no updates, you will see a notification at the top of the window.
+To upgrade all of your installed games, press the "Upgrade games" button. If Andromeda finds updates,
+it will install them. If there are no updates, you will see a notification at the top of the window.
 
 ### Start game
 
-This does not work all the time, but you can try to right click the game and click "Start" to start the game. The console output will be shown in the bottom right terminal.
+This does not work all the time, but you can try to right click the game and click "Start" to start
+the game. The console output will be shown in the bottom right terminal.
 
 ## Development
 

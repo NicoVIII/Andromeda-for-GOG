@@ -23,7 +23,7 @@
         },
         {
             "label": "restore",
-            "command": "dotnet tool restore && dotnet paket restore",
+            "command": "dotnet tool restore && dotnet restore",
             "type": "shell",
             "args": [],
             "group": "none",

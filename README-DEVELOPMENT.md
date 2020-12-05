@@ -2,18 +2,22 @@
 
 ## Setup (VSCode)
 
-Run "restore" task, after that you can use the debugger and run the build task.
+It is highly recommended to use the provided devcontainer for VS Code. You just need [this extension]
+(https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
+
+If VS Code does not suggest to open the repository with the container, run the "Remote-Container:
+Rebuild and Reopen in Container" Action. Everything you need is installed in there.
 
 ## Building
 
-You need .NET Core 3.1 to build Andromeda. You can use the build task inside of VS Code to build the project.
+To build simply run dotnet build.
 
 ## Publishing
 
-Publishing only works on a linux system. It is tested on Manjaro Linux.  
-You need additionally to building dependencies zsyncmake (in the zsync package I guess) and appstream.
+Publishing is done automatically with every commit on develop and for every release tag.
 
-There is a bash script which bundles Andromeda in all the designated forms. Run `./scripts/publish.sh` for that.
+There is a bash script which bundles Andromeda in all the designated forms: `./scripts/publish.sh`
+It is possible that you need additional dependencies to run this.
 
 ## Versioning
 
@@ -21,4 +25,5 @@ This project uses Semantic Versioning 2.0.0 (<http://semver.org/spec/v2.0.0.html
 
 ## Used Tools
 
-The code is written in "Visual Studio Code" (<https://code.visualstudio.com/>). There is a .devcontainer defined, which you can use from within VScode or from a service like GitHub Codespaces.
+The code is written in "Visual Studio Code" (<https://code.visualstudio.com/>). There is a
+.devcontainer defined, which you can use from within VScode or from a service like GitHub Codespaces.
