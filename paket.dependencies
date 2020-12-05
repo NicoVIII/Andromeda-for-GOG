@@ -20,12 +20,3 @@ nuget Myriad.Plugins ~> 0.4.0
 nuget Myriad.Sdk ~> 0.4.0
 nuget SharpZipLib ~> 1.2
 nuget TypedPersistence ~> 0.6.0-alpha.3
-
-group Build
-    source https://api.nuget.org/v3/index.json
-
-    framework: netstandard2.0
-    storage: none
-
-    nuget Fake.DotNet.Cli ~> 5.20
-    nuget Fake.Core.Target ~> 5.20
