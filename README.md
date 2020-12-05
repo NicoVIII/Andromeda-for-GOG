@@ -2,7 +2,6 @@
 
 [![Project Status: WIP – Initial development is in progress, but there has not yet been a stable, usable release suitable for the public.](http://www.repostatus.org/badges/latest/active.svg)](http://www.repostatus.org/#active)
 [![GitHub Release](https://img.shields.io/github/release/NicoVIII/Andromeda-for-GOG.svg)](https://github.com/NicoVIII/Andromeda-for-GOG/releases/latest)
-[![Github Pre-Release](https://img.shields.io/github/release/NicoVIII/Andromeda-for-GOG/all.svg?label=prerelease)](https://github.com/NicoVIII/Andromeda-for-GOG/releases)
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/075c69d86f154b40bef949483e04b98c)](https://www.codacy.com/manual/NicoVIII/Andromeda-for-GOG?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=NicoVIII/Andromeda-for-GOG&amp;utm_campaign=Badge_Grade)
 [![GitHub License](https://img.shields.io/badge/license-MIT-blue.svg)](https://raw.githubusercontent.com/NicoVIII/Andromeda-for-GOG/master/LICENSE)
 
@@ -20,12 +19,12 @@ Neither for AppImage nor for the single files executables are any dependencies r
 
 ## Installation
 
-Just download the archive for your os from the GitHub releases and unpack it anywhere you want.
-On linux you could use the AppImage, if you want to.
+Just download the executable for your os from the GitHub releases.
+On linux you could use the AppImage, if you want to. It is updateable via AppImageUpdate.
 
 ## Usage
 
-Simple start the Andromeda.FSharp(.exe) or the AppImage.
+Simply start the downloaded executable.
 
 ### Define settings
 
