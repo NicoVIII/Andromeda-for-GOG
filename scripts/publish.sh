@@ -3,7 +3,12 @@ echo "Clear deploy folder."
 rm -fr "deploy"
 mkdir -p "deploy"
 
-DEPLOYNAME="Andromeda-v$1"
+if [ $1 = 'dev' ]
+then
+  DEPLOYNAME="Andromeda-dev"
+else
+  DEPLOYNAME="Andromeda-v$1"
+fi
 FRAMEWORK="net5.0"
 
 echo "Start publishing as single file executables."
