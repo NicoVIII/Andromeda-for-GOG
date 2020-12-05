@@ -20,10 +20,8 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
-      - name: Restore tools
-        run: dotnet tool restore
-      - name: Restore dependencies
-        run: dotnet restore
+      - name: Restore
+        run: dotnet tool restore && dotnet paket restore
       - name: Run publishing script
         run: ./scripts/publish.sh dev
       # For now I simply make a continuous build

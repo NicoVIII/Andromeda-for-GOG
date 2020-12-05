@@ -18,4 +18,4 @@ jobs:
       with:
         dotnet-version: ${{ matrix.dotnet }}
     - name: Build Andromeda
-      run: dotnet tool restore && dotnet restore && dotnet build
+      run: dotnet tool restore && dotnet paket restore && dotnet build
