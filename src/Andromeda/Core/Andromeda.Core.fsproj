@@ -6,7 +6,6 @@
     <Compile Include="Constants.fs" />
     <Compile Include="Helpers/String.fs" />
     <Compile Include="Helpers/Path.fs" />
-    <Compile Include="Helpers/Result.fs" />
     <Compile Include="Types/Lenses.fs" />
     <Compile Include="Types/Settings.fs" />
     <Compile Include="Types/InstalledGame.fs" />

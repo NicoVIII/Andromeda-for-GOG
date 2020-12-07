@@ -5,8 +5,7 @@ source https://api.nuget.org/v3/index.json
 framework: net5.0, netstandard2.0, netstandard2.1
 storage: none
 
-nuget FSharp.Core ~> 4.7
-
+nuget FsToolkit.ErrorHandling ~> 2.0
 nuget FSharp.Json ~> 0.4.0
 nuget SchlenkR.FsHttp ~> 3.0.0
 nuget GogApi.DotNet ~> 2.0
