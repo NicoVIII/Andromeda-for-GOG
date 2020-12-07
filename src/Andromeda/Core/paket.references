@@ -1,7 +1,7 @@
 GogApi.DotNet
 Mono.Posix.NETStandard
 SharpZipLib
-TypedPersistence
+TypedPersistence.Json
 Myriad.Plugins
 Myriad.Sdk
 FsToolkit.ErrorHandling

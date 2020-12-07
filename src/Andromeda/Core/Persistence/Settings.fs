@@ -1,6 +1,7 @@
 namespace Andromeda.Core.FSharp.Persistence
 
-open TypedPersistence
+open TypedPersistence.Core
+open TypedPersistence.Json
 open System.IO
 
 open Andromeda.Core.FSharp
@@ -16,10 +17,10 @@ module Settings =
 
     let load () =
         match getVersion file with
-        | Some version ->
+        | Some (Version version) ->
             match version with
             | 1u -> load<SettingsV1> file |> Option.map v1tov2
             | _ -> load<Settings> file
         | None -> None
 
-    let save = saveVersion<Settings> file 2u
+    let save = saveVersion<Settings> file (Version 2u)
