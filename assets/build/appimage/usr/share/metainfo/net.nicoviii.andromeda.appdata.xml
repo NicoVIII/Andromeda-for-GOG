@@ -12,12 +12,8 @@
 ​  <url type="homepage">https://github.com/NicoVIII/Andromeda-for-GOG</url>
 ​​
 ​  <releases>
-​    <release version="0.3.0-alpha.6" date="2019-11-28" type="development"/>
-​    <release version="0.3.0-alpha.5" date="2019-01-29" type="development"/>
-​    <release version="0.3.0-alpha.4" date="2019-01-05" type="development"/>
-​    <release version="0.3.0-alpha.3" date="2019-01-01" type="development"/>
-​    <release version="0.3.0-alpha.2" date="2018-12-28" type="development"/>
-​    <release version="0.3.0-alpha.1" date="2018-08-29" type="development"/>
+​    <release version="0.4.0" date="2020-12-05" type="stable"/>
+​    <release version="0.3.0" date="2020-02-29" type="stable"/>
 ​    <release version="0.2.0" date="2018-08-25" type="stable"/>
 ​  </releases>
 ​</component>
