@@ -1,4 +1,4 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core
 
 // Stolen from:
 // https://github.com/MoiraeSoftware/myriad/blob/71a7994744d6651c291427d7fa6b8a39c607b1f3/test/Myriad.IntegrationPluginTests/Lenses.fs

@@ -1,4 +1,4 @@
-module Andromeda.AvaloniaApp.FSharp.Program
+module Andromeda.AvaloniaApp.Program
 
 open Avalonia
 open Avalonia.Controls.ApplicationLifetimes
@@ -10,7 +10,7 @@ type App() =
     override this.Initialize() =
         this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
         this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
-        this.Styles.Load "avares://Andromeda.AvaloniaApp.FSharp/Styles.xaml"
+        this.Styles.Load "avares://Andromeda.AvaloniaApp/Styles.xaml"
 
     override this.OnFrameworkInitializationCompleted() =
         match this.ApplicationLifetime with

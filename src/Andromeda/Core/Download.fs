@@ -1,7 +1,4 @@
-namespace Andromeda.Core.FSharp
-
-open Andromeda.Core.FSharp.DomainTypes
-open Andromeda.Core.FSharp.Helpers
+namespace Andromeda.Core
 
 open ICSharpCode.SharpZipLib.Zip
 open GogApi.DotNet.FSharp
@@ -10,6 +7,9 @@ open Mono.Unix.Native
 open System.Diagnostics
 open System.IO
 open System.Net
+
+open Andromeda.Core.DomainTypes
+open Andromeda.Core.Helpers
 
 /// A module for everything which helps to download and install games
 module Download =

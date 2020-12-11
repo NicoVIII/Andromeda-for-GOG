@@ -1,10 +1,10 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core
 
 open System
 open System.IO
 
-open Andromeda.Core.FSharp.DomainTypes
-open Andromeda.Core.FSharp.Helpers
+open Andromeda.Core.DomainTypes
+open Andromeda.Core.Helpers
 
 /// A module for caching stuff. For now this holds methods concerning the cached installers
 [<RequireQualifiedAccess>]

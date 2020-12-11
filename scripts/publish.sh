@@ -13,7 +13,7 @@ FRAMEWORK="net5.0"
 
 echo "Start publishing as single file executables."
 (
-  cd "src/Andromeda/AvaloniaApp.FSharp" || exit
+  cd "src/Andromeda/AvaloniaApp" || exit
 
   # Restore
   dotnet tool restore
@@ -35,7 +35,7 @@ echo "Start publishing as single file executables."
       -p:IncludeNativeLibrariesForSelfExtract=true \
       -p:DebugType=None
   fi
-  mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-linux-x64"
+  mv "../../../deploy/Andromeda.AvaloniaApp" "../../../deploy/$DEPLOYNAME-linux-x64"
 
   echo "Build for Windows."
   if [ $1 = 'dev' ]
@@ -53,7 +53,7 @@ echo "Start publishing as single file executables."
       -p:IncludeNativeLibrariesForSelfExtract=true \
       -p:DebugType=None
   fi
-  mv "../../../deploy/Andromeda.AvaloniaApp.FSharp.exe" "../../../deploy/$DEPLOYNAME-win-x64.exe"
+  mv "../../../deploy/Andromeda.AvaloniaApp.exe" "../../../deploy/$DEPLOYNAME-win-x64.exe"
 
   # Don't build for macOS for now, it produces additional files (whyever)
   # echo "Build for macOS."
@@ -72,14 +72,14 @@ echo "Start publishing as single file executables."
   #     -p:IncludeNativeLibrariesForSelfExtract=true \
   #     -p:DebugType=None
   # fi
-  # mv "../../../deploy/Andromeda.AvaloniaApp.FSharp" "../../../deploy/$DEPLOYNAME-osx-x64"
+  # mv "../../../deploy/Andromeda.AvaloniaApp" "../../../deploy/$DEPLOYNAME-osx-x64"
 
   echo "Finished publishing as single file executables."
 )
 
 echo "Start publishing as AppImage."
 (
-  cd "src/Andromeda/AvaloniaApp.FSharp" || exit
+  cd "src/Andromeda/AvaloniaApp" || exit
   if [ $1 = 'dev' ]
   then
     # We don't need the time consuming trimming so much for continous deployment
@@ -103,7 +103,7 @@ then
 fi
 ./appimagetool-x86_64.AppImage --appimage-extract
 (
-  cd "src/Andromeda/AvaloniaApp.FSharp" || exit
+  cd "src/Andromeda/AvaloniaApp" || exit
   ./../../../squashfs-root/AppRun --no-appstream ./AppDir -u "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
   mv "Andromeda-x86_64.AppImage" "../../../deploy/Andromeda-x86_64.AppImage"
   mv "Andromeda-x86_64.AppImage.zsync" "../../../deploy/Andromeda-x86_64.AppImage.zsync"

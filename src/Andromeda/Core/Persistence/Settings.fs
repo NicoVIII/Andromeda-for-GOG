@@ -1,11 +1,11 @@
-namespace Andromeda.Core.FSharp.Persistence
+namespace Andromeda.Core.Persistence
 
 open TypedPersistence.Core
 open TypedPersistence.Json
 open System.IO
 
-open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.DomainTypes
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
 
 module Settings =
     let file =

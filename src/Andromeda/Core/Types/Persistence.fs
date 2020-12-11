@@ -1,8 +1,8 @@
-namespace Andromeda.Core.FSharp
-
-open Andromeda.Core.FSharp.DomainTypes
+namespace Andromeda.Core
 
 open GogApi.DotNet.FSharp.DomainTypes
+
+open Andromeda.Core.DomainTypes
 
 module PersistenceTypes =
     // TODO: Add Uniontypes for errors and return Result types

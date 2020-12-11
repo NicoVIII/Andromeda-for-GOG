@@ -1,8 +1,8 @@
-namespace Andromeda.Core.FSharp.DomainTypes
+namespace Andromeda.Core.DomainTypes
 
 open Myriad.Plugins
 
-open Andromeda.Core.FSharp.Lenses
+open Andromeda.Core.Lenses
 
 type InstalledGame =
     { id: GogApi.DotNet.FSharp.DomainTypes.ProductId

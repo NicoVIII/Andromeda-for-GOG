@@ -1,6 +1,6 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.FSharp.Lenses
+open Andromeda.Core.Lenses
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types

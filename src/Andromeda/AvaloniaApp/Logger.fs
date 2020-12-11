@@ -1,4 +1,4 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
 open System
 

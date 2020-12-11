@@ -1,8 +1,8 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.DomainTypes
-open Andromeda.Core.FSharp.Lenses
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
+open Andromeda.Core.Lenses
 open GogApi.DotNet.FSharp.DomainTypes
 
 [<RequireQualifiedAccess>]

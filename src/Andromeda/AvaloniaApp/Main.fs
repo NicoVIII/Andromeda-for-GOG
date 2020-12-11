@@ -1,8 +1,8 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.DomainTypes
-open Andromeda.Core.FSharp.Lenses
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
+open Andromeda.Core.Lenses
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.Primitives
@@ -564,7 +564,7 @@ module Main =
             base.Icon <-
                 WindowIcon
                     (AvaloniaHelper.loadAssetPath
-                        "avares://Andromeda.AvaloniaApp.FSharp/Assets/logo.ico")
+                        "avares://Andromeda.AvaloniaApp/Assets/logo.ico")
             base.Width <- 1024.0
             base.Height <- 660.0
 

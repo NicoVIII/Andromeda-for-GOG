@@ -1,11 +1,11 @@
-namespace Andromeda.Core.FSharp
-
-open Andromeda.Core.FSharp.Helpers
+namespace Andromeda.Core
 
 open FsHttp.DslCE
 open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open System.IO
+
+open Andromeda.Core.Helpers
 
 /// A module for everything, which does not really have a good place in structured modules
 module Diverse =

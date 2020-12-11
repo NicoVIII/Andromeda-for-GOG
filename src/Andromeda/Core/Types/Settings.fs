@@ -1,4 +1,4 @@
-namespace Andromeda.Core.FSharp.DomainTypes
+namespace Andromeda.Core.DomainTypes
 
 type CacheRemovalPolicy =
     | NoRemoval

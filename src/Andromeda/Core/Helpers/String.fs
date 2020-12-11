@@ -1,4 +1,4 @@
-namespace Andromeda.Core.FSharp.Helpers
+namespace Andromeda.Core.Helpers
 
 [<RequireQualifiedAccess>]
 module String =

@@ -1,4 +1,4 @@
-namespace Andromeda.Core.FSharp
+namespace Andromeda.Core
 
 open System.Diagnostics
 

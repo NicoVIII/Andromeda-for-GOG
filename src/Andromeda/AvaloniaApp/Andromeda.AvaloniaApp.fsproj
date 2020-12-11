@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <AssemblyName>Andromeda.AvaloniaApp.FSharp</AssemblyName>
-    <RootNamespace>Andromeda.AvaloniaApp.FSharp</RootNamespace>
+    <AssemblyName>Andromeda.AvaloniaApp</AssemblyName>
+    <RootNamespace>Andromeda.AvaloniaApp</RootNamespace>
     <OutputType>Exe</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>

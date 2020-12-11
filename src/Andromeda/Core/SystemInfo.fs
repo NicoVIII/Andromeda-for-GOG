@@ -1,12 +1,12 @@
-namespace Andromeda.Core.FSharp
-
-open Andromeda.Core.FSharp.DomainTypes
+namespace Andromeda.Core
 
 open GogApi.DotNet.FSharp.DomainTypes
 open Microsoft.FSharp.Collections
 open System
 open System.IO
 open System.Runtime.InteropServices
+
+open Andromeda.Core.DomainTypes
 
 /// Contains everything specific for different platforms
 module SystemInfo =

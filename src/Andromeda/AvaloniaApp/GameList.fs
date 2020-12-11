@@ -1,14 +1,14 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open DomainTypes
-
-open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.DomainTypes
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Media
 open Avalonia.Media.Imaging
+
+open Andromeda.AvaloniaApp.DomainTypes
 
 module GameList =
     type State = unit

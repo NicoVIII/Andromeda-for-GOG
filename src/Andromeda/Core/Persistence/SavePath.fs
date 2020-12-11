@@ -1,8 +1,8 @@
-namespace Andromeda.Core.FSharp.Persistence
+namespace Andromeda.Core.Persistence
 
 open System.IO
 
-open Andromeda.Core.FSharp
+open Andromeda.Core
 
 module SaveFiles =
     Directory.CreateDirectory(SystemInfo.savePath)

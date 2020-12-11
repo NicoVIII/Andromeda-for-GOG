@@ -1,8 +1,4 @@
-namespace Andromeda.Core.FSharp
-
-open Andromeda.Core.FSharp.DomainTypes
-open Andromeda.Core.FSharp.Helpers
-open Lenses
+namespace Andromeda.Core
 
 open FSharp.Json
 open GogApi.DotNet.FSharp
@@ -12,6 +8,10 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Net
+
+open Andromeda.Core.DomainTypes
+open Andromeda.Core.Helpers
+open Andromeda.Core.Lenses
 
 /// A module for everything which works on installed games
 module Installed =

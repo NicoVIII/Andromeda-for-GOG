@@ -1,10 +1,10 @@
-namespace Andromeda.Core.FSharp.Persistence
+namespace Andromeda.Core.Persistence
 
 open GogApi.DotNet.FSharp.DomainTypes
 open TypedPersistence.Json
 open System.IO
 
-open Andromeda.Core.FSharp
+open Andromeda.Core
 
 module Authentication =
     let file =

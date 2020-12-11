@@ -1,9 +1,7 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open DomainTypes
-
-open Andromeda.Core.FSharp
-open Andromeda.Core.FSharp.DomainTypes
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
@@ -12,6 +10,8 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
+
+open Andromeda.AvaloniaApp.DomainTypes
 
 module LeftBar =
     type State = { searchString: string }

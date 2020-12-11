@@ -1,7 +1,6 @@
-namespace Andromeda.AvaloniaApp.FSharp
+namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.FSharp
-
+open Andromeda.Core
 open Avalonia
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
