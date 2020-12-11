@@ -29,7 +29,11 @@ module GameList =
                           [ MenuItem.create
                               [ MenuItem.header "Start"
                                 MenuItem.onClick ((fun _ ->
-                                    game |> Global.StartGame |> gDispatch), OnChangeOf game) ] ] ])
+                                    game |> Global.StartGame |> gDispatch), OnChangeOf game) ]
+                            MenuItem.create
+                              [ MenuItem.header "Open game folder"
+                                MenuItem.onClick ((fun _ ->
+                                    game.path |> System.openFolder), OnChangeOf game) ] ] ])
               Border.child
                   (Image.create
                       [ Image.height 120.0
