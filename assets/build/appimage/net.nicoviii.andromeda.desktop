@@ -4,6 +4,6 @@ Type=Application
 Name=Andromeda
 Comment=Crossplattform Gamemanager for GOG
 Icon=andromeda
-Exec=Andromeda.AvaloniaApp.FSharp
+Exec=Andromeda.AvaloniaApp
 Terminal=false
 Categories=Game;
