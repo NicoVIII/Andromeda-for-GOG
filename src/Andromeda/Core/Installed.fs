@@ -24,6 +24,31 @@ module Installed =
           name: string
           version: int option }
 
+    /// Looks up, if there is an update available for given game
+    let checkGameForUpdate authentication game =
+        Helpers.withAutoRefresh (GalaxyApi.getProduct game.id) authentication
+        |> Async.RunSynchronously
+        |> function
+        | (Error _, authentication) -> (None, authentication)
+        | (Ok update, authentication) ->
+            let os =
+                match SystemInfo.os with
+                | SystemInfo.OS.Linux -> "linux"
+                | SystemInfo.OS.Windows -> "windows"
+                | SystemInfo.OS.MacOS -> "mac"
+
+            // Get first installer for os
+            let installer =
+                update.downloads.installers
+                |> List.filter (fun installer -> installer.os = os)
+                |> List.item 0
+
+            // Return game, if update is available
+            match (game.version, installer.version) with
+            | (a, Some b) when a <> b ->
+                (Some { newVersion = b; game = game }, authentication)
+            | _ -> (None, authentication)
+
     let checkAllForUpdates
         (installedGames: InstalledGame list)
         (authentication: Authentication)
@@ -31,29 +56,12 @@ module Installed =
         installedGames
         |> List.filter (fun game -> game.updateable)
         |> List.fold (fun (lst, authentication: Authentication) game ->
-            GalaxyApi.getProduct game.id authentication
-            |> Async.RunSynchronously
-            |> function
-            | Error _ -> (lst, authentication)
-            | Ok update ->
-                let os =
-                    match SystemInfo.os with
-                    | SystemInfo.OS.Linux -> Some "linux"
-                    | SystemInfo.OS.Windows -> Some "windows"
-                    | SystemInfo.OS.MacOS -> Some "mac"
-
-                match os with
-                | Some os ->
-                    let installer =
-                        update.downloads.installers
-                        |> List.filter (fun installer -> installer.os = os)
-                        |> List.item 0
-
-                    match (game.version, installer.version) with
-                    | (a, Some b) when a <> b ->
-                        ({ newVersion = b; game = game } :: lst, authentication)
-                    | (_, _) -> (lst, authentication)
-                | None -> failwith "OS is invalid for some reason!") ([], authentication)
+            let (game, authentication) = checkGameForUpdate authentication game
+            // Add game to list, if game is updateable
+            match game with
+            | Some game -> (game :: lst, authentication)
+            | None -> (lst, authentication)
+            ) ([], authentication)
 
     let private prepareGameProcess processOutput (proc: Process) =
         proc.StartInfo.RedirectStandardOutput <- true

@@ -31,6 +31,12 @@ module GameList =
                                 MenuItem.onClick ((fun _ ->
                                     game |> Global.StartGame |> gDispatch), OnChangeOf game) ]
                             MenuItem.create
+                              [ MenuItem.header "Update"
+                                MenuItem.onClick ((fun _ ->
+                                    (authentication, game) |> Global.UpgradeGame |> gDispatch), OnChangeOf game) ]
+                            MenuItem.create
+                              [ MenuItem.header "-" ]
+                            MenuItem.create
                               [ MenuItem.header "Open game folder"
                                 MenuItem.onClick ((fun _ ->
                                     game.path |> System.openFolder), OnChangeOf game) ] ] ])

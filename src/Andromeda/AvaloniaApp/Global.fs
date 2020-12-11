@@ -27,6 +27,7 @@ module Global =
         | ChangeMode of Mode
         | OpenSettingsWindow of Authentication
         | StartGame of InstalledGame
+        | UpgradeGame of Authentication * InstalledGame
 
     module StateLenses =
         // Lenses

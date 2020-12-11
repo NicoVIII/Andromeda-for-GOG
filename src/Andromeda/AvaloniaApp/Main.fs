@@ -237,6 +237,27 @@ module Main =
                   settingsWindow = window |> Some },
             cmd
         | Global.StartGame installedGame -> state, Subs.startGame installedGame
+        | Global.UpgradeGame (authentication, game) ->
+            let (updateData, authentication) = (authentication, game) ||> Installed.checkGameForUpdate
+
+            // Update authentication in state, if it was refreshed
+            let state =
+                setl StateLenses.authentication (Some authentication) state
+
+            // Download updated installers or show notification
+            let cmd =
+                match updateData with
+                | Some updateData ->
+                    updateData.game
+                    |> gameToDownloadInfo
+                    |> (fun productInfo ->
+                        (productInfo, authentication) |> StartGameDownload)
+                    |> Cmd.ofMsg
+                | None ->
+                    AddNotification $"No new version available for %s{game.name}"
+                    |> Cmd.ofMsg
+
+            state, cmd
 
     let update msg (state: State) (mainWindow: AndromedaWindow) =
         match msg with
@@ -412,7 +433,7 @@ module Main =
                 (getl StateLenses.installedGames state, authentication)
                 ||> Installed.checkAllForUpdates
 
-            // Update authentication, if it was refreshed
+            // Update authentication in state, if it was refreshed
             let state =
                 setl StateLenses.authentication (Some authentication) state
 
