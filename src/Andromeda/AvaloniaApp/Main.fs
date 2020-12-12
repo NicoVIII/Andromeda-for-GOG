@@ -8,80 +8,90 @@ open Avalonia.Controls
 open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
-open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Types
-open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
+open Avalonia.Media.Imaging
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp
 open GogApi.DotNet.FSharp.DomainTypes
 open System
 open System.Diagnostics
 open System.IO
 open System.Threading.Tasks
 
+open Andromeda.AvaloniaApp.AvaloniaHelper
+
 module Main =
-    let createDownloadStatus id gameTitle filePath fileSize =
-        { DownloadStatus.gameId = id
-          gameTitle = gameTitle
-          filePath = filePath
-          fileSize = fileSize
-          downloaded = 0
-          installing = false }
-
-    let gameToDownloadInfo (game: InstalledGame) =
-        { ProductInfo.id = game.id
-          title = game.name }
-
     type State =
-        { globalState: Global.State
-          authenticationState: Authentication.State
-          leftBarState: LeftBar.State
-          installGameWindow: InstallGame.InstallGameWindow option
+        { authentication: Authentication
+          downloads: DownloadStatus list
+          installedGames: Map<ProductId, InstalledGame>
+          mode: Mode
           notifications: string list
-          settingsWindow: Settings.SettingsWindow option
+          settings: Settings
           terminalOutput: string }
 
     module StateLenses =
         // Lenses
-        let globalState =
-            Lens((fun s -> s.globalState), (fun s g -> { s with globalState = g }))
-
         let authentication =
-            globalState << Global.StateLenses.authentication
+            Lens
+                ((fun r -> r.authentication),
+                 (fun r v -> { r with authentication = v }))
 
         let downloads =
-            globalState << Global.StateLenses.downloads
+            Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
 
         let installedGames =
-            globalState << Global.StateLenses.installedGames
+            Lens
+                ((fun r -> r.installedGames),
+                 (fun r v -> { r with installedGames = v }))
 
-        let mode = globalState << Global.StateLenses.mode
+        let mode =
+            Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
+
+        let notifications =
+            Lens
+                ((fun r -> r.notifications),
+                 (fun r v -> { r with notifications = v }))
 
         let settings =
-            globalState << Global.StateLenses.settings
+            Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
-    type Msg<'T> =
-        | GlobalMsg of Global.Msg<'T>
-        | AuthenticationMsg of Authentication.Msg<'T>
-        | LeftBarMsg of LeftBar.Msg
+        let terminalOutput =
+            Lens
+                ((fun r -> r.terminalOutput),
+                 (fun r v -> { r with terminalOutput = v }))
+
+    type Intent =
+        | DoNothing
+        | OpenSettings
+        | OpenInstallGameWindow
+
+    type Msg =
+        | ChangeState of (State -> State)
+        | ChangeMode of Mode
+        | StartGame of InstalledGame
+        | UpgradeGame of InstalledGame
+        | SetGameImage of ProductId * string
         | AddNotification of string
         | RemoveNotification of string
         | AddToTerminalOutput of string
-        | OpenInstallGameWindow of Authentication
-        | CloseAllWindows
-        | CloseSettingsWindow of Settings.IWindow * Settings * Authentication
-        | CloseInstallGameWindow of ProductInfo * Authentication
-        | SearchInstalled of Authentication
         | SetSettings of Settings * Authentication
+        | SearchInstalled of Authentication
         | StartGameDownload of ProductInfo * Authentication
-        | UnpackGame of Settings * DownloadStatus * version: string option * Authentication
+        | UnpackGame of
+            Settings *
+            DownloadStatus *
+            version: string option *
+            Authentication
         | FinishGameDownload of string * Authentication
         | UpdateDownloadSize of ProductId * int
         | UpdateDownloadInstalling of string
-        | UpgradeGames of Authentication
+        | UpgradeGames
+        // Intent messages
+        | OpenSettings
+        | OpenInstallGameWindow
 
     module Subs =
         let startGame (game: InstalledGame) =
@@ -92,6 +102,7 @@ module Main =
                             (outLine.Data,
                              (fun _ newLine ->
                                  AddToTerminalOutput newLine |> dispatch
+
                                  { new IDisposable with
                                      member __.Dispose() = () }))
                         |> ignore
@@ -103,11 +114,10 @@ module Main =
 
             Cmd.ofSub sub
 
-        let registerDownloadTimer
-            (task: Task option)
-            tmppath
-            (downloadInfo: DownloadStatus)
-            =
+        let registerDownloadTimer (task: Task option)
+                                  tmppath
+                                  (downloadInfo: DownloadStatus)
+                                  =
             let sub dispatch =
                 match task with
                 | Some _ ->
@@ -123,10 +133,13 @@ module Main =
                                     tmppath
                                     |> FileInfo
                                     |> fun fileInfo ->
-                                        int (float (fileInfo.Length) / 1000000.0)
+                                        int
+                                            (float (fileInfo.Length) / 1000000.0)
 
-                                UpdateDownloadSize(downloadInfo.gameId, fileSize)
+                                UpdateDownloadSize
+                                    (downloadInfo.gameId, fileSize)
                                 |> dispatch
+
                                 fileSize
                             else
                                 0
@@ -134,117 +147,67 @@ module Main =
                         File.Exists tmppath
                         && fileSize < int downloadInfo.fileSize
 
-                    DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
+                    DispatcherTimer.Run
+                        (Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
                     |> ignore
                 | None ->
                     "Use cached installer for "
                     + downloadInfo.gameTitle
                     + "."
                     |> Logger.LogInfo
-                    UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize)
+
+                    UpdateDownloadSize
+                        (downloadInfo.gameId, int downloadInfo.fileSize)
                     |> dispatch
 
             Cmd.ofSub sub
 
-        let removeNotification notification =
-            let sub dispatch =
-                let invoke () =
-                    RemoveNotification notification |> dispatch
+    let init (settings: Settings option) (authentication: Authentication) =
+        let settings =
+            settings
+            |> Option.defaultValue (SystemInfo.defaultSettings ())
 
-                DispatcherTimer.RunOnce(Action(invoke), TimeSpan.FromSeconds 5.0)
-                |> ignore
+        // After determining our settings, we perform a cache check
+        Cache.check settings
 
-            Cmd.ofSub sub
-
-        let closeWindow (wind: IAndromedaWindow) =
-            let sub dispatch =
-                wind.AddClosedHandler(fun _ -> CloseAllWindows |> dispatch)
-                |> ignore
-
-            Cmd.ofSub sub
-
-        let installGameWindow authentication state =
-            let sub dispatch =
-                match state.installGameWindow with
-                | Some window ->
-                    let wind = window :> InstallGame.IInstallGameWindow
-                    wind.OnSave.Subscribe(fun (_, downloadInfo) ->
-                        (downloadInfo, authentication)
-                        |> CloseInstallGameWindow
-                        |> dispatch)
-                    |> ignore
-                | None -> ()
-
-            Cmd.ofSub sub
-
-        let saveSettings authentication (window: Settings.IWindow) =
-            let sub dispatch =
-                window.OnSave.Subscribe(fun (window, settings) ->
-                    (window, settings, authentication)
-                    |> CloseSettingsWindow
-                    |> dispatch)
-                |> ignore
-
-            Cmd.ofSub sub
-
-    let init (settings: Settings option, authentication: Authentication option) =
-        let authentication =
-            Option.bind
-                (Authentication.getRefreshToken
-                 >> Async.RunSynchronously) authentication
-
-        Option.map Persistence.Authentication.save |> ignore
-
-        let globalState, globalCmd = Global.init authentication settings GlobalMsg
+        let (installedGames, imgJobs) =
+            Installed.searchInstalled settings authentication
 
         let state =
-            { globalState = globalState
-              authenticationState = Authentication.init ()
-              leftBarState = LeftBar.init ()
-              installGameWindow = None
+            { authentication = authentication
+              downloads = []
+              installedGames = installedGames
+              mode = Installed
               notifications = []
-              settingsWindow = None
+              settings = settings
               terminalOutput = "" }
 
-        state, globalCmd
+        let cmd =
+            imgJobs
+            |> List.map
+                (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
+            |> Cmd.batch
 
-    let updateGlobal msg (state: State) (mainWindow: AndromedaWindow) =
+        state, cmd
+
+    let update msg (state: State) =
         match msg with
-        | Global.UseLens (lens, value) ->
-            let state =
-                state.globalState
-                |> setl lens value
-                |> setl StateLenses.globalState
-                <| state
+        | ChangeState change ->
+            let state = change state
 
-            state, Cmd.none
-        | Global.Authenticate authentication ->
-            Persistence.Authentication.save authentication
-            |> ignore
-
-            let state =
-                setl StateLenses.authentication (Some authentication) state
-
-            state, Cmd.none
-        | Global.ChangeMode mode -> setl StateLenses.mode mode state, Cmd.none
-        | Global.OpenSettingsWindow authentication ->
-            let window =
-                Settings.SettingsWindow(getl StateLenses.settings state)
-
-            window.ShowDialog(mainWindow) |> ignore
-
-            let cmd = Subs.saveSettings authentication window
-
-            { state with
-                  settingsWindow = window |> Some },
-            cmd
-        | Global.StartGame installedGame -> state, Subs.startGame installedGame
-        | Global.UpgradeGame (authentication, game) ->
-            let (updateData, authentication) = (authentication, game) ||> Installed.checkGameForUpdate
+            state, Cmd.none, DoNothing
+        | ChangeMode mode ->
+            setl StateLenses.mode mode state, Cmd.none, DoNothing
+        | StartGame installedGame ->
+            state, Subs.startGame installedGame, DoNothing
+        | UpgradeGame game ->
+            let (updateData, authentication) =
+                (getl StateLenses.authentication state, game)
+                ||> Installed.checkGameForUpdate
 
             // Update authentication in state, if it was refreshed
             let state =
-                setl StateLenses.authentication (Some authentication) state
+                setl StateLenses.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -256,47 +219,44 @@ module Main =
                         (productInfo, authentication) |> StartGameDownload)
                     |> Cmd.ofMsg
                 | None ->
-                    AddNotification $"No new version available for %s{game.name}"
+                    AddNotification
+                        $"No new version available for %s{game.name}"
                     |> Cmd.ofMsg
 
-            state, cmd
-        | Global.SetGameImage (productId, imgPath) ->
+            state, cmd, DoNothing
+        | SetGameImage (productId, imgPath) ->
             let state =
                 state
                 |> getl StateLenses.installedGames
-                |> Map.change productId (function
-                      | Some game -> { game with image = imgPath |> Some } |> Some
-                      | None -> None
-                   )
-                |> setl StateLenses.installedGames <| state
+                |> Map.change
+                    productId
+                    (function
+                    | Some game -> { game with image = imgPath |> Some } |> Some
+                    | None -> None)
+                |> setlr StateLenses.installedGames state
 
-            state, Cmd.none
-
-    let update msg (state: State) (mainWindow: AndromedaWindow) =
-        match msg with
-        | GlobalMsg msg -> updateGlobal msg state mainWindow
-        | AuthenticationMsg msg ->
-            let (s, cmd) =
-                Authentication.update msg state.authenticationState AuthenticationMsg
-                    GlobalMsg
-
-            { state with authenticationState = s }, cmd
-        | CloseAllWindows ->
-            let closeWindow (window: IAndromedaWindow) =
-                window.CloseWithoutCustomHandler()
-
-            Option.iter closeWindow state.settingsWindow
-            closeWindow mainWindow
-
-            state, Cmd.none
-        | LeftBarMsg msg ->
-            let (s, cmd) = LeftBar.update msg state.leftBarState
-
-            { state with leftBarState = s }, Cmd.map LeftBarMsg cmd
+            state, Cmd.none, DoNothing
         | AddNotification notification ->
-            { state with
-                  notifications = notification :: state.notifications },
-            Subs.removeNotification notification
+            // Remove notification again after 5 seconds
+            let removeNotification notification =
+                async {
+                    do! Async.Sleep 5000
+                    return notification
+                }
+
+            let state =
+                state
+                |> getl StateLenses.notifications
+                |> List.append [ notification ]
+                |> setlr StateLenses.notifications state
+
+            let cmd =
+                Cmd.OfAsync.perform
+                    removeNotification
+                    notification
+                    RemoveNotification
+
+            state, cmd, DoNothing
         | RemoveNotification notification ->
             let notifications =
                 state.notifications
@@ -304,7 +264,8 @@ module Main =
 
             { state with
                   notifications = notifications },
-            Cmd.none
+            Cmd.none,
+            DoNothing
         | AddToTerminalOutput newLine ->
             let terminalOutput =
                 match state.terminalOutput with
@@ -316,41 +277,8 @@ module Main =
 
             { state with
                   terminalOutput = terminalOutput },
-            Cmd.none
-        | OpenInstallGameWindow authentication ->
-            let window =
-                InstallGame.InstallGameWindow
-                    (authentication,
-                     getl StateLenses.installedGames state
-                     |> Map.toList
-                     |> List.map fst)
-
-            window.ShowDialog(mainWindow) |> ignore
-
-            let state =
-                { state with
-                      installGameWindow = window |> Some }
-
-            state, Subs.installGameWindow authentication state
-        | CloseInstallGameWindow (downloadInfo, authentication) ->
-            let cmd =
-                (downloadInfo, authentication)
-                |> StartGameDownload
-                |> Cmd.ofMsg
-
-            { state with installGameWindow = None }, cmd
-        | CloseSettingsWindow (window, settings, authentication) ->
-            window.CloseWithoutCustomHandler()
-
-            // After we got new settings, we perform a cache check
-            Cache.check settings
-
-            let cmd =
-                (settings, authentication)
-                |> SetSettings
-                |> Cmd.ofMsg
-
-            { state with settingsWindow = None }, cmd
+            Cmd.none,
+            DoNothing
         | SearchInstalled authentication ->
             let settings = getl StateLenses.settings state
 
@@ -362,29 +290,37 @@ module Main =
 
             let cmd =
                 imgJobs
-                |> List.map (fun job -> Cmd.OfAsync.perform job authentication (Global.SetGameImage >> GlobalMsg))
+                |> List.map
+                    (fun job ->
+                        Cmd.OfAsync.perform job authentication SetGameImage)
                 |> Cmd.batch
 
-            (state, cmd)
+            state, cmd, DoNothing
         | SetSettings (settings, authentication) ->
             Persistence.Settings.save settings |> ignore
 
             let state = setl StateLenses.settings settings state
 
+            // After we got new settings, we perform a cache check
+            Cache.check settings
+
             let msg =
                 Cmd.ofMsg (authentication |> SearchInstalled)
 
-            (state, msg)
+            state, msg, DoNothing
         | FinishGameDownload (filePath, authentication) ->
             let statusList =
                 getl StateLenses.downloads state
                 |> List.filter (fun ds -> ds.filePath <> filePath)
 
             setl StateLenses.downloads statusList state,
-            Cmd.ofMsg (authentication |> SearchInstalled)
+            Cmd.ofMsg (authentication |> SearchInstalled),
+            DoNothing
         | StartGameDownload (productInfo, authentication) ->
             let installerInfoList =
-                Diverse.getAvailableInstallersForOs productInfo.id authentication
+                Diverse.getAvailableInstallersForOs
+                    productInfo.id
+                    authentication
                 |> Async.RunSynchronously
 
             match installerInfoList.Length with
@@ -392,236 +328,429 @@ module Main =
                 let installerInfo = installerInfoList.[0]
 
                 let result =
-                    Download.downloadGame productInfo.title installerInfo authentication
+                    Download.downloadGame
+                        productInfo.title
+                        installerInfo
+                        authentication
                     |> Async.RunSynchronously
 
                 match result with
-                | None -> state, Cmd.none
+                | None -> state, Cmd.none, DoNothing
                 | Some (task, filePath, tmppath, size) ->
                     let downloadInfo =
-                        createDownloadStatus productInfo.id (productInfo.title) filePath
+                        DownloadStatus.create
+                            productInfo.id
+                            (productInfo.title)
+                            filePath
                             (float (size) / 1000000.0)
 
                     (downloadInfo :: (getl StateLenses.downloads state), state)
                     ||> setl StateLenses.downloads,
-                    Cmd.batch
-                        [ Subs.registerDownloadTimer task tmppath downloadInfo
-                          match task with
-                          | Some task ->
-                              let invoke () =
-                                  async {
-                                      let! _ = Async.AwaitTask task
-                                      File.Move(tmppath, filePath)
-                                  }
+                    Cmd.batch [
+                        Subs.registerDownloadTimer task tmppath downloadInfo
+                        match task with
+                        | Some task ->
+                            let invoke () =
+                                async {
+                                    let! _ = Async.AwaitTask task
+                                    File.Move(tmppath, filePath)
+                                }
 
-                              Cmd.OfAsync.perform invoke () (fun _ ->
-                                  UnpackGame
-                                      (getl StateLenses.settings state,
-                                       downloadInfo,
-                                       installerInfo.version,
-                                       authentication))
-                          | None ->
-                              Cmd.ofMsg
-                              <| UnpackGame
-                                  (getl StateLenses.settings state,
-                                   downloadInfo,
-                                   installerInfo.version,
-                                   authentication) ]
-            | 0 -> state, Cmd.ofMsg (AddNotification "Found no installer for this OS...")
+                            Cmd.OfAsync.perform
+                                invoke
+                                ()
+                                (fun _ ->
+                                    UnpackGame
+                                        (getl StateLenses.settings state,
+                                         downloadInfo,
+                                         installerInfo.version,
+                                         authentication))
+                        | None ->
+                            Cmd.ofMsg
+                            <| UnpackGame
+                                (getl StateLenses.settings state,
+                                 downloadInfo,
+                                 installerInfo.version,
+                                 authentication)
+                    ],
+                    DoNothing
+            | 0 ->
+                state,
+                Cmd.ofMsg (AddNotification "Found no installer for this OS..."),
+                DoNothing
             | _ ->
                 state,
                 Cmd.ofMsg
                     (AddNotification
-                        "Found multiple installers, this is not supported yet...")
+                        "Found multiple installers, this is not supported yet..."),
+                DoNothing
         | UnpackGame (settings, downloadInfo, version, authentication) ->
             let invoke () =
-                Download.extractLibrary settings downloadInfo.gameTitle downloadInfo.filePath
+                Download.extractLibrary
+                    settings
+                    downloadInfo.gameTitle
+                    downloadInfo.filePath
                     version
 
             let cmd =
                 [ UpdateDownloadInstalling downloadInfo.filePath
                   |> Cmd.ofMsg
 
-                  (fun _ -> FinishGameDownload(downloadInfo.filePath, authentication))
+                  (fun _ ->
+                      FinishGameDownload(downloadInfo.filePath, authentication))
                   |> Cmd.OfAsync.perform invoke () ]
                 |> Cmd.batch
 
-            state, cmd
-        | UpgradeGames authentication ->
+            state, cmd, Intent.DoNothing
+        | UpgradeGames ->
             let (updateDataList, authentication) =
-                (getl StateLenses.installedGames state, authentication)
+                (getl StateLenses.installedGames state,
+                 getl StateLenses.authentication state)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication in state, if it was refreshed
             let state =
-                setl StateLenses.authentication (Some authentication) state
+                setl StateLenses.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
                 match updateDataList with
                 | updateDataList when updateDataList.Length > 0 ->
-                    List.map (fun (updateData: Installed.UpdateData) ->
-                        updateData.game
-                        |> gameToDownloadInfo
-                        |> (fun productInfo ->
-                            (productInfo, authentication) |> StartGameDownload)
-                        |> Cmd.ofMsg) updateDataList
+                    List.map
+                        (fun (updateData: Installed.UpdateData) ->
+                            updateData.game
+                            |> gameToDownloadInfo
+                            |> (fun productInfo ->
+                                (productInfo, authentication)
+                                |> StartGameDownload)
+                            |> Cmd.ofMsg)
+                        updateDataList
                 | _ ->
                     [ AddNotification "No games found to update."
                       |> Cmd.ofMsg ]
                 |> Cmd.batch
 
-            state, cmd
+            state, cmd, DoNothing
         | UpdateDownloadSize (gameId, fileSize) ->
             let state =
                 getl StateLenses.downloads state
-                |> List.map (fun download ->
-                    if download.gameId = gameId then
-                        { download with downloaded = fileSize }
-                    else
-                        download)
-                |> setl StateLenses.downloads
-                <| state
+                |> List.map
+                    (fun download ->
+                        if download.gameId = gameId then
+                            { download with downloaded = fileSize }
+                        else
+                            download)
+                |> setlr StateLenses.downloads state
 
-            state, Cmd.none
+            state, Cmd.none, DoNothing
         | UpdateDownloadInstalling filePath ->
             let state =
                 getl StateLenses.downloads state
-                |> List.map (fun download ->
-                    if download.filePath = filePath then
-                        { download with installing = true }
-                    else
-                        download)
-                |> setl StateLenses.downloads
-                <| state
+                |> List.map
+                    (fun download ->
+                        if download.filePath = filePath then
+                            { download with installing = true }
+                        else
+                            download)
+                |> setlr StateLenses.downloads state
 
-            state, Cmd.none
+            state, Cmd.none, DoNothing
+        // Intents
+        | OpenSettings -> state, Cmd.none, Intent.OpenSettings
+        | OpenInstallGameWindow -> state, Cmd.none, Intent.OpenInstallGameWindow
+
+    let gameTile dispatch (i: int, game: InstalledGame): IView =
+        let gap = 5.0
+
+        Border.create [
+            Border.margin (0.0, 0.0, gap, gap)
+            Border.contextMenu
+                (ContextMenu.create [
+                    ContextMenu.viewItems [
+                        MenuItem.create [
+                            MenuItem.header "Start"
+                            MenuItem.onClick
+                                ((fun _ -> game |> StartGame |> dispatch),
+                                 OnChangeOf game)
+                        ]
+                        MenuItem.create [
+                            MenuItem.header "Update"
+                            MenuItem.onClick
+                                ((fun _ -> game |> UpgradeGame |> dispatch),
+                                 OnChangeOf game)
+                        ]
+                        MenuItem.create [ MenuItem.header "-" ]
+                        MenuItem.create [
+                            MenuItem.header "Open game folder"
+                            MenuItem.onClick
+                                ((fun _ -> game.path |> System.openFolder),
+                                 OnChangeOf game)
+                        ]
+                    ]
+                 ])
+            Border.child
+                (Image.create [
+                    Image.height 120.0
+                    Image.stretch Stretch.UniformToFill
+                    Image.width 200.0
+                    Image.source
+                        (match game.image with
+                         | Some imgPath -> new Bitmap(imgPath)
+                         | None ->
+                             new Bitmap(loadAssetPath
+                                            "avares://Andromeda.AvaloniaApp/Assets/placeholder.jpg"))
+                 ])
+        ]
+        :> IView
+
+    let renderGameList state dispatch =
+        WrapPanel.create [
+            WrapPanel.children
+                (state
+                 |> getl StateLenses.installedGames
+                 |> Map.toList
+                 |> List.map snd
+                 |> List.indexed
+                 |> List.map (gameTile dispatch))
+        ]
 
     let private notificationItemView (notification: string) =
-        StackPanel.create
-            [ StackPanel.classes [ "info" ]
-              StackPanel.children
-                  [ Grid.create
-                      [ Grid.columnDefinitions "1*, Auto"
-                        Grid.margin 6.0
-                        Grid.children
-                            [ TextBlock.create
-                                [ Grid.column 0
-                                  TextBlock.text notification ] ] ] ] ]
+        StackPanel.create [
+            StackPanel.classes [ "info" ]
+            StackPanel.children [
+                Grid.create [
+                    Grid.columnDefinitions "1*, Auto"
+                    Grid.margin 6.0
+                    Grid.children [
+                        TextBlock.create [
+                            Grid.column 0
+                            TextBlock.text notification
+                        ]
+                    ]
+                ]
+            ]
+        ]
 
     let private notificationsView (notifications: string list) =
         match notifications with
         | notifications when notifications.Length > 0 ->
-            StackPanel.create
-                [ StackPanel.dock Dock.Top
-                  StackPanel.classes [ "dark" ]
-                  StackPanel.children
-                      [ ItemsControl.create
-                          [ ItemsControl.dataItems notifications
-                            ItemsControl.itemTemplate
-                                (DataTemplateView<string>.create notificationItemView) ] ] ]
-        | _ -> StackPanel.create [ StackPanel.dock Dock.Top ]
+            StackPanel.create [
+                StackPanel.dock Dock.Top
+                StackPanel.classes [ "dark" ]
+                StackPanel.children [
+                    ItemsControl.create [
+                        ItemsControl.dataItems notifications
+                        ItemsControl.itemTemplate
+                            (DataTemplateView<string>.create
+                                notificationItemView)
+                    ]
+                ]
+            ]
+        | _ ->
+            StackPanel.create [
+                StackPanel.dock Dock.Top
+            ]
 
-    let private mainAreaView authentication (state: State) dispatch gDispatch =
-        DockPanel.create
-            [ Grid.column 1
-              DockPanel.horizontalAlignment HorizontalAlignment.Stretch
-              DockPanel.verticalAlignment VerticalAlignment.Stretch
-              DockPanel.children
-                  [ notificationsView state.notifications
-                    StackPanel.create
-                        [ StackPanel.dock Dock.Top
-                          StackPanel.margin 10.0
-                          StackPanel.orientation Orientation.Horizontal
-                          StackPanel.spacing 5.0
-                          StackPanel.children
-                              [ Button.create
-                                  [ Button.content "Install game"
-                                    Button.onClick (fun _ ->
-                                        authentication
-                                        |> OpenInstallGameWindow
-                                        |> dispatch) ]
-                                Button.create
-                                    [ Button.content "Upgrade games"
-                                      Button.onClick (fun _ ->
-                                          authentication |> UpgradeGames |> dispatch) ] ] ]
-                    TextBox.create
-                        [ TextBox.dock Dock.Bottom
-                          TextBox.height 100.0
-                          TextBox.isReadOnly true
-                          TextBox.text state.terminalOutput ]
-                    ScrollViewer.create
-                        [ ScrollViewer.horizontalScrollBarVisibility
-                            ScrollBarVisibility.Disabled
-                          ScrollViewer.padding 10.0
-                          ScrollViewer.content
-                              (if getl StateLenses.mode state = Global.Empty then
-                                  TextBlock.create
-                                      [ TextBlock.textWrapping TextWrapping.Wrap
-                                        TextBlock.text "Because I couldn't make a browser control for Avalonia work, we have to live for now \
-                                    without the graphical stuff from GOG Galaxy and use some workaround buttons (and later menus).\n\
-                                    You can start games by right clicking on the game in the list on the left side.\n\
-                                    \n\
-                                    If a game does not start on linux, run Andromeda from console and have a look at the console output. \
-                                    This happens normally, because the execution rights are not set correctly for some files.\n\
-                                    \n\
-                                    On windows many games crash after start for some reason. You have to start it manually \
-                                    from outside Andromeda for now.\n\
-                                    Upgrading will not work on windows as well. This will hopefully be fixed for v0.4.0.\n\
-                                    \n\
-                                    Working on a solution for those problems!" ] :> IView
-                               else
-                                   GameList.view gDispatch
-                                       (getl StateLenses.installedGames state)
-                                       authentication) ] ] ]
+    let private renderButtonBar state dispatch =
+        StackPanel.create [
+            StackPanel.dock Dock.Top
+            StackPanel.margin 10.0
+            StackPanel.orientation Orientation.Horizontal
+            StackPanel.spacing 5.0
+            StackPanel.children [
+                Button.create [
+                    Button.content "Install game"
+                    Button.onClick (fun _ -> OpenInstallGameWindow |> dispatch)
+                ]
+                Button.create [
+                    Button.content "Upgrade games"
+                    Button.onClick (fun _ -> UpgradeGames |> dispatch)
+                ]
+            ]
+        ]
 
-    let leftBarView authentication state dispatch =
-        LeftBar.view authentication state.leftBarState state.globalState
-            (LeftBarMsg >> dispatch) (GlobalMsg >> dispatch)
+    let private renderTerminalOutput state dispatch =
+        TextBox.create [
+            TextBox.dock Dock.Bottom
+            TextBox.height 100.0
+            TextBox.isReadOnly true
+            TextBox.text state.terminalOutput
+        ]
 
-    let view (state: State) dispatch =
-        let gDispatch = (GlobalMsg >> dispatch)
-        match getl StateLenses.authentication state with
-        | Some authentication ->
-            DockPanel.create
-                [ DockPanel.verticalAlignment VerticalAlignment.Stretch
-                  DockPanel.horizontalAlignment HorizontalAlignment.Stretch
-                  DockPanel.lastChildFill true
-                  DockPanel.children
-                      [ Grid.create
-                          [ Grid.columnDefinitions "1*, 3*"
-                            Grid.children
-                                [ leftBarView authentication state dispatch
-                                  mainAreaView authentication state dispatch gDispatch ] ] ] ] :> IView
-        | None ->
-            Authentication.view state.authenticationState (AuthenticationMsg >> dispatch)
+    let private mainAreaView (state: State) dispatch =
+        DockPanel.create [
+            DockPanel.column 1
+            DockPanel.horizontalAlignment HorizontalAlignment.Stretch
+            DockPanel.verticalAlignment VerticalAlignment.Stretch
+            DockPanel.children [
+                notificationsView state.notifications
+                renderButtonBar state dispatch
+                renderTerminalOutput state dispatch
+                ScrollViewer.create [
+                    ScrollViewer.horizontalScrollBarVisibility
+                        ScrollBarVisibility.Disabled
+                    ScrollViewer.padding 10.0
+                    ScrollViewer.content (renderGameList state dispatch)
+                ]
+            ]
+        ]
 
-    type MainWindow() as this =
-        inherit AndromedaWindow()
+    let private iconBarView state dispatch =
+        StackPanel.create [
+            StackPanel.dock Dock.Top
+            StackPanel.margin (Thickness.Parse("0, 10"))
+            StackPanel.orientation Orientation.Horizontal
+            StackPanel.children [
+                Button.create [
+                    Button.classes [ "iconButton" ]
+                    Button.content Icons.settings
+                    Button.onClick (fun _ -> OpenSettings |> dispatch)
+                ]
+            ]
+        ]
 
-        do
-            base.Title <- "Andromeda"
-            base.Icon <-
-                WindowIcon
-                    (AvaloniaHelper.loadAssetPath
-                        "avares://Andromeda.AvaloniaApp/Assets/logo.ico")
-            base.Width <- 1024.0
-            base.Height <- 660.0
+    // TODO: icon
+    let private menuItem dispatch currentMode (text: string) badge mode =
+        Button.create [
+            Button.classes [
+                if mode = currentMode then "active" else ()
+            ]
+            Button.content
+                (DockPanel.create [
+                    DockPanel.children [
+                        match badge with
+                        | Some badge ->
+                            Border.create [
+                                Border.classes [ "badge" ]
+                                Border.dock Dock.Right
+                                Border.margin (5.0, 0.0, 0.0, 0.0)
+                                Border.child
+                                    (TextBlock.create [
+                                        TextBlock.text (badge |> string)
+                                     ])
+                            ]
+                        | None -> ()
+                        TextBlock.create [
+                            TextBlock.text text
+                            TextBlock.verticalAlignment VerticalAlignment.Center
+                        ]
+                    ]
+                 ])
+            Button.onClick (fun _ -> ChangeMode mode |> dispatch)
+        ]
 
-#if DEBUG
-            this.AttachDevTools(KeyGesture(Key.F12))
-#endif
+    let private middleView state dispatch =
+        let menuItem = menuItem dispatch state.mode
 
-            // Load saved stuff from dsik
-            let settings = Persistence.Settings.load ()
-            let authentication = Persistence.Authentication.load ()
+        ScrollViewer.create [
+            ScrollViewer.content
+                (StackPanel.create [
+                    StackPanel.orientation Orientation.Vertical
+                    StackPanel.children [
+                        menuItem
+                            "Installed"
+                            (Map.count state.installedGames |> Some)
+                            Installed
+                    ]
+                 ])
+        ]
 
-            let updateWithServices msg state = update msg state this
+    let private downloadTemplateView (downloadStatus: DownloadStatus) =
+        Grid.create [
+            Grid.columnDefinitions "Auto"
+            Grid.margin (0.0, 5.0)
+            Grid.rowDefinitions "Auto, Auto, Auto"
+            Grid.children [
+                TextBlock.create [
+                    TextBlock.row 0
+                    TextBlock.text downloadStatus.gameTitle
+                ]
+                ProgressBar.create [
+                    Grid.row 1
+                    ProgressBar.isVisible
+                    <| not downloadStatus.installing
+                    ProgressBar.maximum downloadStatus.fileSize
+                    ProgressBar.value
+                    <| double downloadStatus.downloaded
+                ]
+                TextBlock.create [
+                    Grid.row 2
+                    TextBlock.isVisible downloadStatus.installing
+                    TextBlock.text "Installing..."
+                ]
+                TextBlock.create [
+                    Grid.row 2
+                    TextBlock.isVisible
+                    <| not downloadStatus.installing
+                    TextBlock.text
+                    <| sprintf
+                        "%i MB / %i MB"
+                        downloadStatus.downloaded
+                        (int downloadStatus.fileSize)
+                ]
+            ]
+        ]
 
-            Program.mkProgram init updateWithServices view
-            |> Program.withHost this
-            |> Program.withSubscription (fun _ -> Subs.closeWindow this)
-#if DEBUG
-            |> Program.withConsoleTrace
-#endif
-            |> Program.runWith (settings, authentication)
+    let private downloadsView (downloadList: DownloadStatus list) =
+        StackPanel.create [
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.margin (Thickness.Parse "12, 12")
+            StackPanel.children [
+                ItemsControl.create [
+                    ItemsControl.dataItems downloadList
+                    ItemsControl.itemTemplate
+                        (DataTemplateView<DownloadStatus>.create
+                            downloadTemplateView)
+                ]
+                TextBlock.create [
+                    TextBlock.isVisible (downloadList.Length = 0)
+                    TextBlock.text "No downloads"
+                ]
+            ]
+        ]
+
+    let private bottomBarView state dispatch =
+        StackPanel.create [
+            StackPanel.dock Dock.Bottom
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.children [
+                downloadsView state.downloads
+                TextBlock.create [
+                    TextBlock.dock Dock.Bottom
+                    TextBlock.fontSize 10.0
+                    TextBlock.text Config.version
+                ]
+            ]
+        ]
+
+    let renderLeftBar state dispatch =
+        Border.create [
+            Border.classes [ "leftBar" ]
+            Border.column 0
+            Border.padding (5.0, 0.0)
+            Border.child
+                (DockPanel.create [
+                    DockPanel.children [
+                        iconBarView state dispatch
+                        bottomBarView state dispatch
+                        middleView state dispatch
+                    ]
+                 ])
+        ]
+
+    let render state dispatch: IView =
+        DockPanel.create [
+            DockPanel.verticalAlignment VerticalAlignment.Stretch
+            DockPanel.horizontalAlignment HorizontalAlignment.Stretch
+            DockPanel.lastChildFill true
+            DockPanel.children [
+                Grid.create [
+                    Grid.columnDefinitions "1*, 3*"
+                    Grid.children [
+                        renderLeftBar state dispatch :> IView
+                        mainAreaView state dispatch :> IView
+                    ]
+                ]
+            ]
+        ]
+        :> IView

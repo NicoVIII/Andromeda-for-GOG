@@ -19,3 +19,5 @@ module Lenses =
         let getl (Lens (get, _)) source = get source
 
         let setl (Lens (_, set)) value source = set source value
+
+        let setlr (Lens (_, set)) source value = set source value

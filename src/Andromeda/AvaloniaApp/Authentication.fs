@@ -29,21 +29,20 @@ module Authentication =
         let authCode =
             Lens((fun r -> r.authCode), (fun r v -> { r with authCode = v }))
 
-    type Msg<'T> =
-        | UseLens of Lens<State, 'T> * 'T
+    type Intent =
+        | DoNothing
+        | Authenticate of Authentication
+
+    type Msg =
         | OpenBrowser
-        | SetCode of string
         | TryAuthenticate of Authentication option
+        | SetCode of string
         | Save
 
     let init () = { authCode = ""; invalidCode = false }
 
-    let update<'a> msg (state: State) toAuthMsg toGlobalMsg: State * Cmd<'a> =
+    let update<'a> msg (state: State) =
         match msg with
-        | UseLens (lens, value) ->
-            let state = state |> setl lens value
-
-            state, Cmd.none
         | OpenBrowser ->
             // Open url in browser (from: https://brockallen.com/2016/09/24/process-start-for-urls-on-net-core/)
             if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
@@ -59,20 +58,17 @@ module Authentication =
                 Process.Start("open", authUri) |> ignore
             else
                 ()
-            state, Cmd.none
+            state, Cmd.none, DoNothing
         | TryAuthenticate authentication ->
             match authentication with
             | Some authentication ->
-                let cmd =
-                    Global.Authenticate authentication
-                    |> toGlobalMsg
-                    |> Cmd.ofMsg
+                let intent = Authenticate authentication
 
-                state, cmd
+                state, Cmd.none, intent
             | None ->
                 let state = { state with invalidCode = true }
 
-                state, Cmd.none
+                state, Cmd.none, DoNothing
         | Save ->
             let msg =
                 match state.authCode with
@@ -81,20 +77,20 @@ module Authentication =
                     let getAuth () =
                         async { return! Authentication.getNewToken redirectUri authCode }
 
-                    let msgFnc auth = TryAuthenticate auth |> toAuthMsg
+                    let msgFnc auth = TryAuthenticate auth
 
                     Cmd.OfAsync.perform getAuth () msgFnc
 
-            state, msg
+            state, msg, DoNothing
         | SetCode code ->
             let state =
                 { state with
                       authCode = code
                       invalidCode = false }
 
-            state, Cmd.none
+            state, Cmd.none, DoNothing
 
-    let view (state: State) dispatch: IView =
+    let render (state: State) dispatch: IView =
         StackPanel.create
             [ StackPanel.margin 50.0
               StackPanel.orientation Orientation.Vertical
