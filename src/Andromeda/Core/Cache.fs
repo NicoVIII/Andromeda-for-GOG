@@ -15,15 +15,21 @@ module Cache =
         match settings.cacheRemoval with
         | RemoveByAge maxAge ->
             let path = SystemInfo.installerCachePath
+
             if Directory.Exists path then
                 Directory.EnumerateFiles path
                 // We are only interested in files, which are older than our deadline
-                |> Seq.choose (fun fileName ->
-                    let filePath = Path.Combine(path, fileName)
-                    let creationTime = File.GetCreationTime filePath
-                    let deadline = DateTime.Now.AddDays(maxAge |> float |> (*) -1.0)
-                    match creationTime with
-                    | creationTime when creationTime < deadline -> Some filePath
-                    | _ -> None)
+                |> Seq.choose
+                    (fun fileName ->
+                        let filePath = Path.Combine(path, fileName)
+                        let creationTime = File.GetCreationTime filePath
+
+                        let deadline =
+                            DateTime.Now.AddDays(maxAge |> float |> (*) -1.0)
+
+                        match creationTime with
+                        | creationTime when creationTime < deadline ->
+                            Some filePath
+                        | _ -> None)
                 |> Seq.iter File.Delete
         | NoRemoval -> ()

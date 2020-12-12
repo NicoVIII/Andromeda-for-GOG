@@ -20,7 +20,7 @@ module App =
 
     type Msg =
         | CloseAllWindows
-        | CloseSettingsWindow of Settings.IWindow * Settings * Authentication
+        | CloseSettingsWindow of Settings.IWindow * Settings
         | CloseInstallGameWindow of ProductInfo * Authentication
         | OpenInstallGameWindow
         | OpenSettingsWindow
@@ -52,11 +52,11 @@ module App =
 
             Cmd.ofSub sub
 
-        let saveSettings authentication (window: Settings.IWindow) =
+        let saveSettings (window: Settings.IWindow) =
             let sub dispatch =
                 window.OnSave.Subscribe
                     (fun (window, settings) ->
-                        (window, settings, authentication)
+                        (window, settings)
                         |> CloseSettingsWindow
                         |> dispatch)
                 |> ignore
@@ -87,10 +87,10 @@ module App =
         match msg, state.programState with
         | OpenInstallGameWindow, Authenticated mainState ->
             let authentication =
-                getl Main.StateLenses.authentication mainState
+                getl Main.StateL.authentication mainState
 
             let installedGames =
-                getl Main.StateLenses.installedGames mainState
+                getl Main.StateL.installedGames mainState
                 |> Map.toList
                 |> List.map fst
 
@@ -107,15 +107,15 @@ module App =
         | OpenInstallGameWindow, _ -> idle
         | OpenSettingsWindow, Authenticated mainState ->
             let authentication =
-                getl Main.StateLenses.authentication mainState
+                getl Main.StateL.authentication mainState
 
-            let settings = getl Main.StateLenses.settings mainState
+            let settings = getl Main.StateL.settings mainState
 
             let window = Settings.SettingsWindow(settings)
 
             window.ShowDialog(mainWindow) |> ignore
 
-            let cmd = Subs.saveSettings authentication window
+            let cmd = Subs.saveSettings window
 
             { state with
                   settingsWindow = window |> Some },
@@ -129,14 +129,11 @@ module App =
                 |> Cmd.ofMsg
 
             { state with installGameWindow = None }, cmd
-        | CloseSettingsWindow (window, settings, authentication), _ ->
+        | CloseSettingsWindow (window, settings), _ ->
             window.CloseWithoutCustomHandler()
 
             let cmd =
-                (settings, authentication)
-                |> Main.SetSettings
-                |> MainMsg
-                |> Cmd.ofMsg
+                Main.SetSettings settings |> MainMsg |> Cmd.ofMsg
 
             { state with settingsWindow = None }, cmd
         | CloseAllWindows, _ ->
@@ -181,7 +178,7 @@ module App =
                     Persistence.Authentication.save authentication
                     |> ignore
 
-                    setl Main.StateLenses.authentication authentication
+                    setl Main.StateL.authentication authentication
                     |> Main.ChangeState
                     |> MainMsg
                     |> Cmd.ofMsg

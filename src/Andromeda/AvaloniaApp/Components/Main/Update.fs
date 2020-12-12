@@ -3,31 +3,39 @@ namespace Andromeda.AvaloniaApp.Components.Main
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Lenses
+open Avalonia.Threading
 open Elmish
 open GogApi.DotNet.FSharp.DomainTypes
 open System
+open System.Diagnostics
 open System.IO
+open System.Reactive.Concurrency
+open System.Threading.Tasks
 
 open Andromeda.AvaloniaApp
-open System.Diagnostics
-open Avalonia.Threading
-open System.Threading.Tasks
 
 module Update =
     module Subs =
+        /// Starts a given game in a subprocess and redirects its terminal output
         let startGame (game: InstalledGame) =
+            let createEmptyDisposable () =
+                { new IDisposable with
+                    member __.Dispose() = () }
+
             let sub dispatch =
                 let showGameOutput _ (outLine: DataReceivedEventArgs) =
-                    if outLine.Data |> String.IsNullOrEmpty |> not then
+                    match outLine.Data with
+                    | newLine when String.IsNullOrEmpty newLine -> ()
+                    | _ ->
+                        let state = outLine.Data
+
+                        let action _ newLine =
+                            AddToTerminalOutput newLine |> dispatch
+                            createEmptyDisposable ()
+
                         AvaloniaScheduler.Instance.Schedule
-                            (outLine.Data,
-                             (fun _ newLine ->
-                                 AddToTerminalOutput newLine |> dispatch
-                                 { new IDisposable with
-                                     member __.Dispose() = () }))
+                            (state, new Func<IScheduler, string, IDisposable>(action))
                         |> ignore
-                    else
-                        ()
 
                 Installed.startGameProcess showGameOutput game.path
                 |> ignore
@@ -53,11 +61,9 @@ module Update =
                                     tmppath
                                     |> FileInfo
                                     |> fun fileInfo ->
-                                        int
-                                            (float (fileInfo.Length) / 1000000.0)
+                                        int (float (fileInfo.Length) / 1000000.0)
 
-                                UpdateDownloadSize
-                                    (downloadInfo.gameId, fileSize)
+                                UpdateDownloadSize(downloadInfo.gameId, fileSize)
                                 |> dispatch
 
                                 fileSize
@@ -67,8 +73,7 @@ module Update =
                         File.Exists tmppath
                         && fileSize < int downloadInfo.fileSize
 
-                    DispatcherTimer.Run
-                        (Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
+                    DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
                     |> ignore
                 | None ->
                     "Use cached installer for "
@@ -76,30 +81,22 @@ module Update =
                     + "."
                     |> Logger.LogInfo
 
-                    UpdateDownloadSize
-                        (downloadInfo.gameId, int downloadInfo.fileSize)
+                    UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize)
                     |> dispatch
 
             Cmd.ofSub sub
 
-    let update msg (state: State) =
-        match msg with
-        | ChangeState change ->
-            let state = change state
-
-            state, Cmd.none, DoNothing
-        | ChangeMode mode ->
-            setl StateLenses.mode mode state, Cmd.none, DoNothing
-        | StartGame installedGame ->
-            state, Subs.startGame installedGame, DoNothing
-        | UpgradeGame game ->
+    /// Contains everything for the update method, which is a little longer
+    module Update =
+        /// Checks a single game for an upgrade
+        let upgradeGame state game =
             let (updateData, authentication) =
-                (getl StateLenses.authentication state, game)
+                (getl StateL.authentication state, game)
                 ||> Installed.checkGameForUpdate
 
             // Update authentication in state, if it was refreshed
             let state =
-                setl StateLenses.authentication authentication state
+                setl StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -111,24 +108,26 @@ module Update =
                         (productInfo, authentication) |> StartGameDownload)
                     |> Cmd.ofMsg
                 | None ->
-                    AddNotification
-                        $"No new version available for %s{game.name}"
+                    AddNotification $"No new version available for %s{game.name}"
                     |> Cmd.ofMsg
 
             state, cmd, DoNothing
-        | SetGameImage (productId, imgPath) ->
+
+        /// Sets the local image path for a game
+        let setGameImage state productId imgPath =
             let state =
                 state
-                |> getl StateLenses.installedGames
+                |> getl StateL.installedGames
                 |> Map.change
                     productId
                     (function
                     | Some game -> { game with image = imgPath |> Some } |> Some
                     | None -> None)
-                |> setlr StateLenses.installedGames state
+                |> setlr StateL.installedGames state
 
             state, Cmd.none, DoNothing
-        | AddNotification notification ->
+
+        let addNotification state notification =
             // Remove notification again after 5 seconds
             let removeNotification notification =
                 async {
@@ -138,92 +137,49 @@ module Update =
 
             let state =
                 state
-                |> getl StateLenses.notifications
+                |> getl StateL.notifications
                 |> List.append [ notification ]
-                |> setlr StateLenses.notifications state
+                |> setlr StateL.notifications state
 
             let cmd =
-                Cmd.OfAsync.perform
-                    removeNotification
-                    notification
-                    RemoveNotification
+                Cmd.OfAsync.perform removeNotification notification RemoveNotification
 
             state, cmd, DoNothing
-        | RemoveNotification notification ->
-            let notifications =
-                state.notifications
-                |> List.filter (fun n -> n <> notification)
 
-            { state with
-                  notifications = notifications },
-            Cmd.none,
-            DoNothing
-        | AddToTerminalOutput newLine ->
-            let terminalOutput =
-                match state.terminalOutput with
-                | "" -> newLine
-                | _ ->
-                    newLine
-                    + Environment.NewLine
-                    + state.terminalOutput
-
-            { state with
-                  terminalOutput = terminalOutput },
-            Cmd.none,
-            DoNothing
-        | SearchInstalled authentication ->
-            let settings = getl StateLenses.settings state
+        let searchInstalled state =
+            let authentication = getl StateL.authentication state
 
             let (installedGames, imgJobs) =
-                Installed.searchInstalled settings authentication
+                (getl StateL.settings state, authentication)
+                ||> Installed.searchInstalled
 
             let state =
-                setl StateLenses.installedGames installedGames state
+                setl StateL.installedGames installedGames state
 
             let cmd =
                 imgJobs
                 |> List.map
-                    (fun job ->
-                        Cmd.OfAsync.perform job authentication SetGameImage)
+                    (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
                 |> Cmd.batch
 
             state, cmd, DoNothing
-        | SetSettings (settings, authentication) ->
-            Persistence.Settings.save settings |> ignore
 
-            let state = setl StateLenses.settings settings state
+        let startGameDownload state (productInfo: ProductInfo) =
+            let authentication = getl StateL.authentication state
 
-            // After we got new settings, we perform a cache check
-            Cache.check settings
-
-            let msg =
-                Cmd.ofMsg (authentication |> SearchInstalled)
-
-            state, msg, DoNothing
-        | FinishGameDownload (filePath, authentication) ->
-            let statusList =
-                getl StateLenses.downloads state
-                |> List.filter (fun ds -> ds.filePath <> filePath)
-
-            setl StateLenses.downloads statusList state,
-            Cmd.ofMsg (authentication |> SearchInstalled),
-            DoNothing
-        | StartGameDownload (productInfo, authentication) ->
             let installerInfoList =
-                Diverse.getAvailableInstallersForOs
-                    productInfo.id
-                    authentication
+                Diverse.getAvailableInstallersForOs productInfo.id authentication
                 |> Async.RunSynchronously
 
-            match installerInfoList.Length with
-            | 1 ->
-                let installerInfo = installerInfoList.[0]
+            match installerInfoList with
+            | [] ->
+                let cmd =
+                    Cmd.ofMsg (AddNotification "Found no installer for this OS...")
 
+                state, cmd, DoNothing
+            | [ installerInfo ] ->
                 let result =
-                    Download.downloadGame
-                        productInfo.title
-                        installerInfo
-                        authentication
+                    Download.downloadGame productInfo.title installerInfo authentication
                     |> Async.RunSynchronously
 
                 match result with
@@ -236,10 +192,14 @@ module Update =
                             filePath
                             (float (size) / 1000000.0)
 
-                    (downloadInfo :: (getl StateLenses.downloads state), state)
-                    ||> setl StateLenses.downloads,
-                    Cmd.batch [
-                        Subs.registerDownloadTimer task tmppath downloadInfo
+                    let settings = getl StateL.settings state
+
+                    let state =
+                        getl StateL.downloads state
+                        |> Map.add downloadInfo.gameId downloadInfo
+                        |> setlr StateL.downloads state
+
+                    let downloadCmd =
                         match task with
                         | Some task ->
                             let invoke () =
@@ -253,30 +213,87 @@ module Update =
                                 ()
                                 (fun _ ->
                                     UnpackGame
-                                        (getl StateLenses.settings state,
-                                         downloadInfo,
-                                         installerInfo.version,
-                                         authentication))
+                                        (settings, downloadInfo, installerInfo.version))
                         | None ->
-                            Cmd.ofMsg
-                            <| UnpackGame
-                                (getl StateLenses.settings state,
-                                 downloadInfo,
-                                 installerInfo.version,
-                                 authentication)
-                    ],
-                    DoNothing
-            | 0 ->
-                state,
-                Cmd.ofMsg (AddNotification "Found no installer for this OS..."),
-                DoNothing
+                            UnpackGame(settings, downloadInfo, installerInfo.version)
+                            |> Cmd.ofMsg
+
+                    let cmd =
+                        [ Subs.registerDownloadTimer task tmppath downloadInfo
+                          downloadCmd ]
+                        |> Cmd.batch
+
+                    state, cmd, DoNothing
             | _ ->
-                state,
-                Cmd.ofMsg
-                    (AddNotification
-                        "Found multiple installers, this is not supported yet..."),
-                DoNothing
-        | UnpackGame (settings, downloadInfo, version, authentication) ->
+                let cmd =
+                    Cmd.ofMsg
+                        (AddNotification
+                            "Found multiple installers, this is not supported yet...")
+
+                state, cmd, DoNothing
+
+    let update msg (state: State) =
+        match msg with
+        | ChangeState change -> change state, Cmd.none, DoNothing
+        | ChangeMode mode -> setl StateL.mode mode state, Cmd.none, DoNothing
+        | StartGame installedGame -> state, Subs.startGame installedGame, DoNothing
+        | UpgradeGame game -> Update.upgradeGame state game
+        | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
+        | AddNotification notification -> Update.addNotification state notification
+        | RemoveNotification notification ->
+            let state =
+                getl StateL.notifications state
+                |> List.filter (fun n -> n <> notification)
+                |> setlr StateL.notifications state
+
+            state, Cmd.none, DoNothing
+        | AddToTerminalOutput newLine ->
+            // Add new line to the front of the terminal
+            let state =
+                getl StateL.terminalOutput state
+                // Limit output to 1000 lines
+                |> fun lines -> newLine :: lines.[..999]
+                |> setlr StateL.terminalOutput state
+
+            state, Cmd.none, DoNothing
+        | SearchInstalled -> Update.searchInstalled state
+        | CacheCheck ->
+            let cacheCheck () =
+                async { do getl StateL.settings state |> Cache.check }
+
+            let cmd =
+                Cmd.OfAsync.attempt
+                    cacheCheck
+                    ()
+                    (fun _ -> AddNotification "Cachecheck failed!")
+
+            state, cmd, DoNothing
+        | SetSettings settings ->
+            Persistence.Settings.save settings |> ignore
+
+            let state = setl StateL.settings settings state
+
+            let cmd =
+                [ Cmd.ofMsg SearchInstalled
+                  Cmd.ofMsg CacheCheck ]
+                |> Cmd.batch
+
+            state, cmd, DoNothing
+        | FinishGameDownload gameId ->
+            let state =
+                getl StateL.downloads state
+                |> Map.change gameId (fun _ -> None)
+                |> setlr StateL.downloads state
+
+            state, Cmd.ofMsg SearchInstalled, DoNothing
+        | StartGameDownload (productInfo, authentication) ->
+            // This is triggered by the parent component, authentication could have changed,
+            // so we update it
+            let state =
+                setl StateL.authentication authentication state
+
+            Update.startGameDownload state productInfo
+        | UnpackGame (settings, downloadInfo, version) ->
             let invoke () =
                 Download.extractLibrary
                     settings
@@ -285,24 +302,23 @@ module Update =
                     version
 
             let cmd =
-                [ UpdateDownloadInstalling downloadInfo.filePath
-                  |> Cmd.ofMsg
-
-                  (fun _ ->
-                      FinishGameDownload(downloadInfo.filePath, authentication))
-                  |> Cmd.OfAsync.perform invoke () ]
+                [ Cmd.ofMsg (UpdateDownloadInstalling downloadInfo.gameId)
+                  Cmd.OfAsync.perform
+                      invoke
+                      ()
+                      (fun _ -> FinishGameDownload downloadInfo.gameId) ]
                 |> Cmd.batch
 
-            state, cmd, Intent.DoNothing
+            state, cmd, DoNothing
         | UpgradeGames ->
+            // TODO: refactor into single "UpgradeGame" commands for every game
             let (updateDataList, authentication) =
-                (getl StateLenses.installedGames state,
-                 getl StateLenses.authentication state)
+                (getl StateL.installedGames state, getl StateL.authentication state)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication in state, if it was refreshed
             let state =
-                setl StateLenses.authentication authentication state
+                setl StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -313,8 +329,7 @@ module Update =
                             updateData.game
                             |> gameToDownloadInfo
                             |> (fun productInfo ->
-                                (productInfo, authentication)
-                                |> StartGameDownload)
+                                (productInfo, authentication) |> StartGameDownload)
                             |> Cmd.ofMsg)
                         updateDataList
                 | _ ->
@@ -325,26 +340,20 @@ module Update =
             state, cmd, DoNothing
         | UpdateDownloadSize (gameId, fileSize) ->
             let state =
-                getl StateLenses.downloads state
-                |> List.map
-                    (fun download ->
-                        if download.gameId = gameId then
-                            { download with downloaded = fileSize }
-                        else
-                            download)
-                |> setlr StateLenses.downloads state
+                getl StateL.downloads state
+                |> Map.change
+                    gameId
+                    (Option.map (fun download -> { download with downloaded = fileSize }))
+                |> setlr StateL.downloads state
 
             state, Cmd.none, DoNothing
-        | UpdateDownloadInstalling filePath ->
+        | UpdateDownloadInstalling gameId ->
             let state =
-                getl StateLenses.downloads state
-                |> List.map
-                    (fun download ->
-                        if download.filePath = filePath then
-                            { download with installing = true }
-                        else
-                            download)
-                |> setlr StateLenses.downloads state
+                getl StateL.downloads state
+                |> Map.change
+                    gameId
+                    (Option.map (fun download -> { download with installing = true }))
+                |> setlr StateL.downloads state
 
             state, Cmd.none, DoNothing
         // Intents

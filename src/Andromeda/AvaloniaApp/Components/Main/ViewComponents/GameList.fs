@@ -61,7 +61,7 @@ module GameList =
         WrapPanel.create [
             WrapPanel.children
                 (state
-                 |> getl StateLenses.installedGames
+                 |> getl StateL.installedGames
                  |> Map.toList
                  |> List.map snd
                  |> List.indexed

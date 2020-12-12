@@ -106,7 +106,9 @@ module LeftBar =
             ]
         ]
 
-    let private downloadsView (downloadList: DownloadStatus list) =
+    let private downloadsView downloadMap =
+        let downloadList = Map.toList downloadMap |> List.map snd
+
         StackPanel.create [
             StackPanel.orientation Orientation.Vertical
             StackPanel.margin (Thickness.Parse "12, 12")
@@ -114,8 +116,7 @@ module LeftBar =
                 ItemsControl.create [
                     ItemsControl.dataItems downloadList
                     ItemsControl.itemTemplate
-                        (DataTemplateView<DownloadStatus>.create
-                            downloadTemplateView)
+                        (DataTemplateView<DownloadStatus>.create downloadTemplateView)
                 ]
                 TextBlock.create [
                     TextBlock.isVisible (downloadList.Length = 0)

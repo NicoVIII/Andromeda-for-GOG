@@ -9,43 +9,35 @@ open GogApi.DotNet.FSharp.DomainTypes
 
 type State =
     { authentication: Authentication
-      downloads: DownloadStatus list
+      downloads: Map<ProductId, DownloadStatus>
       installedGames: Map<ProductId, InstalledGame>
       mode: Mode
       notifications: string list
       settings: Settings
-      terminalOutput: string }
+      terminalOutput: string list }
 
 /// Lenses to simplify usage of state
-module StateLenses =
+module StateL =
     let authentication =
-        Lens
-            ((fun r -> r.authentication),
-             (fun r v -> { r with authentication = v }))
+        Lens((fun r -> r.authentication), (fun r v -> { r with authentication = v }))
 
     let downloads =
         Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
 
     let installedGames =
-        Lens
-            ((fun r -> r.installedGames),
-             (fun r v -> { r with installedGames = v }))
+        Lens((fun r -> r.installedGames), (fun r v -> { r with installedGames = v }))
 
     let mode =
         Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
 
     let notifications =
-        Lens
-            ((fun r -> r.notifications),
-             (fun r v -> { r with notifications = v }))
+        Lens((fun r -> r.notifications), (fun r v -> { r with notifications = v }))
 
     let settings =
         Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
     let terminalOutput =
-        Lens
-            ((fun r -> r.terminalOutput),
-             (fun r v -> { r with terminalOutput = v }))
+        Lens((fun r -> r.terminalOutput), (fun r v -> { r with terminalOutput = v }))
 
 type Intent =
     | DoNothing
@@ -61,18 +53,15 @@ type Msg =
     | AddNotification of string
     | RemoveNotification of string
     | AddToTerminalOutput of string
-    | SetSettings of Settings * Authentication
-    | SearchInstalled of Authentication
+    | SetSettings of Settings
+    | SearchInstalled
     | StartGameDownload of ProductInfo * Authentication
-    | UnpackGame of
-        Settings *
-        DownloadStatus *
-        version: string option *
-        Authentication
-    | FinishGameDownload of string * Authentication
+    | UnpackGame of Settings * DownloadStatus * version: string option
+    | FinishGameDownload of ProductId
     | UpdateDownloadSize of ProductId * int
-    | UpdateDownloadInstalling of string
+    | UpdateDownloadInstalling of ProductId
     | UpgradeGames
+    | CacheCheck
     // Intent messages
     | OpenSettings
     | OpenInstallGameWindow
@@ -91,17 +80,16 @@ module Model =
 
         let state =
             { authentication = authentication
-              downloads = []
+              downloads = Map.empty
               installedGames = installedGames
               mode = Installed
               notifications = []
               settings = settings
-              terminalOutput = "" }
+              terminalOutput = [] }
 
         let cmd =
             imgJobs
-            |> List.map
-                (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
+            |> List.map (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
             |> Cmd.batch
 
         state, cmd

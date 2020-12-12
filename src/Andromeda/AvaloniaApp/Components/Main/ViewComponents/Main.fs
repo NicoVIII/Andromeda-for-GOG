@@ -5,6 +5,7 @@ open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
+open System
 
 open Andromeda.AvaloniaApp.Components.Main
 
@@ -69,7 +70,9 @@ module Main =
             TextBox.dock Dock.Bottom
             TextBox.height 100.0
             TextBox.isReadOnly true
-            TextBox.text state.terminalOutput
+            TextBox.text
+                (state.terminalOutput
+                 |> String.concat Environment.NewLine)
         ]
 
     let mainAreaView (state: State) dispatch =
