@@ -1,5 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <AssemblyName>Andromeda.AvaloniaApp</AssemblyName>
     <RootNamespace>Andromeda.AvaloniaApp</RootNamespace>
@@ -7,9 +7,11 @@
     <TargetFramework>net5.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
   </ItemGroup>
+
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />
     <AvaloniaResource Include="Styles.xaml" />
@@ -23,12 +25,20 @@
     <Compile Include="InstallGame.fs" />
     <Compile Include="Settings.fs" />
 
-    <!-- Components -->
-    <Compile Include="Authentication.fs" />
-    <Compile Include="Main.fs" />
+    <Compile Include="Components/Authentication.fs" />
+
+    <!-- Main component -->
+    <Compile Include="Components/Main/Model.fs" />
+    <Compile Include="Components/Main/ViewComponents/LeftBar.fs" />
+    <Compile Include="Components/Main/ViewComponents/GameList.fs" />
+    <Compile Include="Components/Main/ViewComponents/Main.fs" />
+    <Compile Include="Components/Main/View.fs" />
+    <Compile Include="Components/Main/Update.fs" />
 
     <Compile Include="App.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
+
   <Import Project="..\..\..\.paket\Paket.Restore.targets" />
+
 </Project>

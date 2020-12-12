@@ -6,6 +6,8 @@ open Andromeda.Core.Lenses
 open Elmish
 open GogApi.DotNet.FSharp.DomainTypes
 
+open Andromeda.AvaloniaApp.Components
+
 module App =
     type ProgramState =
         | Unauthenticated of Authentication.State
@@ -67,7 +69,7 @@ module App =
             | Some authentication ->
                 let settings = Persistence.Settings.load ()
 
-                let mainState, mainCmd = Main.init settings authentication
+                let mainState, mainCmd = Main.Model.init settings authentication
 
                 Authenticated mainState, Cmd.map MainMsg mainCmd
             | None -> Authentication.init () |> Unauthenticated, Cmd.none
@@ -107,11 +109,9 @@ module App =
             let authentication =
                 getl Main.StateLenses.authentication mainState
 
-            let settings =
-                getl Main.StateLenses.settings mainState
+            let settings = getl Main.StateLenses.settings mainState
 
-            let window =
-                Settings.SettingsWindow(settings)
+            let window = Settings.SettingsWindow(settings)
 
             window.ShowDialog(mainWindow) |> ignore
 
@@ -149,7 +149,7 @@ module App =
             state, Cmd.none
         // Update child components
         | MainMsg msg, Authenticated mainState ->
-            let mainState, mainCmd, intent = Main.update msg mainState
+            let mainState, mainCmd, intent = Main.Update.update msg mainState
 
             let state =
                 { state with
@@ -162,8 +162,7 @@ module App =
                 | Main.OpenSettings -> Cmd.ofMsg OpenSettingsWindow
 
             let cmd =
-                [ Cmd.map MainMsg mainCmd
-                  intentCmd ]
+                [ Cmd.map MainMsg mainCmd; intentCmd ]
                 |> Cmd.batch
 
             state, cmd
@@ -197,5 +196,6 @@ module App =
 
     let render (state: WindowStates) dispatch =
         match state.programState with
-        | Authenticated state -> Main.render state (MainMsg >> dispatch)
-        | Unauthenticated state -> Authentication.render state (AuthenticationMsg >> dispatch)
+        | Authenticated state -> Main.View.render state (MainMsg >> dispatch)
+        | Unauthenticated state ->
+            Authentication.render state (AuthenticationMsg >> dispatch)

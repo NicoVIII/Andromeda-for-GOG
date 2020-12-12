@@ -1,4 +1,4 @@
-namespace Andromeda.AvaloniaApp
+namespace Andromeda.AvaloniaApp.Components
 
 open Andromeda.Core.Lenses
 open Avalonia.Controls
@@ -58,6 +58,7 @@ module Authentication =
                 Process.Start("open", authUri) |> ignore
             else
                 ()
+
             state, Cmd.none, DoNothing
         | TryAuthenticate authentication ->
             match authentication with
@@ -75,7 +76,10 @@ module Authentication =
                 | "" -> Cmd.none
                 | authCode ->
                     let getAuth () =
-                        async { return! Authentication.getNewToken redirectUri authCode }
+                        async {
+                            return!
+                                Authentication.getNewToken redirectUri authCode
+                        }
 
                     let msgFnc auth = TryAuthenticate auth
 
@@ -91,37 +95,47 @@ module Authentication =
             state, Cmd.none, DoNothing
 
     let render (state: State) dispatch: IView =
-        StackPanel.create
-            [ StackPanel.margin 50.0
-              StackPanel.orientation Orientation.Vertical
-              StackPanel.spacing 5.0
-              StackPanel.children
-                  [ TextBlock.create
-                      [ TextBlock.text "Open this url in a browser and login:" ]
-                    TextBox.create
-                        [ TextBox.background "Transparent"
-                          TextBox.borderThickness 0.0
-                          TextBox.isReadOnly true
-                          TextBox.textWrapping (TextWrapping.Wrap)
-                          TextBox.text authUri ]
-                    Button.create
-                        [ Button.content "Open in browser"
-                          Button.onClick (fun _ -> OpenBrowser |> dispatch) ]
-                    TextBlock.create
-                        [ TextBlock.text "Enter Code from url (..code=[code]) here:" ]
-                    TextBox.create
-                        [ TextBox.text state.authCode
-                          TextBox.onKeyDown (fun args ->
+        StackPanel.create [
+            StackPanel.margin 50.0
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.spacing 5.0
+            StackPanel.children [
+                TextBlock.create [
+                    TextBlock.text "Open this url in a browser and login:"
+                ]
+                TextBox.create [
+                    TextBox.background "Transparent"
+                    TextBox.borderThickness 0.0
+                    TextBox.isReadOnly true
+                    TextBox.textWrapping (TextWrapping.Wrap)
+                    TextBox.text authUri
+                ]
+                Button.create [
+                    Button.content "Open in browser"
+                    Button.onClick (fun _ -> OpenBrowser |> dispatch)
+                ]
+                TextBlock.create [
+                    TextBlock.text "Enter Code from url (..code=[code]) here:"
+                ]
+                TextBox.create [
+                    TextBox.text state.authCode
+                    TextBox.onKeyDown
+                        (fun args ->
                             match args.Key with
-                            | Key.Enter ->
-                              Save |> dispatch
+                            | Key.Enter -> Save |> dispatch
                             | _ -> ())
-                          TextBox.onTextChanged (SetCode >> dispatch) ]
-                    TextBlock.create
-                        [ TextBlock.foreground "red"
-                          TextBlock.text "Invalid code!"
-                          TextBlock.isVisible state.invalidCode ]
-                    Button.create
-                        [ Button.content "Authenticate"
-                          Button.isEnabled (state.authCode <> "")
-                          Button.onClick (fun _ -> Save |> dispatch) ] ] ] :> IView
+                    TextBox.onTextChanged (SetCode >> dispatch)
+                ]
+                TextBlock.create [
+                    TextBlock.foreground "red"
+                    TextBlock.text "Invalid code!"
+                    TextBlock.isVisible state.invalidCode
+                ]
+                Button.create [
+                    Button.content "Authenticate"
+                    Button.isEnabled (state.authCode <> "")
+                    Button.onClick (fun _ -> Save |> dispatch)
+                ]
+            ]
+        ]
+        :> IView
