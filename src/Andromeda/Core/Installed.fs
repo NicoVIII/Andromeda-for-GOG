@@ -50,10 +50,12 @@ module Installed =
             | _ -> (None, authentication)
 
     let checkAllForUpdates
-        (installedGames: InstalledGame list)
+        (installedGames: Map<ProductId, InstalledGame>)
         (authentication: Authentication)
         =
         installedGames
+        |> Map.toList
+        |> List.map snd
         |> List.filter (fun game -> game.updateable)
         |> List.fold (fun (lst, authentication: Authentication) game ->
             let (game, authentication) = checkGameForUpdate authentication game
@@ -200,8 +202,6 @@ module Installed =
             InstalledGame.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name
                 gameDir versionString
             |> setl InstalledGameLenses.updateable version.IsSome
-            |> setl InstalledGameLenses.icon
-                   (Some(gameDir + "/goggame-" + gameInfo.gameId + ".ico"))
 
         // Find info file of game
         let files =
@@ -213,40 +213,48 @@ module Installed =
             game
         | _ -> None
 
+    let readVersionFromFile gameDir =
+        let versionFilePath =
+            Path.Combine(gameDir, Constants.versionFile)
+
+        if versionFilePath |> File.Exists then
+            versionFilePath
+            |> File.ReadAllText
+            |> (fun s -> s.Trim())
+            |> Some
+        else
+            None
+
     let searchInstalled (settings: Settings) (authentication: Authentication) =
+        let emptyResult = (Map.empty, [])
+
         match Directory.Exists(settings.gamePath) with
-        | false -> []
+        | false -> emptyResult
         | true ->
             Directory.EnumerateDirectories(settings.gamePath)
-            |> List.ofSeq
-            |> List.fold (fun installedGames gameDir ->
+            |> Seq.fold (fun state gameDir ->
                 // Ignore folders starting with '!'
                 match gameDir with
-                | dir when (dir |> Path.GetFileName).StartsWith "!" -> installedGames
+                | dir when (dir |> Path.GetFileName).StartsWith "!" -> state
                 | gameDir ->
                     // Read version file if existing
-                    let version =
-                        let versionFilePath =
-                            Path.Combine(gameDir, Constants.versionFile)
+                    let version = readVersionFromFile gameDir
 
-                        if versionFilePath |> File.Exists then
-                            versionFilePath
-                            |> File.ReadAllText
-                            |> (fun s -> s.Trim())
-                            |> Some
-                        else
-                            None
-
+                    // Choose correct algorithm for each OS
                     let fnc =
                         match SystemInfo.os with
-                        | SystemInfo.OS.Linux -> Some getInstalledOnLinux
-                        | SystemInfo.OS.Windows -> Some getInstalledOnWindows
-                        | SystemInfo.OS.MacOS -> None // TODO: implement
+                        | SystemInfo.OS.Linux -> getInstalledOnLinux
+                        | SystemInfo.OS.Windows -> getInstalledOnWindows
+                        | SystemInfo.OS.MacOS -> (fun _ _ _ -> None) // TODO: implement
 
-                    match fnc with
-                    | Some fnc ->
-                        let installedGame = fnc gameDir authentication version
-                        match installedGame with
-                        | Some installedGame -> installedGame :: installedGames
-                        | None -> installedGames
-                    | None -> installedGames) []
+                    let installedGame = fnc gameDir authentication version
+                    match installedGame with
+                    | Some installedGame ->
+                        let (installedGames, imgJobs) = state
+                        let (installedGame, imgJobs) =
+                            match Diverse.getProductImg installedGame.id with
+                            | Diverse.AlreadyDownloaded imgPath -> (setl InstalledGameLenses.image (Some imgPath) installedGame), imgJobs
+                            | Diverse.HasToBeDownloaded job -> installedGame, (job :: imgJobs)
+                        (Map.add installedGame.id installedGame installedGames, imgJobs)
+                    | None -> state
+            ) emptyResult

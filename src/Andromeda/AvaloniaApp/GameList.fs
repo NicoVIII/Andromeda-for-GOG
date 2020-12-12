@@ -8,7 +8,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Media
 open Avalonia.Media.Imaging
 
-open Andromeda.AvaloniaApp.DomainTypes
+open Andromeda.AvaloniaApp.AvaloniaHelper
 
 module GameList =
     type State = unit
@@ -46,13 +46,15 @@ module GameList =
                         Image.stretch Stretch.UniformToFill
                         Image.width 200.0
                         Image.source
-                            // TODO: Load Images asynchronously
-                            (new Bitmap(Diverse.getProductImg game.id authentication
-                                        |> Async.RunSynchronously)) ]) ] :> IView
+                            (match game.image with
+                             | Some imgPath -> new Bitmap(imgPath)
+                             | None -> new Bitmap(loadAssetPath "avares://Andromeda.AvaloniaApp/Assets/placeholder.jpg")) ]) ] :> IView
 
     let view gDispatch games authentication: IView =
         WrapPanel.create
             [ WrapPanel.children
                 (games
+                 |> Map.toList
+                 |> List.map snd
                  |> List.indexed
                  |> List.map (gameTile gDispatch authentication)) ] :> IView

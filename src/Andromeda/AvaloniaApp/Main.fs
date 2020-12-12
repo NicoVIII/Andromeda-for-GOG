@@ -195,8 +195,10 @@ module Main =
 
         Option.map Persistence.Authentication.save |> ignore
 
+        let globalState, globalCmd = Global.init authentication settings GlobalMsg
+
         let state =
-            { globalState = Global.init authentication settings
+            { globalState = globalState
               authenticationState = Authentication.init ()
               leftBarState = LeftBar.init ()
               installGameWindow = None
@@ -204,7 +206,7 @@ module Main =
               settingsWindow = None
               terminalOutput = "" }
 
-        state, Cmd.none
+        state, globalCmd
 
     let updateGlobal msg (state: State) (mainWindow: AndromedaWindow) =
         match msg with
@@ -258,6 +260,17 @@ module Main =
                     |> Cmd.ofMsg
 
             state, cmd
+        | Global.SetGameImage (productId, imgPath) ->
+            let state =
+                state
+                |> getl StateLenses.installedGames
+                |> Map.change productId (function
+                      | Some game -> { game with image = imgPath |> Some } |> Some
+                      | None -> None
+                   )
+                |> setl StateLenses.installedGames <| state
+
+            state, Cmd.none
 
     let update msg (state: State) (mainWindow: AndromedaWindow) =
         match msg with
@@ -309,7 +322,8 @@ module Main =
                 InstallGame.InstallGameWindow
                     (authentication,
                      getl StateLenses.installedGames state
-                     |> List.map (fun game -> game.id))
+                     |> Map.toList
+                     |> List.map fst)
 
             window.ShowDialog(mainWindow) |> ignore
 
@@ -340,13 +354,18 @@ module Main =
         | SearchInstalled authentication ->
             let settings = getl StateLenses.settings state
 
-            let installedGames =
+            let (installedGames, imgJobs) =
                 Installed.searchInstalled settings authentication
 
             let state =
                 setl StateLenses.installedGames installedGames state
 
-            (state, Cmd.none)
+            let cmd =
+                imgJobs
+                |> List.map (fun job -> Cmd.OfAsync.perform job authentication (Global.SetGameImage >> GlobalMsg))
+                |> Cmd.batch
+
+            (state, cmd)
         | SetSettings (settings, authentication) ->
             Persistence.Settings.save settings |> ignore
 

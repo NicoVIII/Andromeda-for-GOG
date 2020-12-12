@@ -125,7 +125,7 @@ module LeftBar =
                 (StackPanel.create
                     [ StackPanel.orientation Orientation.Vertical
                       StackPanel.children
-                          [ menuItem "Installed" (gState.installedGames.Length |> Some)
+                          [ menuItem "Installed" (Map.count gState.installedGames |> Some)
                                 Global.Installed ] ]) ]
 
     let private downloadTemplateView (downloadStatus: DownloadStatus) =

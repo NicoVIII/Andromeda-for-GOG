@@ -3,6 +3,7 @@ namespace Andromeda.AvaloniaApp
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Lenses
+open Elmish
 open GogApi.DotNet.FSharp.DomainTypes
 
 [<RequireQualifiedAccess>]
@@ -14,7 +15,7 @@ module Global =
     type State =
         { authentication: Authentication option
           downloads: DownloadStatus list
-          installedGames: InstalledGame list
+          installedGames: Map<ProductId, InstalledGame>
           mode: Mode
           settings: Settings }
 
@@ -28,6 +29,7 @@ module Global =
         | OpenSettingsWindow of Authentication
         | StartGame of InstalledGame
         | UpgradeGame of Authentication * InstalledGame
+        | SetGameImage of ProductId * string
 
     module StateLenses =
         // Lenses
@@ -46,22 +48,33 @@ module Global =
         let settings =
             Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
-    let init authentication settings =
+    let init authentication settings wrap =
         let settings =
             match settings with
             | Some settings -> settings
             | None -> SystemInfo.defaultSettings ()
 
-        let installedGames =
+        let (installedGames, imgJobs) =
             match authentication with
             | Some authentication -> Installed.searchInstalled settings authentication
-            | None -> []
+            | None -> Map.empty, []
 
         // After determining our settings, we perform a cache check
         Cache.check settings
 
-        { authentication = authentication
-          downloads = []
-          installedGames = installedGames
-          mode = Installed
-          settings = settings }
+        let state =
+            { authentication = authentication
+              downloads = []
+              installedGames = installedGames
+              mode = Installed
+              settings = settings }
+
+        let cmd =
+            match authentication with
+            | Some authentication ->
+                imgJobs
+                |> List.map (fun job -> Cmd.OfAsync.perform job authentication (SetGameImage >> wrap))
+                |> Cmd.batch
+            | None -> Cmd.none
+
+        state, cmd

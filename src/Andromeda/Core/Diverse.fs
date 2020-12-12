@@ -49,34 +49,40 @@ module Diverse =
                    | Error _ -> []
         }
 
-    let getProductImg productId authentication =
+    type ProductImgResult =
+        | AlreadyDownloaded of string
+        | HasToBeDownloaded of (Authentication -> Async<ProductId * string>)
+
+    let getProductImg productId =
         let imgPath = SystemInfo.logo2xPath productId
 
         if File.Exists imgPath then
-            async { return imgPath }
+            AlreadyDownloaded imgPath
         else
-            // Lade das Bild erstmal herunter
-            async {
-                let! response = GalaxyApi.getProduct productId authentication
-                match response with
-                | Ok productResponse ->
-                    let imgUrl = "https:" + productResponse.images.logo2x
+            (fun authentication ->
+                // Lade das Bild erstmal herunter
+                async {
+                    let! response = GalaxyApi.getProduct productId authentication
+                    match response with
+                    | Ok productResponse ->
+                        let imgUrl = "https:" + productResponse.images.logo2x
 
-                    let imgResponse =
-                        http {
-                            GET imgUrl
-                            CacheControl "no-cache"
-                        }
+                        let imgResponse =
+                            http {
+                                GET imgUrl
+                                CacheControl "no-cache"
+                            }
 
-                    let! imgData =
-                        imgResponse.content.ReadAsByteArrayAsync()
-                        |> Async.AwaitTask
+                        let! imgData =
+                            imgResponse.content.ReadAsByteArrayAsync()
+                            |> Async.AwaitTask
 
-                    imgPath
-                    |> Path.GetDirectoryName
-                    |> Directory.CreateDirectory
-                    |> ignore
-                    File.WriteAllBytes(imgPath, imgData)
-                    return imgPath
-                | Error _ -> return failwith "Fetching product info failed!"
-            }
+                        imgPath
+                        |> Path.GetDirectoryName
+                        |> Directory.CreateDirectory
+                        |> ignore
+                        File.WriteAllBytes(imgPath, imgData)
+                        return productId, imgPath
+                    | Error _ -> return failwith "Fetching product info failed!"
+            })
+            |> HasToBeDownloaded

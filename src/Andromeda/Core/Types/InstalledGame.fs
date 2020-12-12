@@ -10,7 +10,7 @@ type InstalledGame =
       path: string
       version: string
       updateable: bool
-      icon: string option }
+      image: string option }
 
 module InstalledGame =
     let create id name path version =
@@ -19,7 +19,7 @@ module InstalledGame =
           path = path
           version = version
           updateable = false
-          icon = None }
+          image = None }
 
 module InstalledGameLenses =
     let id =
@@ -43,7 +43,7 @@ module InstalledGameLenses =
             ((fun (x: InstalledGame) -> x.updateable),
              (fun (x: InstalledGame) (value: bool) -> { x with updateable = value }))
 
-    let icon =
+    let image =
         Lens
-            ((fun (x: InstalledGame) -> x.icon),
-             (fun (x: InstalledGame) (value: string option) -> { x with icon = value }))
+            ((fun (x: InstalledGame) -> x.image),
+             (fun (x: InstalledGame) (value: string option) -> { x with image = value }))
