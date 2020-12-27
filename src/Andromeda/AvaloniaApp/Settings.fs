@@ -4,6 +4,7 @@ open Andromeda.Core
 open Andromeda.Core.DomainTypes
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Diagnostics
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
@@ -29,8 +30,7 @@ module Settings =
 
     type State = Settings
 
-    let init (settings: Settings) =
-        settings, Cmd.none
+    let init (settings: Settings) = settings, Cmd.none
 
     let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
@@ -41,44 +41,64 @@ module Settings =
             state, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
-        StackPanel.create
-            [ StackPanel.margin 5.0
-              StackPanel.orientation Orientation.Vertical
-              StackPanel.spacing 5.0
-              StackPanel.children
-                  [ TextBlock.create [ TextBlock.text "Game path" ]
-                    StackPanel.create
-                        [ StackPanel.orientation Orientation.Horizontal
-                          StackPanel.spacing 5.0
-                          StackPanel.children
-                              [ TextBox.create
-                                  [ TextBox.text state.gamePath
-                                    TextBox.width 300.0
-                                    TextBox.onTextChanged (SetGamepath >> dispatch) ] ] ]
-                    TextBlock.create [ TextBlock.text "Cached installers removal" ]
-                    StackPanel.create
-                        [ StackPanel.orientation Orientation.Horizontal
-                          StackPanel.spacing 5.0
-                          StackPanel.children
-                              [ ComboBox.create
-                                  [ ComboBox.width 300.0
-                                    ComboBox.dataItems [NoRemoval; RemoveByAge 30u]
-                                    ComboBox.itemTemplate (DataTemplateView<CacheRemovalPolicy>.create
-                                      <| fun policy ->
-                                          let text =
-                                            match policy with
-                                            | NoRemoval -> "No removal"
-                                            | RemoveByAge age -> sprintf "Delete after %i days" age
-                                          TextBlock.create [ TextBlock.text text ])
-                                    ComboBox.selectedItem state.cacheRemoval
-                                    ComboBox.onSelectedItemChanged (fun x ->
-                                        match box x with
-                                        | :? CacheRemovalPolicy as policy ->
-                                            policy |> SetCacheRemoval |> dispatch
-                                        | _ -> failwith "Nope") ] ] ]
-                    Button.create
-                        [ Button.content "Save"
-                          Button.onClick (fun _ -> Save |> dispatch) ] ] ]
+        StackPanel.create [
+            StackPanel.margin 5.0
+            StackPanel.orientation Orientation.Vertical
+            StackPanel.spacing 5.0
+            StackPanel.children [
+                TextBlock.create [
+                    TextBlock.text "Game path"
+                ]
+                StackPanel.create [
+                    StackPanel.orientation Orientation.Horizontal
+                    StackPanel.spacing 5.0
+                    StackPanel.children [
+                        TextBox.create [
+                            TextBox.text state.gamePath
+                            TextBox.width 300.0
+                            TextBox.onTextChanged (SetGamepath >> dispatch)
+                        ]
+                    ]
+                ]
+                TextBlock.create [
+                    TextBlock.text "Cached installers removal"
+                ]
+                StackPanel.create [
+                    StackPanel.orientation Orientation.Horizontal
+                    StackPanel.spacing 5.0
+                    StackPanel.children [
+                        ComboBox.create [
+                            ComboBox.width 300.0
+                            ComboBox.dataItems [
+                                NoRemoval
+                                RemoveByAge 30u
+                            ]
+                            ComboBox.itemTemplate
+                                (DataTemplateView<CacheRemovalPolicy>.create
+                                 <| fun policy ->
+                                     let text =
+                                         match policy with
+                                         | NoRemoval -> "No removal"
+                                         | RemoveByAge age ->
+                                             sprintf "Delete after %i days" age
+
+                                     TextBlock.create [ TextBlock.text text ])
+                            ComboBox.selectedItem state.cacheRemoval
+                            ComboBox.onSelectedItemChanged
+                                (fun x ->
+                                    match box x with
+                                    | :? CacheRemovalPolicy as policy ->
+                                        policy |> SetCacheRemoval |> dispatch
+                                    | _ -> failwith "Nope")
+                        ]
+                    ]
+                ]
+                Button.create [
+                    Button.content "Save"
+                    Button.onClick (fun _ -> Save |> dispatch)
+                ]
+            ]
+        ]
 
     type SettingsWindow(settings: Settings) as this =
         inherit AndromedaWindow()
@@ -93,7 +113,8 @@ module Settings =
             base.Height <- 260.0
 
 #if DEBUG
-            this.AttachDevTools(KeyGesture(Key.F12))
+            DevTools.Attach(this, Config.devToolGesture)
+            |> ignore
 #endif
 
             let updateWithServices = update this

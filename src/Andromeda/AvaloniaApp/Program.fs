@@ -4,6 +4,7 @@ open Andromeda.Core
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.Diagnostics
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Types
@@ -19,32 +20,40 @@ module Program =
 
         do
             base.Title <- "Andromeda"
+
             base.Icon <-
                 WindowIcon
                     (AvaloniaHelper.loadAssetPath
                         "avares://Andromeda.AvaloniaApp/Assets/logo.ico")
+
             base.Width <- 1024.0
             base.Height <- 660.0
 
-    #if DEBUG
-            this.AttachDevTools(KeyGesture(Key.F12))
-    #endif
+#if DEBUG
+            DevTools.Attach(this, Config.devToolGesture)
+            |> ignore
+#endif
 
             // Try to load authentication from disk and refresh, if possible
             let authentication =
                 Persistence.Authentication.load ()
-                |> Option.bind (Authentication.getRefreshToken >> Async.RunSynchronously)
+                |> Option.bind
+                    (Authentication.getRefreshToken
+                     >> Async.RunSynchronously)
                 // Save refreshed authentication
-                |> Option.map (fun auth -> Persistence.Authentication.save auth; auth)
+                |> Option.map
+                    (fun auth ->
+                        Persistence.Authentication.save auth
+                        auth)
 
             let updateWithServices msg state = App.update msg state this
 
             Program.mkProgram App.init updateWithServices App.render
             |> Program.withHost this
             |> Program.withSubscription (fun _ -> App.Subs.closeWindow this)
-    #if DEBUG
+#if DEBUG
             |> Program.withConsoleTrace
-    #endif
+#endif
             |> Program.runWith authentication
 
     type AndromedaApplication() =
@@ -63,5 +72,8 @@ module Program =
 
     [<EntryPoint>]
     let main (args: string []): int =
-        AppBuilder.Configure<AndromedaApplication>().UsePlatformDetect().UseSkia()
+        AppBuilder
+            .Configure<AndromedaApplication>()
+            .UsePlatformDetect()
+            .UseSkia()
             .StartWithClassicDesktopLifetime(args)
