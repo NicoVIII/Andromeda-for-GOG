@@ -6,15 +6,22 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Diagnostics
 open Avalonia.FuncUI.Components
-open Avalonia.FuncUI.Components.Hosts
 open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.DSL
-open Avalonia.Input
 open Avalonia.Layout
 open Elmish
 open System.IO
 
 module Settings =
+    module Dialogs =
+        let getFolderDialog currentPath =
+            let dialog = OpenFolderDialog()
+
+            dialog.Directory <- currentPath
+
+            dialog.Title <- "Choose where to look for GOG games"
+            dialog
+
     type IWindow =
         inherit IAndromedaWindow
 
@@ -24,6 +31,7 @@ module Settings =
         abstract Save: Settings -> unit
 
     type Msg =
+        | OpenDialog
         | SetCacheRemoval of CacheRemovalPolicy
         | SetGamepath of string
         | Save
@@ -32,12 +40,28 @@ module Settings =
 
     let init (settings: Settings) = settings, Cmd.none
 
+    let isStateValid state = state.gamePath |> Directory.Exists
+
     let update (window: IWindow) (msg: Msg) (state: State) =
         match msg with
+        | OpenDialog ->
+            let dialog = Dialogs.getFolderDialog state.gamePath
+
+            let showDialog window =
+                async {
+                    let! result = dialog.ShowAsync(window) |> Async.AwaitTask
+                    // The dialog can return null, we throw an error to avoid updating the gamepath
+                    if isNull result then failwith "Dialog was canceled"
+                    return result
+                }
+
+            state, Cmd.OfAsync.perform showDialog (window :?> Window) SetGamepath
         | SetCacheRemoval policy -> { state with cacheRemoval = policy }, Cmd.none
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none
         | Save ->
-            window.Save state
+            // We only save, if state is valid
+            if isStateValid state then window.Save state
+
             state, Cmd.none
 
     let view (state: State) (dispatch: Msg -> unit) =
@@ -57,6 +81,10 @@ module Settings =
                             TextBox.text state.gamePath
                             TextBox.width 300.0
                             TextBox.onTextChanged (SetGamepath >> dispatch)
+                        ]
+                        Button.create [
+                            Button.content ".."
+                            Button.onClick (fun _ -> OpenDialog |> dispatch)
                         ]
                     ]
                 ]
@@ -95,6 +123,7 @@ module Settings =
                 ]
                 Button.create [
                     Button.content "Save"
+                    Button.isEnabled (isStateValid state)
                     Button.onClick (fun _ -> Save |> dispatch)
                 ]
             ]
