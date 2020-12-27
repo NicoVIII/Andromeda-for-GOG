@@ -34,7 +34,9 @@ module Download =
 
         Directory.CreateDirectory(Path.Combine(dir, "tmp"))
         |> ignore
+
         let file = FileInfo(filepath)
+
         match file.Exists with
         | false ->
             let url = url.Replace("http://", "https://")
@@ -46,11 +48,10 @@ module Download =
             (task |> Some, filepath, tmppath)
         | true -> (None, filepath, tmppath)
 
-    let rec copyDirectory
-            (sourceDirName: string)
-            (destDirName: string)
-            (copySubDirs: bool)
-        =
+    let rec copyDirectory (sourceDirName: string)
+                          (destDirName: string)
+                          (copySubDirs: bool)
+                          =
         let dir = DirectoryInfo(sourceDirName)
         let dirs = dir.GetDirectories()
 
@@ -69,23 +70,25 @@ module Download =
         // Get the file contents of the directory to copy.
         dir.GetFiles()
         |> List.ofArray
-        |> List.iter (fun file ->
-            // Create the path to the new copy of the file.
-            let temppath = Path.Combine(destDirName, file.Name)
+        |> List.iter
+            (fun file ->
+                // Create the path to the new copy of the file.
+                let temppath = Path.Combine(destDirName, file.Name)
 
-            // Copy the file.
-            file.CopyTo(temppath, true) |> ignore)
+                // Copy the file.
+                file.CopyTo(temppath, true) |> ignore)
 
         // If copySubDirs is true, copy the subdirectories.
         match copySubDirs with
         | true ->
             List.ofArray dirs
-            |> List.iter (fun subdir ->
-                // Create the subdirectory.
-                let temppath = Path.Combine(destDirName, subdir.Name)
+            |> List.iter
+                (fun subdir ->
+                    // Create the subdirectory.
+                    let temppath = Path.Combine(destDirName, subdir.Name)
 
-                // Copy the subdirectories.
-                copyDirectory subdir.FullName temppath copySubDirs)
+                    // Copy the subdirectories.
+                    copyDirectory subdir.FullName temppath copySubDirs)
         | false -> ()
 
     let createVersionFile gameDir version =
@@ -108,6 +111,7 @@ module Download =
                 // If there are some rests, remove them
                 if Directory.Exists tmp then Directory.Delete(tmp, true) else ()
                 Directory.CreateDirectory(tmp) |> ignore
+
                 try
                     // Unzip linux installer with ZipLibrary
                     let fastZip = FastZip()
@@ -121,9 +125,12 @@ module Download =
 
                 // Move files to install folder
                 let folderPath = Path.Combine(tmp, "data", "noarch")
+
                 Syscall.chmod (folderPath, FilePermissions.ALLPERMS)
                 |> ignore
+
                 let folder = DirectoryInfo(folderPath)
+
                 match folder.Exists with
                 | true ->
                     copyDirectory folderPath target true
@@ -138,6 +145,7 @@ module Download =
                          + "\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
 
                 p.WaitForExit()
+
                 match p.ExitCode with
                 | 0 ->
                     // Nothing to do
@@ -159,11 +167,15 @@ module Download =
             | None -> ()
         }
 
-    let downloadGame gameName (installer: InstallerInfo) (authentication: Authentication) =
+    let downloadGame gameName
+                     (installer: InstallerInfo)
+                     (authentication: Authentication)
+                     =
         async {
             match installer.files with
             | (info :: _) ->
                 let! result = GalaxyApi.getSecureDownlink info.downlink authentication
+
                 match result with
                 | Ok urlResponse ->
                     let (task, filepath, tmppath) =

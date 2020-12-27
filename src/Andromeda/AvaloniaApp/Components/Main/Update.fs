@@ -33,8 +33,10 @@ module Update =
                             AddToTerminalOutput newLine |> dispatch
                             createEmptyDisposable ()
 
-                        AvaloniaScheduler.Instance.Schedule
-                            (state, new Func<IScheduler, string, IDisposable>(action))
+                        AvaloniaScheduler.Instance.Schedule(
+                            state,
+                            new Func<IScheduler, string, IDisposable>(action)
+                        )
                         |> ignore
 
                 Installed.startGameProcess showGameOutput game.path
@@ -212,8 +214,11 @@ module Update =
                                 invoke
                                 ()
                                 (fun _ ->
-                                    UnpackGame
-                                        (settings, downloadInfo, installerInfo.version))
+                                    UnpackGame(
+                                        settings,
+                                        downloadInfo,
+                                        installerInfo.version
+                                    ))
                         | None ->
                             UnpackGame(settings, downloadInfo, installerInfo.version)
                             |> Cmd.ofMsg
@@ -226,16 +231,19 @@ module Update =
                     state, cmd, DoNothing
             | _ ->
                 let cmd =
-                    Cmd.ofMsg
-                        (AddNotification
-                            "Found multiple installers, this is not supported yet...")
+                    Cmd.ofMsg (
+                        AddNotification
+                            "Found multiple installers, this is not supported yet..."
+                    )
 
                 state, cmd, DoNothing
 
     let update msg (state: State) =
+        let justChangeState change = change state, Cmd.none, DoNothing
+
         match msg with
-        | ChangeState change -> change state, Cmd.none, DoNothing
-        | ChangeMode mode -> setl StateL.mode mode state, Cmd.none, DoNothing
+        | ChangeState change -> justChangeState change
+        | ChangeMode mode -> justChangeState (setl StateL.mode mode)
         | StartGame installedGame -> state, Subs.startGame installedGame, DoNothing
         | UpgradeGame game -> Update.upgradeGame state game
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath

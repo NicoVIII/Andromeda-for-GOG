@@ -21,3 +21,5 @@ nuget Myriad.Plugins ~> 0.4.0
 nuget Myriad.Sdk ~> 0.4.0
 nuget SharpZipLib ~> 1.2
 nuget TypedPersistence.Json ~> 0.6.0-alpha.5
+
+nuget Expecto.FsCheck

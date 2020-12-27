@@ -25,13 +25,18 @@ module InstalledGameLenses =
     let id =
         Lens
             ((fun (x: InstalledGame) -> x.id),
-             (fun (x: InstalledGame) (value: GogApi.DotNet.FSharp.DomainTypes.ProductId) -> { x with id = value }))
+             (fun (x: InstalledGame) (value: GogApi.DotNet.FSharp.DomainTypes.ProductId) ->
+                 { x with id = value }))
 
     let name =
-        Lens((fun (x: InstalledGame) -> x.name), (fun (x: InstalledGame) (value: string) -> { x with name = value }))
+        Lens
+            ((fun (x: InstalledGame) -> x.name),
+             (fun (x: InstalledGame) (value: string) -> { x with name = value }))
 
     let path =
-        Lens((fun (x: InstalledGame) -> x.path), (fun (x: InstalledGame) (value: string) -> { x with path = value }))
+        Lens
+            ((fun (x: InstalledGame) -> x.path),
+             (fun (x: InstalledGame) (value: string) -> { x with path = value }))
 
     let version =
         Lens

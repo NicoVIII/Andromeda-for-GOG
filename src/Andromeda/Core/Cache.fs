@@ -28,8 +28,7 @@ module Cache =
                             DateTime.Now.AddDays(maxAge |> float |> (*) -1.0)
 
                         match creationTime with
-                        | creationTime when creationTime < deadline ->
-                            Some filePath
+                        | creationTime when creationTime < deadline -> Some filePath
                         | _ -> None)
                 |> Seq.iter File.Delete
         | NoRemoval -> ()
