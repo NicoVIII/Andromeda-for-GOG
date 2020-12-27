@@ -8,10 +8,15 @@ open System
 open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.Components
 
-let dummyAuthentication =
+let dummyAuthentication: Authentication =
     { accessExpires = DateTimeOffset.MinValue
       accessToken = ""
       refreshToken = "" }
+
+let dummySettings: Settings =
+    { cacheRemoval = NoRemoval
+      gamePath = ""
+      updateOnStartup = false }
 
 let tests =
     testList
@@ -23,9 +28,7 @@ let tests =
                   installedGames = Map.empty
                   mode = Empty
                   notifications = []
-                  settings =
-                      { cacheRemoval = NoRemoval
-                        gamePath = "" }
+                  settings = dummySettings
                   terminalOutput = [] }
 
             let msg = Main.Msg.ChangeMode Installed

@@ -264,7 +264,16 @@ module Update =
                 |> setlr StateL.terminalOutput state
 
             state, Cmd.none, DoNothing
-        | SearchInstalled -> Update.searchInstalled state
+        | SearchInstalled initial ->
+            // TODO: Async?
+            let (state, cmd, intent) = Update.searchInstalled state
+
+            let cmd' =
+                match initial && state.settings.updateOnStartup with
+                | true -> [ cmd; UpgradeGames |> Cmd.ofMsg ] |> Cmd.batch
+                | false -> cmd
+
+            (state, cmd', intent)
         | CacheCheck ->
             let cacheCheck () =
                 async { do getl StateL.settings state |> Cache.check }
@@ -282,7 +291,7 @@ module Update =
             let state = setl StateL.settings settings state
 
             let cmd =
-                [ Cmd.ofMsg SearchInstalled
+                [ Cmd.ofMsg (SearchInstalled false)
                   Cmd.ofMsg CacheCheck ]
                 |> Cmd.batch
 
@@ -293,7 +302,7 @@ module Update =
                 |> Map.change gameId (fun _ -> None)
                 |> setlr StateL.downloads state
 
-            state, Cmd.ofMsg SearchInstalled, DoNothing
+            state, Cmd.ofMsg (SearchInstalled false), DoNothing
         | StartGameDownload (productInfo, authentication) ->
             // This is triggered by the parent component, authentication could have changed,
             // so we update it

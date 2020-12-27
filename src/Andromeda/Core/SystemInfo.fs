@@ -46,15 +46,17 @@ module SystemInfo =
             match os with
             | Linux
             | MacOS ->
-                Path.Combine
-                    (Environment.GetEnvironmentVariable("HOME"),
-                     ".cache",
-                     Constants.folderName)
+                Path.Combine(
+                    Environment.GetEnvironmentVariable("HOME"),
+                    ".cache",
+                    Constants.folderName
+                )
             | Windows ->
-                Path.Combine
-                    (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                     Constants.folderName,
-                     "cache")
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    Constants.folderName,
+                    "cache"
+                )
 
         Directory.CreateDirectory(path) |> ignore
         path
@@ -70,13 +72,16 @@ module SystemInfo =
         match os with
         | Linux
         | MacOS ->
-            Path.Combine
-                (Environment.GetEnvironmentVariable("HOME"), ".local/share/andromeda")
+            Path.Combine(
+                Environment.GetEnvironmentVariable("HOME"),
+                ".local/share/andromeda"
+            )
         | Windows ->
-            Path.Combine
-                (Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-                 Constants.folderName,
-                 "save")
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                Constants.folderName,
+                "save"
+            )
 
     let gameInfoPath (ProductId id) =
         Path.Combine(cachePath, "gameInfo", id |> string)
@@ -84,16 +89,18 @@ module SystemInfo =
     let logo2xPath productId =
         Path.Combine(gameInfoPath productId, "logo_2x.jpg")
 
-    let defaultSettings () =
+    let defaultSettings (): Settings =
         let gamePath =
             match os with
             | Linux
             | MacOS ->
                 Path.Combine(Environment.GetEnvironmentVariable("HOME"), "GOG Games")
             | Windows ->
-                Path.Combine
-                    (Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-                     "GOG Games")
+                Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+                    "GOG Games"
+                )
 
         { cacheRemoval = RemoveByAge 30u
-          gamePath = gamePath }
+          gamePath = gamePath
+          updateOnStartup = true }

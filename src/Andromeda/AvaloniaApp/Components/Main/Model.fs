@@ -54,7 +54,7 @@ type Msg =
     | RemoveNotification of string
     | AddToTerminalOutput of string
     | SetSettings of Settings
-    | SearchInstalled
+    | SearchInstalled of initial: bool
     | StartGameDownload of ProductInfo * Authentication
     | UnpackGame of Settings * DownloadStatus * version: string option
     | FinishGameDownload of ProductId
@@ -72,24 +72,19 @@ module Model =
             settings
             |> Option.defaultValue (SystemInfo.defaultSettings ())
 
-        // After determining our settings, we perform a cache check
-        Cache.check settings
-
-        let (installedGames, imgJobs) =
-            Installed.searchInstalled settings authentication
-
         let state =
             { authentication = authentication
               downloads = Map.empty
-              installedGames = installedGames
+              installedGames = Map.empty
               mode = Installed
               notifications = []
               settings = settings
               terminalOutput = [] }
 
         let cmd =
-            imgJobs
-            |> List.map (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
+            // We initialy search for installed games and perform a cache check
+            [ CacheCheck; SearchInstalled true ]
+            |> List.map Cmd.ofMsg
             |> Cmd.batch
 
         state, cmd
