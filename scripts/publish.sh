@@ -3,7 +3,7 @@ echo "Clear deploy folder."
 rm -fr "deploy"
 mkdir -p "deploy"
 
-if [ $1 = 'dev' ]
+if [ "$1" = 'dev' ]
 then
   DEPLOYNAME="Andromeda-dev"
 else
@@ -20,7 +20,7 @@ echo "Start publishing as single file executables."
   dotnet paket restore
 
   echo "Build for Linux."
-  if [ $1 = 'dev' ]
+  if [ "$1" = 'dev' ]
   then
     # We don't need the time consuming trimming so much for continous deployment
     dotnet publish -v m -c Release -r linux-x64 -o "../../../deploy" \
@@ -38,7 +38,7 @@ echo "Start publishing as single file executables."
   mv "../../../deploy/Andromeda.AvaloniaApp" "../../../deploy/$DEPLOYNAME-linux-x64"
 
   echo "Build for Windows."
-  if [ $1 = 'dev' ]
+  if [ "$1" = 'dev' ]
   then
     # We don't need the time consuming trimming so much for continous deployment
     dotnet publish -v m -c Release -r win-x64 -o "../../../deploy" \
@@ -80,7 +80,7 @@ echo "Start publishing as single file executables."
 echo "Start publishing as AppImage."
 (
   cd "src/Andromeda/AvaloniaApp" || exit
-  if [ $1 = 'dev' ]
+  if [ "$1" = 'dev' ]
   then
     # We don't need the time consuming trimming so much for continous deployment
     dotnet publish -v m -c Release -f "$FRAMEWORK" -r ubuntu.16.04-x64 \
