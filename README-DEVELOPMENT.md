@@ -1,5 +1,7 @@
 # Development
 
+![Visualization](images/diagram.svg)
+
 ## Setup (VSCode)
 
 It is highly recommended to use the provided devcontainer for VS Code. You just need [this extension]
