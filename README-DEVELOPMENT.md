@@ -4,8 +4,9 @@
 
 ## Setup (VSCode)
 
-It is highly recommended to use the provided devcontainer for VS Code. You just need [this extension]
+The only supported way to work on this is by using the provided devcontainer
 (https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack).
+Therefore you need VSCode and Docker installed on your system, the rest is happening inside the container.
 
 If VS Code does not suggest to open the repository with the container, run the "Remote-Container:
 Rebuild and Reopen in Container" Action. Everything you need is installed in there.
