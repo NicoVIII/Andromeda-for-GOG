@@ -11,7 +11,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Input
 open Avalonia.Layout
 open Elmish
-open GogApi.DotNet.FSharp
+open GogApi
 open Avalonia.FuncUI
 
 module Program =

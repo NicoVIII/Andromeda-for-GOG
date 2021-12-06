@@ -4,7 +4,7 @@ open Andromeda.Core
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Lenses
 open Elmish
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 
 open Andromeda.AvaloniaApp.Components
 

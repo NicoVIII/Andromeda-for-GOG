@@ -8,8 +8,8 @@ open Avalonia.Input
 open Avalonia.Layout
 open Avalonia.Media
 open Elmish
-open GogApi.DotNet.FSharp
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi
+open GogApi.DomainTypes
 open System.Diagnostics
 open System.Runtime.InteropServices
 open System.Web

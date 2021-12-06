@@ -5,7 +5,7 @@ open Myriad.Plugins
 open Andromeda.Core.Lenses
 
 type InstalledGame =
-    { id: GogApi.DotNet.FSharp.DomainTypes.ProductId
+    { id: GogApi.DomainTypes.ProductId
       name: string
       path: string
       version: string
@@ -25,7 +25,7 @@ module InstalledGameLenses =
     let id =
         Lens
             ((fun (x: InstalledGame) -> x.id),
-             (fun (x: InstalledGame) (value: GogApi.DotNet.FSharp.DomainTypes.ProductId) ->
+             (fun (x: InstalledGame) (value: GogApi.DomainTypes.ProductId) ->
                  { x with id = value }))
 
     let name =

@@ -1,6 +1,6 @@
 namespace Andromeda.Core
 
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open Microsoft.FSharp.Collections
 open System
 open System.IO

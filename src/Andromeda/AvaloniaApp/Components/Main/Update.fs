@@ -5,7 +5,7 @@ open Andromeda.Core.DomainTypes
 open Andromeda.Core.Lenses
 open Avalonia.Threading
 open Elmish
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open System
 open System.Diagnostics
 open System.IO

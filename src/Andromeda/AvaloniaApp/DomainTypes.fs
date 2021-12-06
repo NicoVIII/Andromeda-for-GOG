@@ -2,7 +2,7 @@ namespace Andromeda.AvaloniaApp
 
 open Andromeda.Core.DomainTypes
 open Avalonia.FuncUI.Components.Hosts
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open System
 
 [<AutoOpen>]

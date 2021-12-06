@@ -1,8 +1,8 @@
 namespace Andromeda.Core
 
 open FsHttp.DslCE
-open GogApi.DotNet.FSharp
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi
+open GogApi.DomainTypes
 open System.Diagnostics.Contracts
 open System.IO
 

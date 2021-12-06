@@ -2,7 +2,7 @@ module Tests
 
 open Expecto
 
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open Andromeda.Core
 
 let tests =

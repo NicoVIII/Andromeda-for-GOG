@@ -1,6 +1,6 @@
 namespace Andromeda.Core.Persistence
 
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open TypedPersistence.Json
 open System.IO
 

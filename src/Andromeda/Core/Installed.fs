@@ -1,8 +1,8 @@
 namespace Andromeda.Core
 
 open FSharp.Json
-open GogApi.DotNet.FSharp
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi
+open GogApi.DomainTypes
 open Mono.Unix.Native
 open System
 open System.Diagnostics

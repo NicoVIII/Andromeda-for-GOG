@@ -2,7 +2,7 @@ module Tests
 
 open Andromeda.Core.DomainTypes
 open Expecto
-open GogApi.DotNet.FSharp.DomainTypes
+open GogApi.DomainTypes
 open System
 
 open Andromeda.AvaloniaApp
