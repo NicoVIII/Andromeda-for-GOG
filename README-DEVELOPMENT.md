@@ -21,12 +21,3 @@ Publishing is done automatically with every commit on develop and for every rele
 
 There is a bash script which bundles Andromeda in all the designated forms: `./scripts/publish.sh`
 It is possible that you need additional dependencies to run this.
-
-## Versioning
-
-This project uses Semantic Versioning 2.0.0 (<http://semver.org/spec/v2.0.0.html>).
-
-## Used Tools
-
-The code is written in "Visual Studio Code" (<https://code.visualstudio.com/>). There is a
-.devcontainer defined, which you can use from within VScode or from a service like GitHub Codespaces.
