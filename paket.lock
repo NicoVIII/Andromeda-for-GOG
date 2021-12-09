@@ -192,7 +192,7 @@ NUGET
     Myriad.Sdk (0.4.1)
     NicoVIII.Fsharp.Json (0.5)
       FSharp.Core (>= 4.3.4)
-    NicoVIII.GogApi (3.0.0-beta.1)
+    NicoVIII.GogApi (3.0)
       FsHttp (>= 6.0.1)
       NicoVIII.Fsharp.Json (>= 0.5)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3)
