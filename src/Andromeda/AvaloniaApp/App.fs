@@ -24,6 +24,7 @@ module App =
         | CloseInstallGameWindow of ProductInfo * Authentication
         | OpenInstallGameWindow
         | OpenSettingsWindow
+        | Authenticate of Authentication
         // Child component messages
         | MainMsg of Main.Msg
         | AuthenticationMsg of Authentication.Msg
@@ -63,15 +64,18 @@ module App =
 
             Cmd.ofSub sub
 
+    let initAuthenticated authentication =
+        let settings = Persistence.Settings.load ()
+
+        let mainState, mainCmd = Main.Model.init settings authentication
+
+        Authenticated mainState, Cmd.map MainMsg mainCmd
+
     let init authentication: WindowStates * Cmd<Msg> =
         let programState, programCmd =
             match authentication with
             | Some authentication ->
-                let settings = Persistence.Settings.load ()
-
-                let mainState, mainCmd = Main.Model.init settings authentication
-
-                Authenticated mainState, Cmd.map MainMsg mainCmd
+                initAuthenticated authentication
             | None -> Authentication.init () |> Unauthenticated, Cmd.none
 
         let state =
@@ -144,6 +148,11 @@ module App =
             closeWindow mainWindow
 
             state, Cmd.none
+        | Authenticate authentication, _ ->
+            let programState, programCmd = initAuthenticated authentication
+            let state = { state with programState = programState }
+
+            state, programCmd
         // Update child components
         | MainMsg msg, Authenticated mainState ->
             let mainState, mainCmd, intent = Main.Update.update msg mainState
@@ -178,9 +187,8 @@ module App =
                     Persistence.Authentication.save authentication
                     |> ignore
 
-                    setl Main.StateL.authentication authentication
-                    |> Main.ChangeState
-                    |> MainMsg
+                    authentication
+                    |> Authenticate
                     |> Cmd.ofMsg
 
             let cmd =
