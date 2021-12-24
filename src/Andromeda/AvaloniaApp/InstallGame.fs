@@ -27,6 +27,7 @@ module InstallGame =
     type State =
         { authentication: Authentication
           installedGames: ProductId list
+          dlcs: Dlc list option
           productInfos: ProductInfo list option
           search: string
           selected: ProductInfo option
@@ -37,11 +38,13 @@ module InstallGame =
         | CloseWindow
         | SearchGame
         | SetProductInfos of ProductInfo list
+        | SetDlcs of Dlc list option
         | SetSelected of ProductInfo
 
     let init authentication installedGames (window: IInstallGameWindow) =
         { authentication = authentication
           installedGames = installedGames
+          dlcs = None
           productInfos = None
           search = ""
           selected = None
@@ -74,8 +77,8 @@ module InstallGame =
                 }
 
             { state with
-                  productInfos = None
-                  selected = None },
+                productInfos = None
+                selected = None },
             Cmd.OfAsync.perform invoke () SetProductInfos
         | SetProductInfos productInfos ->
             let cmd =
@@ -84,13 +87,24 @@ module InstallGame =
                 | [ productInfo ] -> Cmd.ofMsg <| SetSelected productInfo
                 | _ -> Cmd.none
 
-            { state with
-                  productInfos = Some productInfos },
-            cmd
+            { state with productInfos = Some productInfos }, cmd
+        | SetDlcs dlcs -> { state with dlcs = dlcs }, Cmd.none
         | SetSelected productInfo ->
-            { state with
-                  selected = Some productInfo },
-            Cmd.none
+            let invoke () =
+                async {
+                    let! (gameInfo, _) =
+                        Helpers.withAutoRefresh
+                            (Account.getGameDetails productInfo.id)
+                            state.authentication
+
+                    return
+                        match gameInfo with
+                        | Ok gameInfo -> gameInfo.dlcs |> Some
+                        | Error (x1, x2) -> failwithf "%s-%s" x1 x2
+                }
+
+            { state with selected = Some productInfo },
+            Cmd.OfAsync.perform invoke () SetDlcs
 
     let productInfoView (state: State) (dispatch: Msg -> unit) =
         let productInfoList =
@@ -102,29 +116,31 @@ module InstallGame =
             StackPanel.children [
                 TextBlock.create [
                     TextBlock.text "No games found!"
-                    TextBlock.isVisible
-                        (state.productInfos.IsSome
-                         && state.productInfos.Value.Length = 0)
+                    TextBlock.isVisible (
+                        state.productInfos.IsSome
+                        && state.productInfos.Value.Length = 0
+                    )
                 ]
                 ListBox.create [
                     ListBox.dataItems productInfoList
-                    ListBox.itemTemplate
-                        (DataTemplateView<ProductInfo>.create
-                         <| fun productInfo ->
-                             TextBlock.create [
-                                 TextBlock.text productInfo.title
-                             ])
-                    ListBox.isVisible
-                        (state.productInfos.IsSome
-                         && state.productInfos.Value.Length > 0)
+                    ListBox.itemTemplate (
+                        DataTemplateView<ProductInfo>.create
+                        <| fun productInfo ->
+                            TextBlock.create [
+                                TextBlock.text productInfo.title
+                            ]
+                    )
+                    ListBox.isVisible (
+                        state.productInfos.IsSome
+                        && state.productInfos.Value.Length > 0
+                    )
                     match state.selected with
                     | Some selected -> ListBox.selectedItem selected
                     | None -> ()
-                    ListBox.onSelectedItemChanged
-                        (fun obj ->
-                            match obj with
-                            | :? ProductInfo as p -> p |> SetSelected |> dispatch
-                            | _ -> ())
+                    ListBox.onSelectedItemChanged (fun obj ->
+                        match obj with
+                        | :? ProductInfo as p -> p |> SetSelected |> dispatch
+                        | _ -> ())
                 ]
             ]
         ]
@@ -146,41 +162,57 @@ module InstallGame =
                         ]
                         TextBox.create [
                             TextBox.text state.search
-                            TextBox.onKeyDown
-                                (fun args ->
-                                    match args.Key with
-                                    | Key.Enter -> SearchGame |> dispatch
-                                    | _ -> ())
-                            TextBox.onTextChanged
-                                (fun text ->
-                                    match text = state.search with
-                                    | true -> ()
-                                    | false -> ChangeSearch text |> dispatch)
+                            TextBox.onKeyDown (fun args ->
+                                match args.Key with
+                                | Key.Enter -> SearchGame |> dispatch
+                                | _ -> ())
+                            TextBox.onTextChanged (fun text ->
+                                match text = state.search with
+                                | true -> ()
+                                | false -> ChangeSearch text |> dispatch)
                         ]
                     ]
                 ]
                 productInfoView state dispatch
                 TextBlock.create [
-                    TextBlock.isVisible
-                        (match state.selected with
-                         | Some selected ->
-                             state.installedGames |> List.contains selected.id
-                         | None -> false)
+                    TextBlock.isVisible (
+                        match state.selected with
+                        | Some selected ->
+                            state.installedGames |> List.contains selected.id
+                        | None -> false
+                    )
                     TextBlock.text "This game is already installed"
                 ]
+                match state.selected, state.dlcs with
+                | None, _ -> ()
+                | _, Some [] ->
+                    TextBlock.create [
+                        TextBlock.text "No DLCs found"
+                    ]
+                | _, Some dlcs ->
+                    for dlc in dlcs do
+                        TextBlock.create [
+                            TextBlock.text dlc.title
+                        ]
+                | _, None ->
+                    TextBlock.create [
+                        TextBlock.text "Loading DLCs..."
+                    ]
                 Button.create [
                     Button.content "Install"
                     // Nur aktivieren, wenn ein Game ausgewählt ist und dieses noch nicht installiert ist
-                    Button.isEnabled
-                        (match state.selected with
-                         | Some selected ->
-                             state.installedGames
-                             |> List.contains selected.id
-                             |> not
-                         | None -> false)
-                    Button.isVisible
-                        (state.productInfos.IsSome
-                         && state.productInfos.Value.Length > 0)
+                    Button.isEnabled (
+                        match state.selected with
+                        | Some selected ->
+                            state.installedGames
+                            |> List.contains selected.id
+                            |> not
+                        | None -> false
+                    )
+                    Button.isVisible (
+                        state.productInfos.IsSome
+                        && state.productInfos.Value.Length > 0
+                    )
                     Button.onClick (fun _ -> CloseWindow |> dispatch)
                 ]
             ]
@@ -203,7 +235,7 @@ module InstallGame =
             |> ignore
 #endif
 
-            let syncDispatch (dispatch: Dispatch<'msg>): Dispatch<'msg> =
+            let syncDispatch (dispatch: Dispatch<'msg>) : Dispatch<'msg> =
                 match Dispatcher.UIThread.CheckAccess() with
                 | true -> fun msg -> Dispatcher.UIThread.Post(fun () -> dispatch msg)
                 | false -> dispatch
