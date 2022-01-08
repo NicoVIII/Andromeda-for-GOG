@@ -44,10 +44,11 @@ module Update =
 
             Cmd.ofSub sub
 
-        let registerDownloadTimer (task: Task option)
-                                  tmppath
-                                  (downloadInfo: DownloadStatus)
-                                  =
+        let registerDownloadTimer
+            (task: Task option)
+            tmppath
+            (downloadInfo: DownloadStatus)
+            =
             let sub dispatch =
                 match task with
                 | Some _ ->
@@ -97,8 +98,7 @@ module Update =
                 ||> Installed.checkGameForUpdate
 
             // Update authentication in state, if it was refreshed
-            let state =
-                setl StateL.authentication authentication state
+            let state = setl StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -107,7 +107,9 @@ module Update =
                     updateData.game
                     |> gameToDownloadInfo
                     |> (fun productInfo ->
-                        (productInfo, authentication) |> StartGameDownload)
+                        // TODO: update DLCs
+                        (productInfo, [], authentication)
+                        |> StartGameDownload)
                     |> Cmd.ofMsg
                 | None ->
                     AddNotification $"No new version available for %s{game.name}"
@@ -120,9 +122,7 @@ module Update =
             let state =
                 state
                 |> getl StateL.installedGames
-                |> Map.change
-                    productId
-                    (function
+                |> Map.change productId (function
                     | Some game -> { game with image = imgPath |> Some } |> Some
                     | None -> None)
                 |> setlr StateL.installedGames state
@@ -155,18 +155,18 @@ module Update =
                 (getl StateL.settings state, authentication)
                 ||> Installed.searchInstalled
 
-            let state =
-                setl StateL.installedGames installedGames state
+            let state = setl StateL.installedGames installedGames state
 
             let cmd =
                 imgJobs
-                |> List.map
-                    (fun job -> Cmd.OfAsync.perform job authentication SetGameImage)
+                |> List.map (fun job ->
+                    Cmd.OfAsync.perform job authentication SetGameImage)
                 |> Cmd.batch
 
             state, cmd, DoNothing
 
-        let startGameDownload state (productInfo: ProductInfo) =
+        let startGameDownload state (productInfo: ProductInfo) (dlcs: Dlc list) =
+            // TODO: download and install DLCs
             let authentication = getl StateL.authentication state
 
             let installerInfoList =
@@ -175,8 +175,7 @@ module Update =
 
             match installerInfoList with
             | [] ->
-                let cmd =
-                    Cmd.ofMsg (AddNotification "Found no installer for this OS...")
+                let cmd = Cmd.ofMsg (AddNotification "Found no installer for this OS...")
 
                 state, cmd, DoNothing
             | [ installerInfo ] ->
@@ -210,15 +209,8 @@ module Update =
                                     File.Move(tmppath, filePath)
                                 }
 
-                            Cmd.OfAsync.perform
-                                invoke
-                                ()
-                                (fun _ ->
-                                    UnpackGame(
-                                        settings,
-                                        downloadInfo,
-                                        installerInfo.version
-                                    ))
+                            Cmd.OfAsync.perform invoke () (fun _ ->
+                                UnpackGame(settings, downloadInfo, installerInfo.version))
                         | None ->
                             UnpackGame(settings, downloadInfo, installerInfo.version)
                             |> Cmd.ofMsg
@@ -279,10 +271,8 @@ module Update =
                 async { do getl StateL.settings state |> Cache.check }
 
             let cmd =
-                Cmd.OfAsync.attempt
-                    cacheCheck
-                    ()
-                    (fun _ -> AddNotification "Cachecheck failed!")
+                Cmd.OfAsync.attempt cacheCheck () (fun _ ->
+                    AddNotification "Cachecheck failed!")
 
             state, cmd, DoNothing
         | SetSettings settings ->
@@ -303,13 +293,12 @@ module Update =
                 |> setlr StateL.downloads state
 
             state, Cmd.ofMsg (SearchInstalled false), DoNothing
-        | StartGameDownload (productInfo, authentication) ->
+        | StartGameDownload (productInfo, dlcs, authentication) ->
             // This is triggered by the parent component, authentication could have changed,
             // so we update it
-            let state =
-                setl StateL.authentication authentication state
+            let state = setl StateL.authentication authentication state
 
-            Update.startGameDownload state productInfo
+            Update.startGameDownload state productInfo dlcs
         | UnpackGame (settings, downloadInfo, version) ->
             let invoke () =
                 Download.extractLibrary
@@ -320,10 +309,8 @@ module Update =
 
             let cmd =
                 [ Cmd.ofMsg (UpdateDownloadInstalling downloadInfo.gameId)
-                  Cmd.OfAsync.perform
-                      invoke
-                      ()
-                      (fun _ -> FinishGameDownload downloadInfo.gameId) ]
+                  Cmd.OfAsync.perform invoke () (fun _ ->
+                      FinishGameDownload downloadInfo.gameId) ]
                 |> Cmd.batch
 
             state, cmd, DoNothing
@@ -334,8 +321,7 @@ module Update =
                 ||> Installed.checkAllForUpdates
 
             // Update authentication in state, if it was refreshed
-            let state =
-                setl StateL.authentication authentication state
+            let state = setl StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -346,7 +332,8 @@ module Update =
                             updateData.game
                             |> gameToDownloadInfo
                             |> (fun productInfo ->
-                                (productInfo, authentication) |> StartGameDownload)
+                                (productInfo, [], authentication)
+                                |> StartGameDownload)
                             |> Cmd.ofMsg)
                         updateDataList
                 | _ ->

@@ -20,9 +20,9 @@ module InstallGame =
         abstract Close: unit -> unit
 
         [<CLIEvent>]
-        abstract OnSave: IEvent<IInstallGameWindow * ProductInfo>
+        abstract OnSave: IEvent<IInstallGameWindow * ProductInfo * Dlc list>
 
-        abstract Save: ProductInfo -> unit
+        abstract Save: ProductInfo * Dlc list -> unit
 
     type State =
         { authentication: Authentication
@@ -57,7 +57,8 @@ module InstallGame =
         | CloseWindow ->
             match state.selected with
             | Some selected ->
-                selected |> state.window.Save
+                let dlcs = state.dlcs |> Option.defaultValue []
+                state.window.Save(selected, dlcs)
                 state.window.Close()
             | None -> ()
 
@@ -194,6 +195,11 @@ module InstallGame =
                         TextBlock.create [
                             TextBlock.text dlc.title
                         ]
+
+                    TextBlock.create [
+                        TextBlock.text
+                            "DLCs download and installation is not supported yet (WIP)"
+                    ]
                 | _, None ->
                     TextBlock.create [
                         TextBlock.text "Loading DLCs..."
@@ -254,5 +260,5 @@ module InstallGame =
             [<CLIEvent>]
             override __.OnSave = saveEvent.Publish
             // TODO: return authentication
-            member __.Save(downloadInfo: ProductInfo) =
-                saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo)
+            member __.Save(downloadInfo: ProductInfo, dlcs: Dlc list) =
+                saveEvent.Trigger(this, downloadInfo, dlcs)

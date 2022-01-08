@@ -21,7 +21,7 @@ module App =
     type Msg =
         | CloseAllWindows
         | CloseSettingsWindow of Settings.IWindow * Settings
-        | CloseInstallGameWindow of ProductInfo * Authentication
+        | CloseInstallGameWindow of ProductInfo * Dlc list * Authentication
         | OpenInstallGameWindow
         | OpenSettingsWindow
         | Authenticate of Authentication
@@ -43,11 +43,10 @@ module App =
                 | Some window ->
                     let wind = window :> InstallGame.IInstallGameWindow
 
-                    wind.OnSave.Subscribe
-                        (fun (_, downloadInfo) ->
-                            (downloadInfo, authentication)
-                            |> CloseInstallGameWindow
-                            |> dispatch)
+                    wind.OnSave.Subscribe (fun (_, downloadInfo, dlcs) ->
+                        (downloadInfo, dlcs, authentication)
+                        |> CloseInstallGameWindow
+                        |> dispatch)
                     |> ignore
                 | None -> ()
 
@@ -55,11 +54,10 @@ module App =
 
         let saveSettings (window: Settings.IWindow) =
             let sub dispatch =
-                window.OnSave.Subscribe
-                    (fun (window, settings) ->
-                        (window, settings)
-                        |> CloseSettingsWindow
-                        |> dispatch)
+                window.OnSave.Subscribe (fun (window, settings) ->
+                    (window, settings)
+                    |> CloseSettingsWindow
+                    |> dispatch)
                 |> ignore
 
             Cmd.ofSub sub
@@ -71,11 +69,10 @@ module App =
 
         Authenticated mainState, Cmd.map MainMsg mainCmd
 
-    let init authentication: WindowStates * Cmd<Msg> =
+    let init authentication : WindowStates * Cmd<Msg> =
         let programState, programCmd =
             match authentication with
-            | Some authentication ->
-                initAuthenticated authentication
+            | Some authentication -> initAuthenticated authentication
             | None -> Authentication.init () |> Unauthenticated, Cmd.none
 
         let state =
@@ -85,33 +82,28 @@ module App =
 
         state, programCmd
 
-    let update msg (state: WindowStates) mainWindow: WindowStates * Cmd<Msg> =
+    let update msg (state: WindowStates) mainWindow : WindowStates * Cmd<Msg> =
         let idle = state, Cmd.none
 
         match msg, state.programState with
         | OpenInstallGameWindow, Authenticated mainState ->
-            let authentication =
-                getl Main.StateL.authentication mainState
+            let authentication = getl Main.StateL.authentication mainState
 
             let installedGames =
                 getl Main.StateL.installedGames mainState
                 |> Map.toList
                 |> List.map fst
 
-            let window =
-                InstallGame.InstallGameWindow(authentication, installedGames)
+            let window = InstallGame.InstallGameWindow(authentication, installedGames)
 
             window.ShowDialog(mainWindow) |> ignore
 
-            let state =
-                { state with
-                      installGameWindow = window |> Some }
+            let state = { state with installGameWindow = window |> Some }
 
             state, Subs.installGameWindow authentication state
         | OpenInstallGameWindow, _ -> idle
         | OpenSettingsWindow, Authenticated mainState ->
-            let authentication =
-                getl Main.StateL.authentication mainState
+            let authentication = getl Main.StateL.authentication mainState
 
             let settings = getl Main.StateL.settings mainState
 
@@ -121,13 +113,11 @@ module App =
 
             let cmd = Subs.saveSettings window
 
-            { state with
-                  settingsWindow = window |> Some },
-            cmd
+            { state with settingsWindow = window |> Some }, cmd
         | OpenSettingsWindow, _ -> idle
-        | CloseInstallGameWindow (downloadInfo, authentication), _ ->
+        | CloseInstallGameWindow (downloadInfo, dlcs, authentication), _ ->
             let cmd =
-                (downloadInfo, authentication)
+                (downloadInfo, dlcs, authentication)
                 |> Main.StartGameDownload
                 |> MainMsg
                 |> Cmd.ofMsg
@@ -136,8 +126,7 @@ module App =
         | CloseSettingsWindow (window, settings), _ ->
             window.CloseWithoutCustomHandler()
 
-            let cmd =
-                Main.SetSettings settings |> MainMsg |> Cmd.ofMsg
+            let cmd = Main.SetSettings settings |> MainMsg |> Cmd.ofMsg
 
             { state with settingsWindow = None }, cmd
         | CloseAllWindows, _ ->
@@ -157,9 +146,7 @@ module App =
         | MainMsg msg, Authenticated mainState ->
             let mainState, mainCmd, intent = Main.Update.update msg mainState
 
-            let state =
-                { state with
-                      programState = Authenticated mainState }
+            let state = { state with programState = Authenticated mainState }
 
             let intentCmd =
                 match intent with
@@ -176,9 +163,7 @@ module App =
         | AuthenticationMsg msg, Unauthenticated authState ->
             let authState, authCmd, intent = Authentication.update msg authState
 
-            let state =
-                { state with
-                      programState = Unauthenticated authState }
+            let state = { state with programState = Unauthenticated authState }
 
             let intentCmd =
                 match intent with
@@ -187,9 +172,7 @@ module App =
                     Persistence.Authentication.save authentication
                     |> ignore
 
-                    authentication
-                    |> Authenticate
-                    |> Cmd.ofMsg
+                    authentication |> Authenticate |> Cmd.ofMsg
 
             let cmd =
                 [ Cmd.map AuthenticationMsg authCmd

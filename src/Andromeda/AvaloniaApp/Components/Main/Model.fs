@@ -21,20 +21,17 @@ module StateL =
     let authentication =
         Lens((fun r -> r.authentication), (fun r v -> { r with authentication = v }))
 
-    let downloads =
-        Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
+    let downloads = Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
 
     let installedGames =
         Lens((fun r -> r.installedGames), (fun r v -> { r with installedGames = v }))
 
-    let mode =
-        Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
+    let mode = Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
 
     let notifications =
         Lens((fun r -> r.notifications), (fun r v -> { r with notifications = v }))
 
-    let settings =
-        Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
+    let settings = Lens((fun r -> r.settings), (fun r v -> { r with settings = v }))
 
     let terminalOutput =
         Lens((fun r -> r.terminalOutput), (fun r v -> { r with terminalOutput = v }))
@@ -55,7 +52,7 @@ type Msg =
     | AddToTerminalOutput of string
     | SetSettings of Settings
     | SearchInstalled of initial: bool
-    | StartGameDownload of ProductInfo * Authentication
+    | StartGameDownload of ProductInfo * Dlc list * Authentication
     | UnpackGame of Settings * DownloadStatus * version: string option
     | FinishGameDownload of ProductId
     | UpdateDownloadSize of ProductId * int
