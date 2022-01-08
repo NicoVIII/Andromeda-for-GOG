@@ -261,4 +261,4 @@ module InstallGame =
             override __.OnSave = saveEvent.Publish
             // TODO: return authentication
             member __.Save(downloadInfo: ProductInfo, dlcs: Dlc list) =
-                saveEvent.Trigger(this, downloadInfo, dlcs)
+                saveEvent.Trigger(this :> IInstallGameWindow, downloadInfo, dlcs)
