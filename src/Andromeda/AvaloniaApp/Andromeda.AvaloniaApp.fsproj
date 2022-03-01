@@ -23,8 +23,8 @@
 
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />
-    <Compile Include="Settings.fs" />
 
+    <Compile Include="Components/Settings.fs" />
     <Compile Include="Components/Authentication.fs" />
 
     <!-- Main component -->
@@ -35,7 +35,12 @@
     <Compile Include="Components/Main/View.fs" />
     <Compile Include="Components/Main/Update.fs" />
 
-    <Compile Include="App.fs" />
+    <!-- Main component -->
+    <Compile Include="Model.fs" />
+    <Compile Include="Msg.fs" />
+    <Compile Include="Init.fs" />
+    <Compile Include="Update.fs" />
+    <Compile Include="View.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

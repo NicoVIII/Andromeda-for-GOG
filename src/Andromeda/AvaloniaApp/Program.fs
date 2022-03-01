@@ -5,14 +5,12 @@ open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Diagnostics
-open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Elmish
-open Avalonia.FuncUI.Types
-open Avalonia.Input
-open Avalonia.Layout
 open Elmish
 open GogApi
 open Avalonia.FuncUI
+
+open Andromeda.AvaloniaApp
 
 module Program =
     type MainWindow() as this =
@@ -22,9 +20,10 @@ module Program =
             base.Title <- "Andromeda"
 
             base.Icon <-
-                WindowIcon
-                    (AvaloniaHelper.loadAssetPath
-                        "avares://Andromeda.AvaloniaApp/Assets/logo.ico")
+                WindowIcon(
+                    AvaloniaHelper.loadAssetPath
+                        "avares://Andromeda.AvaloniaApp/Assets/logo.ico"
+                )
 
             base.Width <- 1024.0
             base.Height <- 660.0
@@ -37,20 +36,20 @@ module Program =
             // Try to load authentication from disk and refresh, if possible
             let authentication =
                 Persistence.Authentication.load ()
-                |> Option.bind
-                    (Authentication.getRefreshToken
-                     >> Async.RunSynchronously)
+                |> Option.bind (
+                    Authentication.getRefreshToken
+                    >> Async.RunSynchronously
+                )
                 // Save refreshed authentication
-                |> Option.map
-                    (fun auth ->
-                        Persistence.Authentication.save auth
-                        auth)
+                |> Option.map (fun auth ->
+                    Persistence.Authentication.save auth
+                    auth)
 
-            let updateWithServices msg state = App.update msg state this
+            let updateWithServices msg state = Update.perform msg state this
 
-            Program.mkProgram App.init updateWithServices App.render
+            Program.mkProgram Init.perform updateWithServices View.render
             |> Program.withHost this
-            |> Program.withSubscription (fun _ -> App.Subs.closeWindow this)
+            |> Program.withSubscription (fun _ -> Update.Subs.closeWindow this)
 #if DEBUG
             |> Program.withConsoleTrace
 #endif
@@ -71,7 +70,7 @@ module Program =
             | _ -> ()
 
     [<EntryPoint>]
-    let main (args: string []): int =
+    let main (args: string []) : int =
         AppBuilder
             .Configure<AndromedaApplication>()
             .UsePlatformDetect()

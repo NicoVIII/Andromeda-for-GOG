@@ -38,8 +38,8 @@ module StateL =
 
 type Intent =
     | DoNothing
-    | OpenSettings
     | OpenInstallGameWindow
+    | OpenSettings
 
 type Msg =
     | ChangeState of (State -> State)
@@ -59,8 +59,8 @@ type Msg =
     | UpdateDownloadInstalling of ProductId
     | UpgradeGames
     | CacheCheck
-    // Intent messages
     | OpenSettings
+    // Intent messages
     | OpenInstallGameWindow
 
 module Model =
