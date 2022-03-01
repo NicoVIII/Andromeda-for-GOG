@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 -   Moved settings from own window into main one
 -   Internal restructurings
+-   Uses now .NET 6
+-   Application packed with compression (< 40 MB now 🎉)
 
 ## [0.4.0] - 2020-12-05
 
