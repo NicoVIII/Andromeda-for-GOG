@@ -39,5 +39,5 @@ jobs:
           prerelease: true
           title: Continuous Build
           files: |
-            LICENSE.txt
-            deploy/*
+            README.md
+            publish/*
