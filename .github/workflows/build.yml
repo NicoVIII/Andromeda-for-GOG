@@ -3,8 +3,11 @@ name: Build
 on:
   push:
     branches:
-      - "main"
-      - "production"
+      - "*"
+    tags-ignore:
+      - "*"
+    paths-ignore:
+      - "**.md"
   pull_request:
 
 jobs:
