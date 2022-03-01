@@ -17,8 +17,13 @@ jobs:
       - name: Get version from tag
         id: tag_name
         run: |
+          if [[ ${GITHUB_REF} == *"-"* ]]; then
+            RTAG=Unreleased
+          else
+            RTAG=${GITHUB_REF#refs/tags/v}
+          fi
           echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
-        shell: bash
+          echo ::set-output name=release_tag::$RTAG
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup .NET Core
@@ -26,48 +31,31 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Restore
-        run: dotnet tool restore && dotnet paket restore
+        run: dotnet run restore
+      - name: Publish
+        run: dotnet run publish
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2
         with:
-          version: ${{ steps.tag_name.outputs.current_version }}
+          version: ${{ steps.tag_name.outputs.release_tag }}
           path: ./CHANGELOG.md
-      - name: Run publishing script
-        run: ./scripts/publish.sh ${{ steps.tag_name.outputs.current_version }}
       - name: Create Release
         id: create_release
         uses: actions/create-release@latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
           release_name: ${{ github.ref }}
           body: ${{ steps.changelog_reader.outputs.changes }}
-          prerelease: ${{ steps.changelog_reader.outputs.status == 'prereleased' }}
-          draft: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
+          prerelease: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
       - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v1-release
+        uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: deploy/*
           tag: ${{ github.ref }}
-          overwrite: true
-          file_glob: true
-      - name: Upload license to release
-        uses: svenstaro/upload-release-action@v1-release
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: LICENSE.txt
-          tag: ${{ github.ref }}
-          overwrite: true
-          file_glob: true
-      - name: Upload changelog to release
-        uses: svenstaro/upload-release-action@v1-release
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: CHANGELOG.md
-          tag: ${{ github.ref }}
+          file: publish/*
           overwrite: true
           file_glob: true
       - name: Upload readme to release
@@ -77,4 +65,3 @@ jobs:
           file: README.md
           tag: ${{ github.ref }}
           overwrite: true
-          file_glob: true

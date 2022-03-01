@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 -   "Open game folder" context menu entry
 -   Show available dlcs on install
 
+### Changed
+-   Moved settings from own window into main one
+-   Internal restructurings
+
 ## [0.4.0] - 2020-12-05
 
 ### Added

@@ -19,6 +19,8 @@ Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Andromeda.Core.UnitTests", 
 EndProject
 Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Andromeda.AvaloniaApp.UnitTests", "tests\Andromeda\AvaloniaApp.UnitTests\Andromeda.AvaloniaApp.UnitTests.fsproj", "{E1E35C8E-CCC8-4F0D-9BC7-514769531D99}"
 EndProject
+Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "run", "run.fsproj", "{823AAF76-0377-4195-A617-7CC5EEF1C707}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -80,6 +82,18 @@ Global
 		{E1E35C8E-CCC8-4F0D-9BC7-514769531D99}.Release|x64.Build.0 = Release|Any CPU
 		{E1E35C8E-CCC8-4F0D-9BC7-514769531D99}.Release|x86.ActiveCfg = Release|Any CPU
 		{E1E35C8E-CCC8-4F0D-9BC7-514769531D99}.Release|x86.Build.0 = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|x64.Build.0 = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Debug|x86.Build.0 = Debug|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|Any CPU.Build.0 = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|x64.ActiveCfg = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|x64.Build.0 = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|x86.ActiveCfg = Release|Any CPU
+		{823AAF76-0377-4195-A617-7CC5EEF1C707}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{D01C5FA4-DC1B-4E96-95A8-60B93E68A497} = {7D37A1E8-AF24-4BC0-8D5A-9200B17FBDAC}

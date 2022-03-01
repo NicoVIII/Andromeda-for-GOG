@@ -3,7 +3,7 @@
     "tasks": [
         {
             "label": "build",
-            "command": "dotnet build",
+            "command": "dotnet run build",
             "type": "shell",
             "args": [],
             "group": {
@@ -14,16 +14,10 @@
             "problemMatcher": [
                 "$msCompile"
             ],
-            "windows": {
-                "command": "dotnet build",
-                "options": {
-                    "cwd": "./src/Andromeda/AvaloniaApp.FSharp/"
-                }
-            }
         },
         {
             "label": "restore",
-            "command": "dotnet tool restore && dotnet restore",
+            "command": "dotnet run restore",
             "type": "shell",
             "args": [],
             "group": "none",

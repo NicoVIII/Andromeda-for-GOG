@@ -26,6 +26,6 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Build Andromeda
-        run: dotnet tool restore && dotnet paket restore && dotnet build
+        run: dotnet run build
       - name: Run tests
-        run: ./scripts/run_tests.sh
+        run: dotnet run test

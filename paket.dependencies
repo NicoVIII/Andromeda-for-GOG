@@ -3,6 +3,7 @@ source https://api.nuget.org/v3/index.json
 framework: auto-detect
 storage: none
 
+nuget FSharp.Core content: none
 nuget Avalonia 0.10.10
 nuget Avalonia.Diagnostics 0.10.10
 nuget FsToolkit.ErrorHandling ~> 2.0
