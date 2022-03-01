@@ -29,11 +29,12 @@
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-dotnettools.csharp",
-        "editorconfig.editorconfig",
-        "aaron-bond.better-comments",
-        "ybaumes.highlight-trailing-white-spaces",
-        "me-dutour-mathieu.vscode-github-actions",
         "ionide.ionide-fsharp",
+        "editorconfig.editorconfig",
+        "ybaumes.highlight-trailing-white-spaces",
+        "aaron-bond.better-comments",
+        "gruntfuggly.todo-tree",
+        "me-dutour-mathieu.vscode-github-actions",
     ],
     // To run the application we need to expose XServer to the container
     "runArgs": [
