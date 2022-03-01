@@ -6,13 +6,15 @@ open GogApi.DomainTypes
 open Mono.Unix.Native
 open System.Diagnostics
 open System.IO
-open System.Net
+open System.Net.Http
 
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Helpers
 
 /// A module for everything which helps to download and install games
 module Download =
+    let client = new HttpClient()
+
     let startFileDownload (SafeDownLink url) gameName version =
         let version =
             match version with
@@ -25,12 +27,17 @@ module Download =
         let dir = SystemInfo.installerCachePath
 
         let filepath =
-            Path.Combine
-                (dir, sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
+            Path.Combine(
+                dir,
+                sprintf "%s%s.%s" gameName version SystemInfo.installerEnding
+            )
 
         let tmppath =
-            Path.Combine
-                (dir, "tmp", sprintf "%s%s.%s" gameName version SystemInfo.installerEnding)
+            Path.Combine(
+                dir,
+                "tmp",
+                sprintf "%s%s.%s" gameName version SystemInfo.installerEnding
+            )
 
         Directory.CreateDirectory(Path.Combine(dir, "tmp"))
         |> ignore
@@ -40,28 +47,38 @@ module Download =
         match file.Exists with
         | false ->
             let url = url.Replace("http://", "https://")
-            use client = new WebClient()
 
             let task =
-                client.DownloadFileTaskAsync(url, tmppath)
+                task {
+                    use fileStream = File.OpenWrite tmppath
+
+                    let! response =
+                        client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
+
+                    do response.EnsureSuccessStatusCode() |> ignore
+                    do! response.Content.CopyToAsync fileStream
+                }
 
             (task |> Some, filepath, tmppath)
         | true -> (None, filepath, tmppath)
 
-    let rec copyDirectory (sourceDirName: string)
-                          (destDirName: string)
-                          (copySubDirs: bool)
-                          =
+    let rec copyDirectory
+        (sourceDirName: string)
+        (destDirName: string)
+        (copySubDirs: bool)
+        =
         let dir = DirectoryInfo(sourceDirName)
         let dirs = dir.GetDirectories()
 
         match (dir.Exists, Directory.Exists(destDirName)) with
         | (false, _) ->
             // If the source directory does not exist, throw an exception.
-            raise
-                (DirectoryNotFoundException
-                    ("Source directory does not exist or could not be found: "
-                     + sourceDirName))
+            raise (
+                DirectoryNotFoundException(
+                    "Source directory does not exist or could not be found: "
+                    + sourceDirName
+                )
+            )
         | (true, false) ->
             // If the destination directory does not exist, create it.
             Directory.CreateDirectory(destDirName) |> ignore
@@ -70,25 +87,23 @@ module Download =
         // Get the file contents of the directory to copy.
         dir.GetFiles()
         |> List.ofArray
-        |> List.iter
-            (fun file ->
-                // Create the path to the new copy of the file.
-                let temppath = Path.Combine(destDirName, file.Name)
+        |> List.iter (fun file ->
+            // Create the path to the new copy of the file.
+            let temppath = Path.Combine(destDirName, file.Name)
 
-                // Copy the file.
-                file.CopyTo(temppath, true) |> ignore)
+            // Copy the file.
+            file.CopyTo(temppath, true) |> ignore)
 
         // If copySubDirs is true, copy the subdirectories.
         match copySubDirs with
         | true ->
             List.ofArray dirs
-            |> List.iter
-                (fun subdir ->
-                    // Create the subdirectory.
-                    let temppath = Path.Combine(destDirName, subdir.Name)
+            |> List.iter (fun subdir ->
+                // Create the subdirectory.
+                let temppath = Path.Combine(destDirName, subdir.Name)
 
-                    // Copy the subdirectories.
-                    copyDirectory subdir.FullName temppath copySubDirs)
+                // Copy the subdirectories.
+                copyDirectory subdir.FullName temppath copySubDirs)
         | false -> ()
 
     let createVersionFile gameDir version =
@@ -98,28 +113,33 @@ module Download =
         async {
             let gameName = Path.removeInvalidFileNameChars gameName
 
-            let target =
-                Path.Combine(settings.gamePath, gameName)
+            let target = Path.Combine(settings.gamePath, gameName)
 
             match SystemInfo.os with
             | SystemInfo.OS.Linux ->
                 Syscall.chmod (filepath, FilePermissions.ALLPERMS)
                 |> ignore
 
-                let tmp =
-                    Path.Combine(settings.gamePath, ".tmp", gameName)
+                let tmp = Path.Combine(settings.gamePath, ".tmp", gameName)
                 // If there are some rests, remove them
-                if Directory.Exists tmp then Directory.Delete(tmp, true) else ()
+                if Directory.Exists tmp then
+                    Directory.Delete(tmp, true)
+                else
+                    ()
+
                 Directory.CreateDirectory(tmp) |> ignore
 
                 try
                     // Unzip linux installer with ZipLibrary
                     let fastZip = FastZip()
                     fastZip.ExtractZip(filepath, tmp, null)
-                with :? ZipException ->
+                with
+                | :? ZipException ->
                     let p =
-                        Process.Start
-                            ("unzip", "-qq \"" + filepath + "\" -d \"" + tmp + "\"")
+                        Process.Start(
+                            "unzip",
+                            "-qq \"" + filepath + "\" -d \"" + tmp + "\""
+                        )
 
                     p.WaitForExit()
 
@@ -138,11 +158,12 @@ module Download =
                 | false -> failwith "Folder not found! :("
             | SystemInfo.OS.Windows ->
                 let p =
-                    Process.Start
-                        (filepath,
-                         "/DIR=\""
-                         + target
-                         + "\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+                    Process.Start(
+                        filepath,
+                        "/DIR=\""
+                        + target
+                        + "\" /SILENT /VERYSILENT /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART"
+                    )
 
                 p.WaitForExit()
 
@@ -153,11 +174,12 @@ module Download =
                 | _ ->
                     // Try again with non-silent install
                     let p =
-                        Process.Start
-                            (filepath,
-                             "/DIR=\""
-                             + target
-                             + "\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART")
+                        Process.Start(
+                            filepath,
+                            "/DIR=\""
+                            + target
+                            + "\" /SUPPRESSMSGBOXES /LANG=en /SP- /NOCANCEL /NORESTART"
+                        )
 
                     p.WaitForExit()
             | SystemInfo.OS.MacOS -> failwith "Not supported yet :/"
@@ -167,10 +189,11 @@ module Download =
             | None -> ()
         }
 
-    let downloadGame gameName
-                     (installer: InstallerInfo)
-                     (authentication: Authentication)
-                     =
+    let downloadGame
+        gameName
+        (installer: InstallerInfo)
+        (authentication: Authentication)
+        =
         async {
             match installer.files with
             | (info :: _) ->

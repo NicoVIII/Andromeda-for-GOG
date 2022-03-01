@@ -45,7 +45,7 @@ module Update =
             Cmd.ofSub sub
 
         let registerDownloadTimer
-            (task: Task option)
+            (task: Task<unit> option)
             tmppath
             (downloadInfo: DownloadStatus)
             =
@@ -204,7 +204,7 @@ module Update =
                         | Some task ->
                             let invoke () =
                                 async {
-                                    let! _ = Async.AwaitTask task
+                                    let! _ = task |> Async.AwaitTask
                                     File.Move(tmppath, filePath)
                                 }
 
