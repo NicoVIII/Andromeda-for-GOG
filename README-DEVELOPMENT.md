@@ -13,11 +13,10 @@ Rebuild and Reopen in Container" Action. Everything you need is installed in the
 
 ## Building
 
-To build simply run dotnet build.
+To build simply run `dotnet run build`.
 
 ## Publishing
 
 Publishing is done automatically with every commit on develop and for every release tag.
-
-There is a bash script which bundles Andromeda in all the designated forms: `./scripts/publish.sh`
+You can build the executables by running `dotnet run publish`.
 It is possible that you need additional dependencies to run this.
