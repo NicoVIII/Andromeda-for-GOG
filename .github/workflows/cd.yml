@@ -27,7 +27,7 @@ jobs:
       - name: Restore
         run: dotnet tool restore && dotnet paket restore
       - name: Run publishing script
-        run: ./scripts/publish.sh dev
+        run: dotnet run publish
       # For now I simply make a continuous build
       - name: Release files
         uses: marvinpinto/action-automatic-releases@latest
