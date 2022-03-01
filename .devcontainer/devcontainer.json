@@ -31,7 +31,7 @@
         "ybaumes.highlight-trailing-white-spaces",
         "aaron-bond.better-comments",
         "gruntfuggly.todo-tree",
-        "me-dutour-mathieu.vscode-github-actions",
+        "cschleiden.vscode-github-actions",
     ],
     // To run the application we need to expose XServer to the container
     "runArgs": [
