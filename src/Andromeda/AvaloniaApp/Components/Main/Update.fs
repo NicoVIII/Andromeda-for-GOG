@@ -2,10 +2,10 @@ namespace Andromeda.AvaloniaApp.Components.Main
 
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
-open Andromeda.Core.Lenses
 open Avalonia.Threading
 open Elmish
 open GogApi.DomainTypes
+open SimpleOptics
 open System
 open System.Diagnostics
 open System.IO
@@ -94,11 +94,11 @@ module Update =
         /// Checks a single game for an upgrade
         let upgradeGame state game =
             let (updateData, authentication) =
-                (getl StateL.authentication state, game)
+                (Optic.get StateL.authentication state, game)
                 ||> Installed.checkGameForUpdate
 
             // Update authentication in state, if it was refreshed
-            let state = setl StateL.authentication authentication state
+            let state = Optic.set StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -121,11 +121,11 @@ module Update =
         let setGameImage state productId imgPath =
             let state =
                 state
-                |> getl StateL.installedGames
-                |> Map.change productId (function
-                    | Some game -> { game with image = imgPath |> Some } |> Some
-                    | None -> None)
-                |> setlr StateL.installedGames state
+                |> Optic.map
+                    StateL.installedGames
+                    (Map.change productId (function
+                        | Some game -> { game with image = imgPath |> Some } |> Some
+                        | None -> None))
 
             state, Cmd.none, DoNothing
 
@@ -139,9 +139,7 @@ module Update =
 
             let state =
                 state
-                |> getl StateL.notifications
-                |> List.append [ notification ]
-                |> setlr StateL.notifications state
+                |> Optic.map StateL.notifications (List.append [ notification ])
 
             let cmd =
                 Cmd.OfAsync.perform removeNotification notification RemoveNotification
@@ -149,13 +147,13 @@ module Update =
             state, cmd, DoNothing
 
         let searchInstalled state =
-            let authentication = getl StateL.authentication state
+            let authentication = Optic.get StateL.authentication state
 
             let (installedGames, imgJobs) =
-                (getl StateL.settings state, authentication)
+                (Optic.get StateL.settings state, authentication)
                 ||> Installed.searchInstalled
 
-            let state = setl StateL.installedGames installedGames state
+            let state = Optic.set StateL.installedGames installedGames state
 
             let cmd =
                 imgJobs
@@ -167,7 +165,7 @@ module Update =
 
         let startGameDownload state (productInfo: ProductInfo) (dlcs: Dlc list) =
             // TODO: download and install DLCs
-            let authentication = getl StateL.authentication state
+            let authentication = Optic.get StateL.authentication state
 
             let installerInfoList =
                 Diverse.getAvailableInstallersForOs productInfo.id authentication
@@ -193,12 +191,13 @@ module Update =
                             filePath
                             (float (size) / 1000000.0)
 
-                    let settings = getl StateL.settings state
+                    let settings = Optic.get StateL.settings state
 
                     let state =
-                        getl StateL.downloads state
-                        |> Map.add downloadInfo.gameId downloadInfo
-                        |> setlr StateL.downloads state
+                        Optic.map
+                            StateL.downloads
+                            (Map.add downloadInfo.gameId downloadInfo)
+                            state
 
                     let downloadCmd =
                         match task with
@@ -235,25 +234,25 @@ module Update =
 
         match msg with
         | ChangeState change -> justChangeState change
-        | ChangeMode mode -> justChangeState (setl StateL.mode mode)
+        | ChangeMode mode -> justChangeState (Optic.set StateL.mode mode)
         | StartGame installedGame -> state, Subs.startGame installedGame, DoNothing
         | UpgradeGame game -> Update.upgradeGame state game
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
         | AddNotification notification -> Update.addNotification state notification
         | RemoveNotification notification ->
             let state =
-                getl StateL.notifications state
-                |> List.filter (fun n -> n <> notification)
-                |> setlr StateL.notifications state
+                Optic.map
+                    StateL.notifications
+                    (List.filter (fun n -> n <> notification))
+                    state
 
             state, Cmd.none, DoNothing
         | AddToTerminalOutput newLine ->
             // Add new line to the front of the terminal
             let state =
-                getl StateL.terminalOutput state
+                state
                 // Limit output to 1000 lines
-                |> fun lines -> newLine :: lines.[..999]
-                |> setlr StateL.terminalOutput state
+                |> Optic.map StateL.terminalOutput (fun lines -> newLine :: lines.[..999])
 
             state, Cmd.none, DoNothing
         | SearchInstalled initial ->
@@ -268,7 +267,7 @@ module Update =
             (state, cmd', intent)
         | CacheCheck ->
             let cacheCheck () =
-                async { do getl StateL.settings state |> Cache.check }
+                async { do Optic.get StateL.settings state |> Cache.check }
 
             let cmd =
                 Cmd.OfAsync.attempt cacheCheck () (fun _ ->
@@ -278,7 +277,7 @@ module Update =
         | SetSettings settings ->
             Persistence.Settings.save settings |> ignore
 
-            let state = setl StateL.settings settings state
+            let state = Optic.set StateL.settings settings state
 
             let cmd =
                 [ Cmd.ofMsg (SearchInstalled false)
@@ -288,15 +287,14 @@ module Update =
             state, cmd, DoNothing
         | FinishGameDownload gameId ->
             let state =
-                getl StateL.downloads state
-                |> Map.change gameId (fun _ -> None)
-                |> setlr StateL.downloads state
+                state
+                |> Optic.map StateL.downloads (Map.change gameId (fun _ -> None))
 
             state, Cmd.ofMsg (SearchInstalled false), DoNothing
         | StartGameDownload (productInfo, dlcs, authentication) ->
             // This is triggered by the parent component, authentication could have changed,
             // so we update it
-            let state = setl StateL.authentication authentication state
+            let state = Optic.set StateL.authentication authentication state
 
             Update.startGameDownload state productInfo dlcs
         | UnpackGame (settings, downloadInfo, version) ->
@@ -317,11 +315,12 @@ module Update =
         | UpgradeGames ->
             // TODO: refactor into single "UpgradeGame" commands for every game
             let (updateDataList, authentication) =
-                (getl StateL.installedGames state, getl StateL.authentication state)
+                (Optic.get StateL.installedGames state,
+                 Optic.get StateL.authentication state)
                 ||> Installed.checkAllForUpdates
 
             // Update authentication in state, if it was refreshed
-            let state = setl StateL.authentication authentication state
+            let state = Optic.set StateL.authentication authentication state
 
             // Download updated installers or show notification
             let cmd =
@@ -344,20 +343,23 @@ module Update =
             state, cmd, DoNothing
         | UpdateDownloadSize (gameId, fileSize) ->
             let state =
-                getl StateL.downloads state
-                |> Map.change
-                    gameId
-                    (Option.map (fun download -> { download with downloaded = fileSize }))
-                |> setlr StateL.downloads state
+                state
+                |> Optic.map
+                    StateL.downloads
+                    (Map.change
+                        gameId
+                        (Option.map (fun download ->
+                            { download with downloaded = fileSize })))
 
             state, Cmd.none, DoNothing
         | UpdateDownloadInstalling gameId ->
             let state =
-                getl StateL.downloads state
-                |> Map.change
-                    gameId
-                    (Option.map (fun download -> { download with installing = true }))
-                |> setlr StateL.downloads state
+                state
+                |> Optic.map
+                    StateL.downloads
+                    (Map.change
+                        gameId
+                        (Option.map (fun download -> { download with installing = true })))
 
             state, Cmd.none, DoNothing
         // Intents

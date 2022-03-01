@@ -3,15 +3,14 @@ name: Publish
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 jobs:
   build:
-
     strategy:
       matrix:
         os: [ubuntu-latest]
-        dotnet: [5.0.100]
+        dotnet: [6.0.101]
     runs-on: ${{ matrix.os }}
 
     steps:

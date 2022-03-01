@@ -1,12 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netstandard2.1</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Constants.fs" />
     <Compile Include="Helpers/String.fs" />
     <Compile Include="Helpers/Path.fs" />
-    <Compile Include="Types/Lenses.fs" />
     <Compile Include="Types/Settings.fs" />
     <Compile Include="Types/InstalledGame.fs" />
     <Compile Include="Types/Persistence.fs" />

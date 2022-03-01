@@ -2,7 +2,7 @@ namespace Andromeda.Core.DomainTypes
 
 open Myriad.Plugins
 
-open Andromeda.Core.Lenses
+open SimpleOptics
 
 type InstalledGame =
     { id: GogApi.DomainTypes.ProductId

@@ -1,6 +1,5 @@
 namespace Andromeda.AvaloniaApp.Components
 
-open Andromeda.Core.Lenses
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
@@ -10,13 +9,13 @@ open Avalonia.Media
 open Elmish
 open GogApi
 open GogApi.DomainTypes
+open SimpleOptics
 open System.Diagnostics
 open System.Runtime.InteropServices
 open System.Web
 
 module Authentication =
-    let redirectUri =
-        "https://embed.gog.com/on_login_success?origin=client"
+    let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
     let authUri =
         "https://auth.gog.com/auth?client_id=46899977096215655&redirect_uri="
@@ -26,8 +25,7 @@ module Authentication =
     type State = { authCode: string; invalidCode: bool }
 
     module StateLenses =
-        let authCode =
-            Lens((fun r -> r.authCode), (fun r v -> { r with authCode = v }))
+        let authCode = Lens((fun r -> r.authCode), (fun r v -> { r with authCode = v }))
 
     type Intent =
         | DoNothing
@@ -76,10 +74,7 @@ module Authentication =
                 | "" -> Cmd.none
                 | authCode ->
                     let getAuth () =
-                        async {
-                            return!
-                                Authentication.getNewToken redirectUri authCode
-                        }
+                        async { return! Authentication.getNewToken redirectUri authCode }
 
                     let msgFnc auth = TryAuthenticate auth
 
@@ -89,12 +84,12 @@ module Authentication =
         | SetCode code ->
             let state =
                 { state with
-                      authCode = code
-                      invalidCode = false }
+                    authCode = code
+                    invalidCode = false }
 
             state, Cmd.none, DoNothing
 
-    let render (state: State) dispatch: IView =
+    let render (state: State) dispatch : IView =
         StackPanel.create [
             StackPanel.margin 50.0
             StackPanel.orientation Orientation.Vertical
@@ -119,11 +114,10 @@ module Authentication =
                 ]
                 TextBox.create [
                     TextBox.text state.authCode
-                    TextBox.onKeyDown
-                        (fun args ->
-                            match args.Key with
-                            | Key.Enter -> Save |> dispatch
-                            | _ -> ())
+                    TextBox.onKeyDown (fun args ->
+                        match args.Key with
+                        | Key.Enter -> Save |> dispatch
+                        | _ -> ())
                     TextBox.onTextChanged (SetCode >> dispatch)
                 ]
                 TextBlock.create [

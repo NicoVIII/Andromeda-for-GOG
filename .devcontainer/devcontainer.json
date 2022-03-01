@@ -4,10 +4,7 @@
     "name": "F# (.NET Core)",
     "build": {
         "dockerfile": "Dockerfile",
-        "args": {
-            "VARIANT": "5.0",
-            "VERSION": "0.202.1"
-        }
+        "args": {}
     },
     // Set container specific defaults for F# in .NET Core 2.1+
     "settings": {

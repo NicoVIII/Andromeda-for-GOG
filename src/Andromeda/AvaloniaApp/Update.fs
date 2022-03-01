@@ -1,8 +1,8 @@
 namespace Andromeda.AvaloniaApp
 
 open Andromeda.Core
-open Andromeda.Core.Lenses
 open Elmish
+open SimpleOptics
 
 open Andromeda.AvaloniaApp.Components
 open Andromeda.AvaloniaApp.DomainTypes
@@ -34,10 +34,10 @@ module Update =
     let performAuthenticated msg state mainWindow =
         match msg with
         | OpenInstallGameWindow ->
-            let authentication = getl Main.StateL.authentication state.main
+            let authentication = Optic.get Main.StateL.authentication state.main
 
             let installedGames =
-                getl Main.StateL.installedGames state.main
+                Optic.get Main.StateL.installedGames state.main
                 |> Map.toList
                 |> List.map fst
 

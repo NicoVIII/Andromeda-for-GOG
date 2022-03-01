@@ -3,9 +3,9 @@ namespace Andromeda.AvaloniaApp.Components.Main
 open Andromeda.AvaloniaApp
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
-open Andromeda.Core.Lenses
 open Elmish
 open GogApi.DomainTypes
+open SimpleOptics
 
 type State =
     { authentication: Authentication
