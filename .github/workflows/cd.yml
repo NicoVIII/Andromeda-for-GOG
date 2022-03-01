@@ -8,6 +8,8 @@ on:
       - "*"
     paths-ignore:
       - "**.md"
+      - ".vscode/**"
+      - ".devcontainer/**"
 
 jobs:
   build:

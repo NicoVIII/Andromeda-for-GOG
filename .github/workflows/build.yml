@@ -8,6 +8,8 @@ on:
       - "*"
     paths-ignore:
       - "**.md"
+      - ".vscode/**"
+      - ".devcontainer/**"
   pull_request:
 
 jobs:
