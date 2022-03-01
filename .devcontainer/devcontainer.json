@@ -24,17 +24,16 @@
                 "icon": "terminal-powershell"
             }
         },
-        "FSharp.fsacRuntime": "netcore",
-        "FSharp.useSdkScripts": true
+        "FSharp.dotnetRoot": "/bin",
     },
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
-        "ionide.ionide-fsharp",
         "ms-dotnettools.csharp",
         "editorconfig.editorconfig",
         "aaron-bond.better-comments",
         "ybaumes.highlight-trailing-white-spaces",
-        "me-dutour-mathieu.vscode-github-actions"
+        "me-dutour-mathieu.vscode-github-actions",
+        "ionide.ionide-fsharp",
     ],
     // To run the application we need to expose XServer to the container
     "runArgs": [
