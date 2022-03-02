@@ -1,6 +1,7 @@
 namespace Andromeda.AvaloniaApp.Components.Main
 
 open Avalonia.Controls
+open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
@@ -8,19 +9,20 @@ open Avalonia.Layout
 open Andromeda.AvaloniaApp.Components.Main.ViewComponents
 
 module View =
-    let render state dispatch: IView =
+    let render state dispatch : IView =
         DockPanel.create [
-            DockPanel.verticalAlignment VerticalAlignment.Stretch
+            DockPanel.column 1
             DockPanel.horizontalAlignment HorizontalAlignment.Stretch
-            DockPanel.lastChildFill true
+            DockPanel.verticalAlignment VerticalAlignment.Stretch
             DockPanel.children [
-                Grid.create [
-                    Grid.columnDefinitions "1*, 3*"
-                    Grid.children [
-                        LeftBar.render state dispatch :> IView
-                        Main.mainAreaView state dispatch :> IView
-                    ]
+                Main.notificationsView state.notifications
+                Main.renderButtonBar state dispatch
+                Main.renderTerminalOutput state dispatch
+                ScrollViewer.create [
+                    ScrollViewer.horizontalScrollBarVisibility
+                        ScrollBarVisibility.Disabled
+                    ScrollViewer.padding 10.0
+                    ScrollViewer.content (GameList.render state dispatch)
                 ]
             ]
         ]
-        :> IView

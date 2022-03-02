@@ -14,7 +14,7 @@ module Init =
 
         Authenticated
             { main = state
-              context = Main
+              context = Installed
               installGameWindow = None },
         Cmd.map MainMsg cmd
 

@@ -1,16 +1,57 @@
-namespace Andromeda.AvaloniaApp.Components.Main.ViewComponents
+namespace Andromeda.AvaloniaApp.ViewComponents
 
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Layout
+
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
-open Avalonia.Layout
+open Avalonia.FuncUI.Types
 
 open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.Components.Main
+open Andromeda.AvaloniaApp.Elements
 
 module LeftBar =
-    let private iconBarView state dispatch =
+    [<RequireQualifiedAccess>]
+    module Menu =
+        type Item = { text: string; msg: AuthMsg }
+
+        module Item =
+            let create text msg = { text = text; msg = msg }
+
+        let items = {| installed = Item.create "Installed" ShowInstalled |}
+
+        // TODO: icon
+        let renderItem dispatch active item badge =
+            Button.create [
+                Button.classes [
+                    if active then "active" else ()
+                ]
+                Button.content (
+                    SimpleDockPanel.create [
+                        Badge.create badge
+                        TextBlock.create [
+                            TextBlock.text item.text
+                            TextBlock.verticalAlignment VerticalAlignment.Center
+                        ]
+                    ]
+                )
+                Button.onClick (fun _ -> item.msg |> dispatch)
+            ]
+
+        let render state dispatch : IView list =
+            let active =
+                match state.context with
+                | Installed -> Some items.installed
+                | Settings _ -> None
+
+            let render item =
+                renderItem dispatch (active = Some item) item
+
+            [ render items.installed (Map.count state.main.installedGames |> string) ]
+
+    let private iconBarView dispatch =
         StackPanel.create [
             StackPanel.dock Dock.Top
             StackPanel.margin (Thickness.Parse("0, 10"))
@@ -24,50 +65,16 @@ module LeftBar =
             ]
         ]
 
-    // TODO: icon
-    let private menuItem dispatch currentMode (text: string) badge mode =
-        Button.create [
-            Button.classes [
-                if mode = currentMode then "active" else ()
-            ]
-            Button.content
-                (DockPanel.create [
-                    DockPanel.children [
-                        match badge with
-                        | Some badge ->
-                            Border.create [
-                                Border.classes [ "badge" ]
-                                Border.dock Dock.Right
-                                Border.margin (5.0, 0.0, 0.0, 0.0)
-                                Border.child
-                                    (TextBlock.create [
-                                        TextBlock.text (badge |> string)
-                                     ])
-                            ]
-                        | None -> ()
-                        TextBlock.create [
-                            TextBlock.text text
-                            TextBlock.verticalAlignment VerticalAlignment.Center
-                        ]
-                    ]
-                 ])
-            Button.onClick (fun _ -> ChangeMode mode |> dispatch)
-        ]
-
     let private middleView state dispatch =
-        let menuItem = menuItem dispatch state.mode
+        let menuItem = Menu.renderItem dispatch
 
         ScrollViewer.create [
-            ScrollViewer.content
-                (StackPanel.create [
+            ScrollViewer.content (
+                StackPanel.create [
                     StackPanel.orientation Orientation.Vertical
-                    StackPanel.children [
-                        menuItem
-                            "Installed"
-                            (Map.count state.installedGames |> Some)
-                            Installed
-                    ]
-                 ])
+                    StackPanel.children (Menu.render state dispatch)
+                ]
+            )
         ]
 
     let private downloadTemplateView (downloadStatus: DownloadStatus) =
@@ -115,8 +122,9 @@ module LeftBar =
             StackPanel.children [
                 ItemsControl.create [
                     ItemsControl.dataItems downloadList
-                    ItemsControl.itemTemplate
-                        (DataTemplateView<DownloadStatus>.create downloadTemplateView)
+                    ItemsControl.itemTemplate (
+                        DataTemplateView<DownloadStatus>.create downloadTemplateView
+                    )
                 ]
                 TextBlock.create [
                     TextBlock.isVisible (downloadList.Length = 0)
@@ -125,12 +133,12 @@ module LeftBar =
             ]
         ]
 
-    let private bottomBarView state dispatch =
+    let private bottomBarView downloads =
         StackPanel.create [
             StackPanel.dock Dock.Bottom
             StackPanel.orientation Orientation.Vertical
             StackPanel.children [
-                downloadsView state.downloads
+                downloadsView downloads
                 TextBlock.create [
                     TextBlock.dock Dock.Bottom
                     TextBlock.fontSize 10.0
@@ -144,12 +152,11 @@ module LeftBar =
             Border.classes [ "leftBar" ]
             Border.column 0
             Border.padding (5.0, 0.0)
-            Border.child
-                (DockPanel.create [
-                    DockPanel.children [
-                        iconBarView state dispatch
-                        bottomBarView state dispatch
-                        middleView state dispatch
-                    ]
-                 ])
+            Border.child (
+                SimpleDockPanel.create [
+                    iconBarView (MainMsg >> dispatch)
+                    bottomBarView state.main.downloads
+                    middleView state dispatch
+                ]
+            )
         ]

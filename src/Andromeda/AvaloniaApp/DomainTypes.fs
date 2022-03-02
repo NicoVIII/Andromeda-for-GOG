@@ -28,10 +28,6 @@ module DomainTypes =
         { ProductInfo.id = game.id
           title = game.name }
 
-    type Mode =
-        | Empty
-        | Installed
-
     type IAndromedaWindow =
         abstract Close: unit -> unit
         abstract CloseWithoutCustomHandler: unit -> unit

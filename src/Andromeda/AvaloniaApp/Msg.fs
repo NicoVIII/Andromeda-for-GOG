@@ -8,7 +8,7 @@ type AuthMsg =
     | OpenInstallGameWindow
     | CloseInstallGameWindow of ProductInfo * Dlc list * Authentication
     | OpenSettings
-    | ResetContext
+    | ShowInstalled
     // Child component messages
     | MainMsg of Main.Msg
     | SettingsMsg of Settings.Msg

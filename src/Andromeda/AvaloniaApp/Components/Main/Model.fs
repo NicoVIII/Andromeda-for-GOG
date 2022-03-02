@@ -11,7 +11,6 @@ type State =
     { authentication: Authentication
       downloads: Map<ProductId, DownloadStatus>
       installedGames: Map<ProductId, InstalledGame>
-      mode: Mode
       notifications: string list
       settings: Settings
       terminalOutput: string list }
@@ -25,8 +24,6 @@ module StateL =
 
     let installedGames =
         Lens((fun r -> r.installedGames), (fun r v -> { r with installedGames = v }))
-
-    let mode = Lens((fun r -> r.mode), (fun r v -> { r with mode = v }))
 
     let notifications =
         Lens((fun r -> r.notifications), (fun r v -> { r with notifications = v }))
@@ -42,8 +39,6 @@ type Intent =
     | OpenSettings
 
 type Msg =
-    | ChangeState of (State -> State)
-    | ChangeMode of Mode
     | StartGame of InstalledGame
     | UpgradeGame of InstalledGame
     | SetGameImage of ProductId * string
@@ -73,7 +68,6 @@ module Model =
             { authentication = authentication
               downloads = Map.empty
               installedGames = Map.empty
-              mode = Installed
               notifications = []
               settings = settings
               terminalOutput = [] }

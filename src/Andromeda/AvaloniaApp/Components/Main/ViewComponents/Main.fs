@@ -1,7 +1,6 @@
 namespace Andromeda.AvaloniaApp.Components.Main.ViewComponents
 
 open Avalonia.Controls
-open Avalonia.Controls.Primitives
 open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
@@ -27,7 +26,7 @@ module Main =
             ]
         ]
 
-    let private notificationsView (notifications: string list) =
+    let notificationsView (notifications: string list) =
         match notifications with
         | notifications when notifications.Length > 0 ->
             StackPanel.create [
@@ -36,9 +35,9 @@ module Main =
                 StackPanel.children [
                     ItemsControl.create [
                         ItemsControl.dataItems notifications
-                        ItemsControl.itemTemplate
-                            (DataTemplateView<string>.create
-                                notificationItemView)
+                        ItemsControl.itemTemplate (
+                            DataTemplateView<string>.create notificationItemView
+                        )
                     ]
                 ]
             ]
@@ -47,7 +46,7 @@ module Main =
                 StackPanel.dock Dock.Top
             ]
 
-    let private renderButtonBar state dispatch =
+    let renderButtonBar state dispatch =
         StackPanel.create [
             StackPanel.dock Dock.Top
             StackPanel.margin 10.0
@@ -65,30 +64,13 @@ module Main =
             ]
         ]
 
-    let private renderTerminalOutput state dispatch =
+    let renderTerminalOutput state dispatch =
         TextBox.create [
             TextBox.dock Dock.Bottom
             TextBox.height 100.0
             TextBox.isReadOnly true
-            TextBox.text
-                (state.terminalOutput
-                 |> String.concat Environment.NewLine)
-        ]
-
-    let mainAreaView (state: State) dispatch =
-        DockPanel.create [
-            DockPanel.column 1
-            DockPanel.horizontalAlignment HorizontalAlignment.Stretch
-            DockPanel.verticalAlignment VerticalAlignment.Stretch
-            DockPanel.children [
-                notificationsView state.notifications
-                renderButtonBar state dispatch
-                renderTerminalOutput state dispatch
-                ScrollViewer.create [
-                    ScrollViewer.horizontalScrollBarVisibility
-                        ScrollBarVisibility.Disabled
-                    ScrollViewer.padding 10.0
-                    ScrollViewer.content (GameList.render state dispatch)
-                ]
-            ]
+            TextBox.text (
+                state.terminalOutput
+                |> String.concat Environment.NewLine
+            )
         ]

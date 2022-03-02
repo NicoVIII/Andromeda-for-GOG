@@ -21,6 +21,10 @@
     <Compile Include="DomainTypes.fs" />
     <Compile Include="AvaloniaHelper.fs" />
 
+    <!-- Elements -->
+    <Compile Include="Elements/Badge.fs" />
+    <Compile Include="Elements/SimpleDockPanel.fs" />
+
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />
 
@@ -29,7 +33,6 @@
 
     <!-- Main component -->
     <Compile Include="Components/Main/Model.fs" />
-    <Compile Include="Components/Main/ViewComponents/LeftBar.fs" />
     <Compile Include="Components/Main/ViewComponents/GameList.fs" />
     <Compile Include="Components/Main/ViewComponents/Main.fs" />
     <Compile Include="Components/Main/View.fs" />
@@ -40,6 +43,7 @@
     <Compile Include="Msg.fs" />
     <Compile Include="Init.fs" />
     <Compile Include="Update.fs" />
+    <Compile Include="ViewComponents/LeftBar.fs" />
     <Compile Include="View.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

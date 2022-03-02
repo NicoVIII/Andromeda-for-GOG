@@ -28,7 +28,6 @@ module Settings =
     type Intent =
         | DoNothing
         | Save of State
-        | Cancel
 
     type Msg =
         | OpenDialog
@@ -36,7 +35,6 @@ module Settings =
         | SetGamepath of string
         | SetUpdateOnStartup of bool
         | Save
-        | Cancel
 
     let init (settings: Settings) = settings, Cmd.none
 
@@ -73,7 +71,6 @@ module Settings =
                     DoNothing
 
             state, Cmd.none, intent
-        | Cancel -> state, Cmd.none, Intent.Cancel
 
     module View =
         let render (state: State) (dispatch: Msg -> unit) : IView =
@@ -150,20 +147,10 @@ module Settings =
                             ]
                         ]
                     ]
-                    StackPanel.create [
-                        StackPanel.orientation Orientation.Horizontal
-                        StackPanel.spacing 5.0
-                        StackPanel.children [
-                            Button.create [
-                                Button.content "Save"
-                                Button.isEnabled (isStateValid state)
-                                Button.onClick (fun _ -> Save |> dispatch)
-                            ]
-                            Button.create [
-                                Button.content "Cancel"
-                                Button.onClick (fun _ -> Cancel |> dispatch)
-                            ]
-                        ]
+                    Button.create [
+                        Button.content "Save"
+                        Button.isEnabled (isStateValid state)
+                        Button.onClick (fun _ -> Save |> dispatch)
                     ]
                 ]
             ]

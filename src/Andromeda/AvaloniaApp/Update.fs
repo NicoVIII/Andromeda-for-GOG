@@ -60,7 +60,7 @@ module Update =
             let settings, cmd = Settings.init state.main.settings
 
             { state with context = Settings settings }, cmd
-        | ResetContext -> { state with context = Main }, Cmd.none
+        | ShowInstalled -> { state with context = Installed }, Cmd.none
         // Child components
         | MainMsg msg ->
             let mainState, mainCmd, intent = Main.Update.update msg state.main
@@ -88,8 +88,10 @@ module Update =
                 match intent with
                 | Settings.DoNothing -> Cmd.none
                 | Settings.Save settings ->
-                    Main.SetSettings settings |> MainMsg |> Cmd.ofMsg
-                | Settings.Cancel -> ResetContext |> Cmd.ofMsg
+                    [ Main.SetSettings settings |> MainMsg
+                      ShowInstalled ]
+                    |> List.map Cmd.ofMsg
+                    |> Cmd.batch
 
             let cmd =
                 [ Cmd.map SettingsMsg settingsCmd

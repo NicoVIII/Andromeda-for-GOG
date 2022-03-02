@@ -233,8 +233,6 @@ module Update =
         let justChangeState change = change state, Cmd.none, DoNothing
 
         match msg with
-        | ChangeState change -> justChangeState change
-        | ChangeMode mode -> justChangeState (Optic.set StateL.mode mode)
         | StartGame installedGame -> state, Subs.startGame installedGame, DoNothing
         | UpgradeGame game -> Update.upgradeGame state game
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath

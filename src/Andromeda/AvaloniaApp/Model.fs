@@ -5,7 +5,7 @@ open Andromeda.AvaloniaApp.Components
 /// Special contexts the application can be in which possibly handle their own
 /// state additionally to the global one
 type Context =
-    | Main
+    | Installed
     | Settings of Settings.State
 
 type AuthenticatedState =
