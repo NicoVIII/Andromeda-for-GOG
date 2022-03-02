@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "*"
+      - "!main"
     tags-ignore:
       - "*"
     paths-ignore:
@@ -14,7 +15,7 @@ on:
 
 jobs:
   build:
-    name: Test building of Andromeda
+    name: Test building
     strategy:
       matrix:
         os: [ubuntu-latest]
@@ -27,7 +28,7 @@ jobs:
       - uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
-      - name: Build Andromeda
+      - name: Build
         run: dotnet run build
       - name: Run tests
         run: dotnet run test

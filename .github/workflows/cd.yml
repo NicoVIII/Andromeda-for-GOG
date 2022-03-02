@@ -27,7 +27,11 @@ jobs:
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Restore
-        run: dotnet tool restore && dotnet paket restore
+        run: dotnet run restore
+      - name: Build
+        run: dotnet run build
+      - name: Run tests
+        run: dotnet run test
       - name: Run publishing script
         run: dotnet run publish
       # For now I simply make a continuous build
