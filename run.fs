@@ -19,9 +19,22 @@ module Config =
 
 module Task =
     let restore () =
-        DotNet.restoreWithTools Config.mainProject
+        job {
+            DotNet.toolRestore ()
+            DotNet.restore Config.mainProject
 
-    let build () = DotNet.build Config.mainProject Debug
+            for proj in Config.testProjects do
+                DotNet.restore proj
+        }
+
+    let build () =
+        job {
+            DotNet.build Config.mainProject Debug
+
+            for proj in Config.testProjects do
+                DotNet.build proj Debug
+        }
+
     let run () = DotNet.run Config.mainProject
 
     let runTest () =

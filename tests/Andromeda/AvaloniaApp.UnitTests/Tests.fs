@@ -18,21 +18,4 @@ let dummySettings: Settings =
       gamePath = ""
       updateOnStartup = false }
 
-let tests =
-    testList
-        "Components.Main.Update"
-        [ test "ChangeMode" {
-            let state: Main.State =
-                { authentication = dummyAuthentication
-                  downloads = Map.empty
-                  installedGames = Map.empty
-                  mode = Empty
-                  notifications = []
-                  settings = dummySettings
-                  terminalOutput = [] }
-
-            let msg = Main.Msg.ChangeMode Installed
-            let (actual, _, _) = Main.Update.update msg state
-            let expected = { state with mode = Installed }
-            Expect.equal actual expected "States should equal"
-          } ]
+let tests = testList "Components.Main.Update" []
