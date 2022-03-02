@@ -237,8 +237,7 @@ module InstallGame =
             base.Height <- 260.0
 
 #if DEBUG
-            DevTools.Attach(this, Config.devToolGesture)
-            |> ignore
+            this.AttachDevTools()
 #endif
 
             let syncDispatch (dispatch: Dispatch<'msg>) : Dispatch<'msg> =

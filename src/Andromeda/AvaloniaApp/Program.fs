@@ -29,8 +29,7 @@ module Program =
             base.Height <- 660.0
 
 #if DEBUG
-            DevTools.Attach(this, Config.devToolGesture)
-            |> ignore
+            this.AttachDevTools()
 #endif
 
             // Try to load authentication from disk and refresh, if possible
