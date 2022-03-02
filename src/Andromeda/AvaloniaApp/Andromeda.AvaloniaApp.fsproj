@@ -24,6 +24,7 @@
     <!-- Elements -->
     <Compile Include="Elements/Badge.fs" />
     <Compile Include="Elements/SimpleDockPanel.fs" />
+    <Compile Include="Elements/SimpleScrollViewer.fs" />
 
     <!-- Own windows -->
     <Compile Include="InstallGame.fs" />

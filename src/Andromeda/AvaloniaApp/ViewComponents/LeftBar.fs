@@ -68,14 +68,12 @@ module LeftBar =
     let private middleView state dispatch =
         let menuItem = Menu.renderItem dispatch
 
-        ScrollViewer.create [
-            ScrollViewer.content (
-                StackPanel.create [
-                    StackPanel.orientation Orientation.Vertical
-                    StackPanel.children (Menu.render state dispatch)
-                ]
-            )
-        ]
+        SimpleScrollViewer.create (
+            StackPanel.create [
+                StackPanel.orientation Orientation.Vertical
+                StackPanel.children (Menu.render state dispatch)
+            ]
+        )
 
     let private downloadTemplateView (downloadStatus: DownloadStatus) =
         Grid.create [
