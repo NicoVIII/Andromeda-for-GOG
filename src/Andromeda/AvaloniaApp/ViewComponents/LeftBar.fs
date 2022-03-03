@@ -138,7 +138,7 @@ module LeftBar =
             let assemblyVersion = Assembly.GetEntryAssembly().GetName().Version
 
             match assemblyVersion with
-            | v when v.Major > 0 -> $"v{v.Major}.{v.Minor}.{v.Build}"
+            | v when v.Major > 0 || v.Minor > 0 -> $"v{v.Major}.{v.Minor}.{v.Build}"
             | _ -> "development build"
 
         StackPanel.create [
