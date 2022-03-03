@@ -74,7 +74,7 @@ module Task =
                 DotNet.run proj
         }
 
-    let publishAsAppImage () =
+    let publishAsAppImage version =
         let result =
             job {
                 dotnet [
@@ -90,6 +90,7 @@ module Task =
                     "--self-contained"
                     "-p:PublishTrimmed=true"
                     "-p:DebugType=None"
+                    $"/p:Version=%s{version}"
                     Config.mainProject
                 ]
 
@@ -167,7 +168,7 @@ module Task =
                 $"%s{Config.publishPath}/%s{Config.artifactName}-linux-x64"
 
             // Publish as AppImage
-            publishAsAppImage ()
+            publishAsAppImage version
 
             publish WindowsX64
 
