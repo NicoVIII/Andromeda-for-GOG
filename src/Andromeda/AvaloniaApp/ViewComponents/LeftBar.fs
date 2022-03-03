@@ -9,7 +9,6 @@ open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
 open Andromeda.AvaloniaApp
-open Andromeda.AvaloniaApp.Components.Main
 open Andromeda.AvaloniaApp.Elements
 
 open System.Reflection
@@ -161,7 +160,7 @@ module LeftBar =
             Border.padding (5.0, 0.0)
             Border.child (
                 SimpleDockPanel.create [
-                    iconBarView (MainMsg >> dispatch)
+                    iconBarView dispatch
                     bottomBarView state.main.downloads
                     middleView state dispatch
                 ]

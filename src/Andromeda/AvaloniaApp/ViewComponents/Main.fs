@@ -1,4 +1,4 @@
-namespace Andromeda.AvaloniaApp.Components.Main.ViewComponents
+namespace Andromeda.AvaloniaApp.ViewComponents
 
 open Avalonia.Controls
 open Avalonia.FuncUI.Components
@@ -6,10 +6,10 @@ open Avalonia.FuncUI.DSL
 open Avalonia.Layout
 open System
 
-open Andromeda.AvaloniaApp.Components.Main
+open Andromeda.AvaloniaApp
 
 module Main =
-    let private notificationItemView (notification: string) =
+    let renderNotificationItemView (notification: string) =
         StackPanel.create [
             StackPanel.classes [ "info" ]
             StackPanel.children [
@@ -26,7 +26,7 @@ module Main =
             ]
         ]
 
-    let notificationsView (notifications: string list) =
+    let renderNotificationsView (notifications: string list) =
         match notifications with
         | notifications when notifications.Length > 0 ->
             StackPanel.create [
@@ -36,7 +36,7 @@ module Main =
                     ItemsControl.create [
                         ItemsControl.dataItems notifications
                         ItemsControl.itemTemplate (
-                            DataTemplateView<string>.create notificationItemView
+                            DataTemplateView<string>.create renderNotificationItemView
                         )
                     ]
                 ]
@@ -59,7 +59,7 @@ module Main =
                 ]
                 Button.create [
                     Button.content "Upgrade games"
-                    Button.onClick (fun _ -> UpgradeGames |> dispatch)
+                    Button.onClick (fun _ -> UpgradeGames |> MainMsg |> dispatch)
                 ]
             ]
         ]

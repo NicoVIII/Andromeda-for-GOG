@@ -1,4 +1,4 @@
-namespace Andromeda.AvaloniaApp.Components.Main.ViewComponents
+namespace Andromeda.AvaloniaApp.ViewComponents
 
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
@@ -9,8 +9,8 @@ open Avalonia.Media
 open Avalonia.Media.Imaging
 open SimpleOptics
 
+open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.AvaloniaHelper
-open Andromeda.AvaloniaApp.Components.Main
 
 module GameList =
     let gameTile dispatch (i: int, game: InstalledGame) : IView =
@@ -69,7 +69,7 @@ module GameList =
         WrapPanel.create [
             WrapPanel.children (
                 state
-                |> Optic.get StateL.installedGames
+                |> Optic.get MainStateOptic.installedGames
                 |> Map.toList
                 |> List.map snd
                 |> List.indexed

@@ -35,18 +35,14 @@
     <Compile Include="Components/Authentication.fs" />
 
     <!-- Main component -->
-    <Compile Include="Components/Main/Model.fs" />
-    <Compile Include="Components/Main/ViewComponents/GameList.fs" />
-    <Compile Include="Components/Main/ViewComponents/Main.fs" />
-    <Compile Include="Components/Main/View.fs" />
-    <Compile Include="Components/Main/Update.fs" />
-
-    <!-- Main component -->
     <Compile Include="Model.fs" />
+    <Compile Include="Model.Optics.fs" />
     <Compile Include="Msg.fs" />
     <Compile Include="Init.fs" />
     <Compile Include="Update.fs" />
+    <Compile Include="ViewComponents/GameList.fs" />
     <Compile Include="ViewComponents/LeftBar.fs" />
+    <Compile Include="ViewComponents/Main.fs" />
     <Compile Include="View.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>

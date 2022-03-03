@@ -1,8 +1,16 @@
 namespace Andromeda.AvaloniaApp
 
 open Andromeda.Core
+open Andromeda.Core.DomainTypes
+open Avalonia.Threading
 open Elmish
+open GogApi.DomainTypes
 open SimpleOptics
+open System
+open System.Diagnostics
+open System.IO
+open System.Reactive.Concurrency
+open System.Threading.Tasks
 
 open Andromeda.AvaloniaApp.Components
 open Andromeda.AvaloniaApp.DomainTypes
@@ -31,13 +39,361 @@ module Update =
 
             Cmd.ofSub sub
 
+        /// Starts a given game in a subprocess and redirects its terminal output
+        let startGame (game: InstalledGame) =
+            let createEmptyDisposable () =
+                { new IDisposable with
+                    member __.Dispose() = () }
+
+            let sub dispatch =
+                let showGameOutput _ (outLine: DataReceivedEventArgs) =
+                    match outLine.Data with
+                    | newLine when String.IsNullOrEmpty newLine -> ()
+                    | _ ->
+                        let state = outLine.Data
+
+                        let action _ newLine =
+                            AddToTerminalOutput newLine |> dispatch
+                            createEmptyDisposable ()
+
+                        AvaloniaScheduler.Instance.Schedule(
+                            state,
+                            new Func<IScheduler, string, IDisposable>(action)
+                        )
+                        |> ignore
+
+                Installed.startGameProcess showGameOutput game.path
+                |> ignore
+
+            Cmd.ofSub sub
+
+        let registerDownloadTimer
+            (task: Task<unit> option)
+            tmppath
+            (downloadInfo: DownloadStatus)
+            =
+            let sub dispatch =
+                match task with
+                | Some _ ->
+                    "Download installer for "
+                    + downloadInfo.gameTitle
+                    + "."
+                    |> Logger.LogInfo
+
+                    let invoke () =
+                        let fileSize =
+                            if File.Exists tmppath then
+                                let fileSize =
+                                    tmppath
+                                    |> FileInfo
+                                    |> fun fileInfo ->
+                                        int (float (fileInfo.Length) / 1000000.0)
+
+                                UpdateDownloadSize(downloadInfo.gameId, fileSize)
+                                |> dispatch
+
+                                fileSize
+                            else
+                                0
+
+                        File.Exists tmppath
+                        && fileSize < int downloadInfo.fileSize
+
+                    DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
+                    |> ignore
+                | None ->
+                    "Use cached installer for "
+                    + downloadInfo.gameTitle
+                    + "."
+                    |> Logger.LogInfo
+
+                    UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize)
+                    |> dispatch
+
+            Cmd.ofSub sub
+
+    /// Contains everything for the update method, which is a little longer
+    module Update =
+        /// Checks a single game for an upgrade
+        let upgradeGame state game =
+            let (updateData, authentication) =
+                (Optic.get MainStateOptic.authentication state, game)
+                ||> Installed.checkGameForUpdate
+
+            // Update authentication in state, if it was refreshed
+            let state = Optic.set MainStateOptic.authentication authentication state
+
+            // Download updated installers or show notification
+            let cmd =
+                match updateData with
+                | Some updateData ->
+                    updateData.game
+                    |> gameToDownloadInfo
+                    |> (fun productInfo ->
+                        // TODO: update DLCs
+                        (productInfo, [], authentication)
+                        |> StartGameDownload)
+                    |> Cmd.ofMsg
+                | None ->
+                    AddNotification $"No new version available for %s{game.name}"
+                    |> Cmd.ofMsg
+
+            state, cmd
+
+        /// Sets the local image path for a game
+        let setGameImage state productId imgPath =
+            let state =
+                state
+                |> Optic.map
+                    MainStateOptic.installedGames
+                    (Map.change productId (function
+                        | Some game -> { game with image = imgPath |> Some } |> Some
+                        | None -> None))
+
+            state, Cmd.none
+
+        let addNotification state notification =
+            // Remove notification again after 5 seconds
+            let removeNotification notification =
+                async {
+                    do! Async.Sleep 5000
+                    return notification
+                }
+
+            let state =
+                state
+                |> Optic.map MainStateOptic.notifications (List.append [ notification ])
+
+            let cmd =
+                Cmd.OfAsync.perform removeNotification notification RemoveNotification
+
+            state, cmd
+
+        let searchInstalled state =
+            let authentication = Optic.get MainStateOptic.authentication state
+
+            let (installedGames, imgJobs) =
+                (Optic.get MainStateOptic.settings state, authentication)
+                ||> Installed.searchInstalled
+
+            let state = Optic.set MainStateOptic.installedGames installedGames state
+
+            let cmd =
+                imgJobs
+                |> List.map (fun job ->
+                    Cmd.OfAsync.perform job authentication SetGameImage)
+                |> Cmd.batch
+
+            state, cmd
+
+        let startGameDownload state (productInfo: ProductInfo) (dlcs: Dlc list) =
+            // TODO: download and install DLCs
+            let authentication = Optic.get MainStateOptic.authentication state
+
+            let installerInfoList =
+                Diverse.getAvailableInstallersForOs productInfo.id authentication
+                |> Async.RunSynchronously
+
+            match installerInfoList with
+            | [] ->
+                let cmd = Cmd.ofMsg (AddNotification "Found no installer for this OS...")
+
+                state, cmd
+            | [ installerInfo ] ->
+                let result =
+                    Download.downloadGame productInfo.title installerInfo authentication
+                    |> Async.RunSynchronously
+
+                match result with
+                | None -> state, Cmd.none
+                | Some (task, filePath, tmppath, size) ->
+                    let downloadInfo =
+                        DownloadStatus.create
+                            productInfo.id
+                            (productInfo.title)
+                            filePath
+                            (float (size) / 1000000.0)
+
+                    let settings = Optic.get MainStateOptic.settings state
+
+                    let state =
+                        Optic.map
+                            MainStateOptic.downloads
+                            (Map.add downloadInfo.gameId downloadInfo)
+                            state
+
+                    let downloadCmd =
+                        match task with
+                        | Some task ->
+                            let invoke () =
+                                async {
+                                    let! _ = task |> Async.AwaitTask
+                                    File.Move(tmppath, filePath)
+                                }
+
+                            Cmd.OfAsync.perform invoke () (fun _ ->
+                                UnpackGame(settings, downloadInfo, installerInfo.version))
+                        | None ->
+                            UnpackGame(settings, downloadInfo, installerInfo.version)
+                            |> Cmd.ofMsg
+
+                    let cmd =
+                        [ Subs.registerDownloadTimer task tmppath downloadInfo
+                          downloadCmd ]
+                        |> Cmd.batch
+
+                    state, cmd
+            | _ ->
+                let cmd =
+                    Cmd.ofMsg (
+                        AddNotification
+                            "Found multiple installers, this is not supported yet..."
+                    )
+
+                state, cmd
+
+    let performMain msg state =
+        match msg with
+        | StartGame installedGame -> state, Subs.startGame installedGame
+        | UpgradeGame game -> Update.upgradeGame state game
+        | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
+        | AddNotification notification -> Update.addNotification state notification
+        | RemoveNotification notification ->
+            let state =
+                Optic.map
+                    MainStateOptic.notifications
+                    (List.filter (fun n -> n <> notification))
+                    state
+
+            state, Cmd.none
+        | AddToTerminalOutput newLine ->
+            // Add new line to the front of the terminal
+            let state =
+                state
+                // Limit output to 1000 lines
+                |> Optic.map MainStateOptic.terminalOutput (fun lines ->
+                    newLine :: lines.[..999])
+
+            state, Cmd.none
+        | SearchInstalled initial ->
+            // TODO: Async?
+            let state, cmd = Update.searchInstalled state
+
+            let cmd' =
+                match initial && state.settings.updateOnStartup with
+                | true -> [ cmd; UpgradeGames |> Cmd.ofMsg ] |> Cmd.batch
+                | false -> cmd
+
+            state, cmd'
+        | CacheCheck ->
+            let cacheCheck () =
+                async {
+                    do
+                        Optic.get MainStateOptic.settings state
+                        |> Cache.check
+                }
+
+            let cmd =
+                Cmd.OfAsync.attempt cacheCheck () (fun _ ->
+                    AddNotification "Cachecheck failed!")
+
+            state, cmd
+        | SetSettings settings ->
+            Persistence.Settings.save settings |> ignore
+
+            let state = Optic.set MainStateOptic.settings settings state
+
+            let cmd =
+                [ Cmd.ofMsg (SearchInstalled false)
+                  Cmd.ofMsg CacheCheck ]
+                |> Cmd.batch
+
+            state, cmd
+        | FinishGameDownload gameId ->
+            let state =
+                state
+                |> Optic.map MainStateOptic.downloads (Map.change gameId (fun _ -> None))
+
+            state, Cmd.ofMsg (SearchInstalled false)
+        | StartGameDownload (productInfo, dlcs, authentication) ->
+            // This is triggered by the parent component, authentication could have changed,
+            // so we update it
+            let state = Optic.set MainStateOptic.authentication authentication state
+
+            Update.startGameDownload state productInfo dlcs
+        | UnpackGame (settings, downloadInfo, version) ->
+            let invoke () =
+                Download.extractLibrary
+                    settings
+                    downloadInfo.gameTitle
+                    downloadInfo.filePath
+                    version
+
+            let cmd =
+                [ Cmd.ofMsg (UpdateDownloadInstalling downloadInfo.gameId)
+                  Cmd.OfAsync.perform invoke () (fun _ ->
+                      FinishGameDownload downloadInfo.gameId) ]
+                |> Cmd.batch
+
+            state, cmd
+        | UpgradeGames ->
+            // TODO: refactor into single "UpgradeGame" commands for every game
+            let (updateDataList, authentication) =
+                (Optic.get MainStateOptic.installedGames state,
+                 Optic.get MainStateOptic.authentication state)
+                ||> Installed.checkAllForUpdates
+
+            // Update authentication in state, if it was refreshed
+            let state = Optic.set MainStateOptic.authentication authentication state
+
+            // Download updated installers or show notification
+            let cmd =
+                match updateDataList with
+                | updateDataList when updateDataList.Length > 0 ->
+                    List.map
+                        (fun (updateData: Installed.UpdateData) ->
+                            updateData.game
+                            |> gameToDownloadInfo
+                            |> (fun productInfo ->
+                                (productInfo, [], authentication)
+                                |> StartGameDownload)
+                            |> Cmd.ofMsg)
+                        updateDataList
+                | _ ->
+                    [ AddNotification "No games found to update."
+                      |> Cmd.ofMsg ]
+                |> Cmd.batch
+
+            state, cmd
+        | UpdateDownloadSize (gameId, fileSize) ->
+            let state =
+                state
+                |> Optic.map
+                    MainStateOptic.downloads
+                    (Map.change
+                        gameId
+                        (Option.map (fun download ->
+                            { download with downloaded = fileSize })))
+
+            state, Cmd.none
+        | UpdateDownloadInstalling gameId ->
+            let state =
+                state
+                |> Optic.map
+                    MainStateOptic.downloads
+                    (Map.change
+                        gameId
+                        (Option.map (fun download -> { download with installing = true })))
+
+            state, Cmd.none
+
     let performAuthenticated msg state mainWindow =
         match msg with
         | OpenInstallGameWindow ->
-            let authentication = Optic.get Main.StateL.authentication state.main
+            let authentication = Optic.get MainStateOptic.authentication state.main
 
             let installedGames =
-                Optic.get Main.StateL.installedGames state.main
+                Optic.get MainStateOptic.installedGames state.main
                 |> Map.toList
                 |> List.map fst
 
@@ -51,7 +407,7 @@ module Update =
         | CloseInstallGameWindow (downloadInfo, dlcs, authentication) ->
             let cmd =
                 (downloadInfo, dlcs, authentication)
-                |> Main.StartGameDownload
+                |> StartGameDownload
                 |> MainMsg
                 |> Cmd.ofMsg
 
@@ -63,21 +419,11 @@ module Update =
         | ShowInstalled -> { state with context = Installed }, Cmd.none
         // Child components
         | MainMsg msg ->
-            let mainState, mainCmd, intent = Main.Update.update msg state.main
+            let mainState, mainCmd = performMain msg state.main
 
             let state = { state with main = mainState }
 
-            let intentCmd =
-                match intent with
-                | Main.DoNothing -> Cmd.none
-                | Main.OpenInstallGameWindow -> Cmd.ofMsg OpenInstallGameWindow
-                | Main.OpenSettings -> Cmd.ofMsg OpenSettings
-
-            let cmd =
-                [ Cmd.map MainMsg mainCmd; intentCmd ]
-                |> Cmd.batch
-
-            state, cmd
+            state, Cmd.map MainMsg mainCmd
         | SettingsMsg msg ->
             let settingsState, settingsCmd, intent =
                 Settings.update mainWindow msg state.main.settings
@@ -88,7 +434,7 @@ module Update =
                 match intent with
                 | Settings.DoNothing -> Cmd.none
                 | Settings.Save settings ->
-                    [ Main.SetSettings settings |> MainMsg
+                    [ SetSettings settings |> MainMsg
                       ShowInstalled ]
                     |> List.map Cmd.ofMsg
                     |> Cmd.batch
