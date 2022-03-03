@@ -1,6 +1,10 @@
+open Fake.Core
 open Fake.IO
+open System.IO
+open System.Net.Http
 
 open RunHelpers
+open RunHelpers.BasicShortcuts
 open RunHelpers.Templates
 
 [<RequireQualifiedAccess>]
@@ -16,6 +20,11 @@ module Config =
     let artifactName = "Andromeda"
 
     let publishPath = "./publish"
+
+    let framework = "net6.0"
+    let appimagetoolVersion = "continuous"
+
+let httpClient = new HttpClient()
 
 module Task =
     let restore () =
@@ -43,6 +52,84 @@ module Task =
                 DotNet.run proj
         }
 
+    let publishAsAppImage () =
+        let result =
+            job {
+                dotnet [
+                    "publish"
+                    "-v"
+                    "m"
+                    "-c"
+                    "Release"
+                    "-f"
+                    Config.framework
+                    "-r"
+                    "linux-x64"
+                    "--self-contained"
+                    "-p:PublishTrimmed=true"
+                    "-p:DebugType=None"
+                    Config.mainProject
+                ]
+
+                Shell.mkdir "AppDir/usr"
+
+                Shell.mv
+                    $"src/Andromeda/AvaloniaApp/bin/Release/{Config.framework}/linux-x64/publish"
+                    "AppDir/usr/bin"
+
+                Internal.basicCommand
+                    "cp"
+                    [ "-a"
+                      "assets/build/appimage/."
+                      "AppDir" ]
+
+                if not (File.exists "appimagetool-x86_64.AppImage") then
+                    do
+                        task {
+                            let! response =
+                                httpClient.GetAsync(
+                                    $"https://github.com/AppImage/AppImageKit/releases/download/{Config.appimagetoolVersion}/appimagetool-x86_64.AppImage",
+                                    HttpCompletionOption.ResponseHeadersRead
+                                )
+
+                            use file = File.OpenWrite "./appimagetool-x86_64.AppImage"
+                            do! response.Content.CopyToAsync file
+                        }
+                        |> Async.AwaitTask
+                        |> Async.RunSynchronously
+
+                    Internal.basicCommand
+                        "chmod"
+                        [ "a+x"
+                          "appimagetool-x86_64.AppImage" ]
+
+                Internal.basicCommand
+                    "./appimagetool-x86_64.AppImage"
+                    [ "--appimage-extract-and-run"
+                      "--no-appstream"
+                      "AppDir"
+                      "-u"
+                      "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync" ]
+
+                Internal.basicCommand
+                    "mv"
+                    [ "Andromeda-x86_64.AppImage"
+                      "./publish/Andromeda-x86_64.AppImage" ]
+
+                Internal.basicCommand
+                    "mv"
+                    [ "Andromeda-x86_64.AppImage.zsync"
+                      "./publish/Andromeda-x86_64.AppImage.zsync" ]
+
+                printfn "Finished publishing as AppImage"
+
+                // Clean up
+                Internal.basicCommand "rm" [ "-rf"; "AppDir" ]
+                |> ignore
+            }
+
+        result
+
     let publish () =
         let publish = DotNet.publishSelfContained Config.publishPath Config.mainProject
 
@@ -55,6 +142,9 @@ module Task =
             Shell.mv
                 $"%s{Config.publishPath}/%s{Config.projectName}"
                 $"%s{Config.publishPath}/%s{Config.artifactName}-linux-x64"
+
+            // Publish as AppImage
+            publishAsAppImage ()
 
             publish WindowsX64
 

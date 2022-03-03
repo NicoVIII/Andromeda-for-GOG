@@ -6,8 +6,7 @@ obj/
 publish/
 
 # AppImage building
-**/AppDir/.DirIcon
-AppDir/usr/bin
+AppDir/
 appimagetool-x86_64.AppImage
 
 # Ionide stuff
