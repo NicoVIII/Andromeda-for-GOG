@@ -26,6 +26,28 @@ module Config =
 
 let httpClient = new HttpClient()
 
+module DotNet =
+    let publishSelfContained outDir project version os =
+        dotnet [
+            "publish"
+            "-r"
+            DotNetOS.toString os
+            "-v"
+            "minimal"
+            "-c"
+            DotNetConfig.toString Release
+            "-o"
+            outDir
+            "--self-contained"
+            "/p:PublishSingleFile=true"
+            "/p:PublishTrimmed=true"
+            "/p:EnableCompressionInSingleFile=true"
+            "/p:IncludeNativeLibrariesForSelfExtract=true"
+            "/p:DebugType=None"
+            $"/p:Version=%s{version}"
+            project
+        ]
+
 module Task =
     let restore () =
         job {
@@ -130,8 +152,9 @@ module Task =
 
         result
 
-    let publish () =
-        let publish = DotNet.publishSelfContained Config.publishPath Config.mainProject
+    let publish version =
+        let publish =
+            DotNet.publishSelfContained Config.publishPath Config.mainProject version
 
         Shell.mkdir Config.publishPath
         Shell.cleanDir Config.publishPath
@@ -175,11 +198,15 @@ let main args =
                 Task.restore ()
                 Task.runTest ()
             }
-        | [ "publish" ] ->
+        | [ "publish"; version ] ->
             job {
                 Task.restore ()
-                Task.publish ()
+                Task.publish version
             }
+        // Errors for missing arguments
+        | [ "publish" ] ->
+            let msg = [ "Missing version argument!" ]
+            Error(1, msg)
         | _ ->
             let msg =
                 [ "Usage: dotnet run [<command>]"

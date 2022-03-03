@@ -33,7 +33,7 @@ jobs:
       - name: Run tests
         run: dotnet run test
       - name: Run publishing script
-        run: dotnet run publish
+        run: dotnet run publish 0
       # For now I simply make a continuous build
       - name: Release files
         uses: marvinpinto/action-automatic-releases@latest

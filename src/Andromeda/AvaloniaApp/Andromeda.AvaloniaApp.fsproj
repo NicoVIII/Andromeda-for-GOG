@@ -7,6 +7,9 @@
     <TargetFramework>net6.0</TargetFramework>
     <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
+  <PropertyGroup>
+    <Version>0</Version>
+  </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
@@ -15,7 +18,6 @@
   <ItemGroup>
     <AvaloniaResource Include="Assets\*" />
     <AvaloniaResource Include="Styles.xaml" />
-    <Compile Include="Config.fs" />
     <Compile Include="Logger.fs" />
     <Compile Include="Icons.fs" />
     <Compile Include="DomainTypes.fs" />

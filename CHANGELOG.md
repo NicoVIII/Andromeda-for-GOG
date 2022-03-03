@@ -6,6 +6,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2022-03-03
+
+### Changed
+
+-   Add delivery as AppImage again
+-   Write version to assembly (0 for dev builds)
+-   Read version in bottom left corner from assembly
+
 ## [0.5.0] - 2022-03-03
 
 ### Added

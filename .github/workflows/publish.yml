@@ -33,7 +33,7 @@ jobs:
       - name: Restore
         run: dotnet run restore
       - name: Publish
-        run: dotnet run publish
+        run: dotnet run publish ${{ steps.tag_name.outputs.current_version }}
       - name: Get Changelog Entry
         id: changelog_reader
         uses: mindsers/changelog-reader-action@v2

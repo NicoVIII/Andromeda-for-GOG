@@ -12,6 +12,8 @@ open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.Components.Main
 open Andromeda.AvaloniaApp.Elements
 
+open System.Reflection
+
 module LeftBar =
     [<RequireQualifiedAccess>]
     module Menu =
@@ -132,6 +134,13 @@ module LeftBar =
         ]
 
     let private bottomBarView downloads =
+        let version =
+            let assemblyVersion = Assembly.GetEntryAssembly().GetName().Version
+
+            match assemblyVersion with
+            | v when v.Major > 0 -> $"v{v.Major}.{v.Minor}.{v.Build}"
+            | _ -> "development build"
+
         StackPanel.create [
             StackPanel.dock Dock.Bottom
             StackPanel.orientation Orientation.Vertical
@@ -140,7 +149,7 @@ module LeftBar =
                 TextBlock.create [
                     TextBlock.dock Dock.Bottom
                     TextBlock.fontSize 10.0
-                    TextBlock.text Config.version
+                    TextBlock.text version
                 ]
             ]
         ]
