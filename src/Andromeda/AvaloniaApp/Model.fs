@@ -10,20 +10,17 @@ open Andromeda.AvaloniaApp.Components
 /// state additionally to the global one
 type Context =
     | Installed
+    | InstallGame of InstallGame.State
     | Settings of Settings.State
 
-type MainState =
+type AuthenticatedState =
     { authentication: Authentication
       downloads: Map<ProductId, DownloadStatus>
       installedGames: Map<ProductId, InstalledGame>
       notifications: string list
       settings: Settings
-      terminalOutput: string list }
-
-
-type AuthenticatedState =
-    { main: MainState
-      installGameWindow: InstallGame.InstallGameWindow option
+      terminalOutput: string list
+      // State for subviews
       context: Context }
 
 type State =

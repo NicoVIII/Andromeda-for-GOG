@@ -9,43 +9,6 @@ open System
 open Andromeda.AvaloniaApp
 
 module Main =
-    let renderNotificationItemView (notification: string) =
-        StackPanel.create [
-            StackPanel.classes [ "info" ]
-            StackPanel.children [
-                Grid.create [
-                    Grid.columnDefinitions "1*, Auto"
-                    Grid.margin 6.0
-                    Grid.children [
-                        TextBlock.create [
-                            Grid.column 0
-                            TextBlock.text notification
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-    let renderNotificationsView (notifications: string list) =
-        match notifications with
-        | notifications when notifications.Length > 0 ->
-            StackPanel.create [
-                StackPanel.dock Dock.Top
-                StackPanel.classes [ "dark" ]
-                StackPanel.children [
-                    ItemsControl.create [
-                        ItemsControl.dataItems notifications
-                        ItemsControl.itemTemplate (
-                            DataTemplateView<string>.create renderNotificationItemView
-                        )
-                    ]
-                ]
-            ]
-        | _ ->
-            StackPanel.create [
-                StackPanel.dock Dock.Top
-            ]
-
     let renderButtonBar state dispatch =
         StackPanel.create [
             StackPanel.dock Dock.Top
@@ -55,11 +18,11 @@ module Main =
             StackPanel.children [
                 Button.create [
                     Button.content "Install game"
-                    Button.onClick (fun _ -> OpenInstallGameWindow |> dispatch)
+                    Button.onClick (fun _ -> ShowInstallGame |> dispatch)
                 ]
                 Button.create [
                     Button.content "Upgrade games"
-                    Button.onClick (fun _ -> UpgradeGames |> MainMsg |> dispatch)
+                    Button.onClick (fun _ -> UpgradeGames |> dispatch)
                 ]
             ]
         ]

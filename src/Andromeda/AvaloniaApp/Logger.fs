@@ -2,6 +2,7 @@ namespace Andromeda.AvaloniaApp
 
 open System
 
+[<AutoOpen>]
 module Logger =
     type LogLevel =
         | Info = 0

@@ -28,11 +28,10 @@
     <Compile Include="Elements/SimpleDockPanel.fs" />
     <Compile Include="Elements/SimpleScrollViewer.fs" />
 
-    <!-- Own windows -->
-    <Compile Include="InstallGame.fs" />
-
-    <Compile Include="Components/Settings.fs" />
+    <!-- Components -->
     <Compile Include="Components/Authentication.fs" />
+    <Compile Include="Components/InstallGame.fs" />
+    <Compile Include="Components/Settings.fs" />
 
     <!-- Main component -->
     <Compile Include="Model.fs" />

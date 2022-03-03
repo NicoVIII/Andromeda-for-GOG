@@ -24,21 +24,6 @@ module Update =
 
             Cmd.ofSub sub
 
-        let installGameWindow authentication state =
-            let sub dispatch =
-                match state.installGameWindow with
-                | Some window ->
-                    let wind = window :> InstallGame.IInstallGameWindow
-
-                    wind.OnSave.Subscribe (fun (_, downloadInfo, dlcs) ->
-                        (downloadInfo, dlcs, authentication)
-                        |> CloseInstallGameWindow
-                        |> dispatch)
-                    |> ignore
-                | None -> ()
-
-            Cmd.ofSub sub
-
         /// Starts a given game in a subprocess and redirects its terminal output
         let startGame (game: InstalledGame) =
             let createEmptyDisposable () =
@@ -252,7 +237,10 @@ module Update =
 
                 state, cmd
 
-    let performMain msg state =
+    let performAuthenticated msg state mainWindow =
+        let inline changeContext context (contextState, cmd) =
+            { state with context = context contextState }, cmd
+
         match msg with
         | StartGame installedGame -> state, Subs.startGame installedGame
         | UpgradeGame game -> Update.upgradeGame state game
@@ -386,65 +374,64 @@ module Update =
                         (Option.map (fun download -> { download with installing = true })))
 
             state, Cmd.none
-
-    let performAuthenticated msg state mainWindow =
-        match msg with
-        | OpenInstallGameWindow ->
-            let authentication = Optic.get MainStateOptic.authentication state.main
-
-            let installedGames =
-                Optic.get MainStateOptic.installedGames state.main
-                |> Map.toList
-                |> List.map fst
-
-            let window = InstallGame.InstallGameWindow(authentication, installedGames)
-
-            window.ShowDialog(mainWindow) |> ignore
-
-            let state = { state with installGameWindow = window |> Some }
-
-            state, Subs.installGameWindow authentication state
-        | CloseInstallGameWindow (downloadInfo, dlcs, authentication) ->
-            let cmd =
-                (downloadInfo, dlcs, authentication)
-                |> StartGameDownload
-                |> MainMsg
-                |> Cmd.ofMsg
-
-            { state with installGameWindow = None }, cmd
-        | OpenSettings ->
-            let settings, cmd = Settings.init state.main.settings
-
-            { state with context = Settings settings }, cmd
-        | ShowInstalled -> { state with context = Installed }, Cmd.none
+        // Context change
+        | ShowInstalled ->
+            ((), Cmd.none)
+            |> changeContext (fun () -> Installed)
+        | ShowInstallGame -> InstallGame.init () |> changeContext InstallGame
+        | ShowSettings ->
+            Settings.init state.settings
+            |> changeContext Settings
         // Child components
-        | MainMsg msg ->
-            let mainState, mainCmd = performMain msg state.main
+        | InstallGameMgs msg ->
+            match state.context with
+            | InstallGame subState ->
+                let installGameState, installGameCmd, intent =
+                    InstallGame.update state.authentication msg subState
 
-            let state = { state with main = mainState }
+                let state = { state with context = InstallGame installGameState }
 
-            state, Cmd.map MainMsg mainCmd
-        | SettingsMsg msg ->
-            let settingsState, settingsCmd, intent =
-                Settings.update mainWindow msg state.main.settings
+                let intentCmd =
+                    match intent with
+                    | InstallGame.DoNothing -> Cmd.none
+                    | InstallGame.Close (productInfo, dlcs) ->
+                        StartGameDownload(productInfo, dlcs, state.authentication)
+                        |> Cmd.ofMsg
 
-            let state = { state with main = { state.main with settings = settingsState } }
-
-            let intentCmd =
-                match intent with
-                | Settings.DoNothing -> Cmd.none
-                | Settings.Save settings ->
-                    [ SetSettings settings |> MainMsg
-                      ShowInstalled ]
-                    |> List.map Cmd.ofMsg
+                let cmd =
+                    [ Cmd.map InstallGameMgs installGameCmd
+                      intentCmd ]
                     |> Cmd.batch
 
-            let cmd =
-                [ Cmd.map SettingsMsg settingsCmd
-                  intentCmd ]
-                |> Cmd.batch
+                state, cmd
+            | _ ->
+                LogError "Got InstallGameMsg although context is not InstallGame."
+                state, Cmd.none
+        | SettingsMsg msg ->
+            match state.context with
+            | Settings subState ->
+                let settingsState, settingsCmd, intent =
+                    Settings.update mainWindow msg subState
 
-            state, cmd
+                let state = { state with context = Settings settingsState }
+
+                let intentCmd =
+                    match intent with
+                    | Settings.DoNothing -> Cmd.none
+                    | Settings.Save settings ->
+                        [ SetSettings settings; ShowInstalled ]
+                        |> List.map Cmd.ofMsg
+                        |> Cmd.batch
+
+                let cmd =
+                    [ Cmd.map SettingsMsg settingsCmd
+                      intentCmd ]
+                    |> Cmd.batch
+
+                state, cmd
+            | _ ->
+                LogError "Got SettingsMsg although context is not Settings."
+                state, Cmd.none
 
     let performUnauthenticated msg state =
         match msg with

@@ -45,12 +45,14 @@ module LeftBar =
             let active =
                 match state.context with
                 | Installed -> Some items.installed
+                // Pages without own navigation item
                 | Settings _ -> None
+                | InstallGame _ -> None
 
             let render item =
                 renderItem dispatch (active = Some item) item
 
-            [ render items.installed (Map.count state.main.installedGames |> string) ]
+            [ render items.installed (Map.count state.installedGames |> string) ]
 
     let private iconBarView dispatch =
         StackPanel.create [
@@ -61,7 +63,7 @@ module LeftBar =
                 Button.create [
                     Button.classes [ "iconButton" ]
                     Button.content Icons.settings
-                    Button.onClick (fun _ -> OpenSettings |> dispatch)
+                    Button.onClick (fun _ -> ShowSettings |> dispatch)
                 ]
             ]
         ]
@@ -161,7 +163,7 @@ module LeftBar =
             Border.child (
                 SimpleDockPanel.create [
                     iconBarView dispatch
-                    bottomBarView state.main.downloads
+                    bottomBarView state.downloads
                     middleView state dispatch
                 ]
             )

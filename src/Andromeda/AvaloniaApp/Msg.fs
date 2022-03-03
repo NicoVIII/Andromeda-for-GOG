@@ -5,7 +5,7 @@ open GogApi.DomainTypes
 
 open Andromeda.AvaloniaApp.Components
 
-type MainMsg =
+type AuthMsg =
     | StartGame of InstalledGame
     | UpgradeGame of InstalledGame
     | SetGameImage of ProductId * string
@@ -21,14 +21,12 @@ type MainMsg =
     | UpdateDownloadInstalling of ProductId
     | UpgradeGames
     | CacheCheck
-
-type AuthMsg =
-    | OpenInstallGameWindow
-    | CloseInstallGameWindow of ProductInfo * Dlc list * Authentication
-    | OpenSettings
+    // Context change
+    | ShowInstallGame
+    | ShowSettings
     | ShowInstalled
     // Child component messages
-    | MainMsg of MainMsg
+    | InstallGameMgs of InstallGame.Msg
     | SettingsMsg of Settings.Msg
 
 type UnAuthMsg =

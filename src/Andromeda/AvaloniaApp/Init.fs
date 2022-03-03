@@ -9,18 +9,20 @@ open Andromeda.AvaloniaApp.Components
 
 [<RequireQualifiedAccess>]
 module Init =
-    let main (settings: Settings option) (authentication: Authentication) =
+    let authenticated authentication =
         let settings =
-            settings
+            Persistence.Settings.load ()
             |> Option.defaultValue (SystemInfo.defaultSettings ())
 
         let state =
-            { authentication = authentication
-              downloads = Map.empty
-              installedGames = Map.empty
-              notifications = []
-              settings = settings
-              terminalOutput = [] }
+            Authenticated
+                { authentication = authentication
+                  downloads = Map.empty
+                  installedGames = Map.empty
+                  notifications = []
+                  settings = settings
+                  terminalOutput = []
+                  context = Installed }
 
         let cmd =
             // We initialy search for installed games and perform a cache check
@@ -29,17 +31,6 @@ module Init =
             |> Cmd.batch
 
         state, cmd
-
-    let authenticated authentication =
-        let settings = Persistence.Settings.load ()
-
-        let state, cmd = main settings authentication
-
-        Authenticated
-            { main = state
-              context = Installed
-              installGameWindow = None },
-        Cmd.map MainMsg cmd
 
     let perform authentication =
         match authentication with
