@@ -15,12 +15,12 @@ module Logger =
     let logLevel: LogLevel = LogLevel.Warning
 #endif
 
-    let Log level message =
+    let log level message =
         match level with
         | level when logLevel <= level ->
             Console.WriteLine("[" + level.ToString() + "] " + message)
         | _ -> ()
 
-    let LogError = Log LogLevel.Error
-    let LogWarning = Log LogLevel.Warning
-    let LogInfo = Log LogLevel.Info
+    let logError = log LogLevel.Error
+    let logWarning = log LogLevel.Warning
+    let logInfo = log LogLevel.Info

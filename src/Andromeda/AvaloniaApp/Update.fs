@@ -63,7 +63,7 @@ module Update =
                     "Download installer for "
                     + downloadInfo.gameTitle
                     + "."
-                    |> Logger.LogInfo
+                    |> Logger.logInfo
 
                     let invoke () =
                         let fileSize =
@@ -90,7 +90,7 @@ module Update =
                     "Use cached installer for "
                     + downloadInfo.gameTitle
                     + "."
-                    |> Logger.LogInfo
+                    |> Logger.logInfo
 
                     UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize)
                     |> dispatch
@@ -405,7 +405,7 @@ module Update =
 
                 state, cmd
             | _ ->
-                LogError "Got InstallGameMsg although context is not InstallGame."
+                logError "Got InstallGameMsg although context is not InstallGame."
                 state, Cmd.none
         | SettingsMsg msg ->
             match state.context with
@@ -430,7 +430,7 @@ module Update =
 
                 state, cmd
             | _ ->
-                LogError "Got SettingsMsg although context is not Settings."
+                logError "Got SettingsMsg although context is not Settings."
                 state, Cmd.none
 
     let performUnauthenticated msg state =
