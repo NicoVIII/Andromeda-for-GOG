@@ -25,8 +25,7 @@
 
     <!-- Elements -->
     <Compile Include="Elements/Badge.fs" />
-    <Compile Include="Elements/SimpleDockPanel.fs" />
-    <Compile Include="Elements/SimpleScrollViewer.fs" />
+    <Compile Include="Elements/SimpleElements.fs" />
 
     <!-- Components -->
     <Compile Include="Components/Authentication.fs" />
