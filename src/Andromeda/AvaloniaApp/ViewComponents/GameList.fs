@@ -16,6 +16,18 @@ open Andromeda.AvaloniaApp.AvaloniaHelper
 
 module GameList =
     let gameTile dispatch (game: Game) : IView =
+        // Is something going on with this game?
+        let inProgress =
+            match game.status with
+            | Pending -> Some(0, 1, "Pending...")
+            | Downloading (current, max) ->
+                let current, max = (int current, int max)
+                // TODO: switch units if applicable
+                let text = sprintf "%i MiB / %i MiB" current max
+                Some(current, max, text)
+            | Installing -> Some(1, 1, "Installing...")
+            | GameStatus.Installed _ -> None
+
         let gap = 5.0
 
         Border.create [
@@ -23,21 +35,26 @@ module GameList =
             Border.contextMenu (
                 ContextMenu.create [
                     ContextMenu.viewItems [
-                        MenuItem.create [
-                            MenuItem.header "Start"
-                            MenuItem.onClick (
-                                (fun _ -> game |> StartGame |> dispatch),
-                                OnChangeOf game
-                            )
-                        ]
-                        MenuItem.create [
-                            MenuItem.header "Update"
-                            MenuItem.onClick (
-                                (fun _ -> game |> UpgradeGame |> dispatch),
-                                OnChangeOf game
-                            )
-                        ]
-                        MenuItem.create [ MenuItem.header "-" ]
+                        match inProgress with
+                        | Some _ -> ()
+                        | None ->
+                            yield!
+                                [ MenuItem.create [
+                                      MenuItem.header "Start"
+                                      MenuItem.onClick (
+                                          (fun _ -> game |> StartGame |> dispatch),
+                                          OnChangeOf game
+                                      )
+                                  ]
+                                  :> IView
+                                  MenuItem.create [
+                                      MenuItem.header "Update"
+                                      MenuItem.onClick (
+                                          (fun _ -> game |> UpgradeGame |> dispatch),
+                                          OnChangeOf game
+                                      )
+                                  ]
+                                  MenuItem.create [ MenuItem.header "-" ] ]
                         MenuItem.create [
                             MenuItem.header "Open game folder"
                             MenuItem.onClick (
@@ -51,18 +68,6 @@ module GameList =
             Border.child (
                 let height = 120.0
                 let width = 200.0
-
-                // Is something going on with this game?
-                let inProgress =
-                    match game.status with
-                    | Pending -> Some(0, 1, "Pending...")
-                    | Downloading (current, max) ->
-                        let current, max = (int current, int max)
-                        // TODO: switch units if applicable
-                        let text = sprintf "%i MiB / %i MiB" current max
-                        Some(current, max, text)
-                    | Installing -> Some(1, 1, "Installing...")
-                    | GameStatus.Installed _ -> None
 
                 Canvas.create [
                     Canvas.height 120
