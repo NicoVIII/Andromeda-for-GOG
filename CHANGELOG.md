@@ -10,6 +10,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Show download progress now on top of game tile
 
+### Fixed
+
+-   Disabled "Start" and "Update" on game which is updating
+
 ## [0.5.2] - 2022-03-03
 
 ### Fixed

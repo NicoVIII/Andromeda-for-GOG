@@ -12,6 +12,7 @@ open System.Threading.Tasks
 
 open Andromeda.Core
 open Andromeda.Core.DomainTypes
+open Andromeda.Core.Installed
 
 open Andromeda.AvaloniaApp.Components
 open Andromeda.AvaloniaApp.DomainTypes
@@ -97,11 +98,24 @@ module Update =
     /// Contains everything for the update method, which is a little longer
     module Update =
         /// Checks a single game for an upgrade
-        let upgradeGame state game =
-            let (updateData, authentication) =
+        let upgradeGame state game showNotification =
+            let invoke () =
                 (Optic.get MainStateOptic.authentication state, game)
-                ||> Installed.checkGameForUpdate
+                ||> checkGameForUpdate
 
+            let cmd =
+                Cmd.OfAsync.perform invoke () (fun (updateData, authentication) ->
+                    FinishGameUpgrade(game, showNotification, updateData, authentication))
+
+            state, cmd
+
+        let finishGameUpgrade
+            state
+            showNotification
+            (game: Game)
+            (updateData: UpdateData option)
+            authentication
+            =
             // Update authentication in state, if it was refreshed
             let state = Optic.set MainStateOptic.authentication authentication state
 
@@ -117,8 +131,11 @@ module Update =
                         |> StartGameDownload)
                     |> Cmd.ofMsg
                 | None ->
-                    AddNotification $"No new version available for %s{game.name}"
-                    |> Cmd.ofMsg
+                    if showNotification then
+                        AddNotification $"No new version available for %s{game.name}"
+                        |> Cmd.ofMsg
+                    else
+                        Cmd.none
 
             state, cmd
 
@@ -241,7 +258,10 @@ module Update =
 
         match msg with
         | StartGame installedGame -> state, Subs.startGame installedGame
-        | UpgradeGame game -> Update.upgradeGame state game
+        | UpgradeGame (game, showNotification) ->
+            Update.upgradeGame state game showNotification
+        | FinishGameUpgrade (game, showNotification, updateData, authentication) ->
+            Update.finishGameUpgrade state showNotification game updateData authentication
         | LookupGameImage productId ->
             let cmd =
                 match Diverse.getProductImg productId with
@@ -277,7 +297,9 @@ module Update =
 
             let cmd' =
                 match initial && state.settings.updateOnStartup with
-                | true -> [ cmd; UpgradeGames |> Cmd.ofMsg ] |> Cmd.batch
+                | true ->
+                    [ cmd; UpgradeGames false |> Cmd.ofMsg ]
+                    |> Cmd.batch
                 | false -> cmd
 
             state, cmd'
@@ -327,32 +349,16 @@ module Update =
                 |> Cmd.batch
 
             state, cmd
-        | UpgradeGames ->
-            // TODO: refactor into single "UpgradeGame" commands for every game
-            let (updateDataList, authentication) =
-                (Optic.get MainStateOptic.games state,
-                 Optic.get MainStateOptic.authentication state)
-                ||> Installed.checkAllForUpdates
-
-            // Update authentication in state, if it was refreshed
-            let state = Optic.set MainStateOptic.authentication authentication state
+        | UpgradeGames showNotifications ->
+            let games =
+                Optic.get MainStateOptic.games state
+                |> Map.toList
+                |> List.map snd
 
             // Download updated installers or show notification
             let cmd =
-                match updateDataList with
-                | updateDataList when updateDataList.Length > 0 ->
-                    List.map
-                        (fun (updateData: Installed.UpdateData) ->
-                            updateData.game
-                            |> Game.toProductInfo
-                            |> (fun productInfo ->
-                                (productInfo, [], authentication)
-                                |> StartGameDownload)
-                            |> Cmd.ofMsg)
-                        updateDataList
-                | _ ->
-                    [ AddNotification "No games found to update."
-                      |> Cmd.ofMsg ]
+                games
+                |> List.map (fun game -> UpgradeGame(game, showNotifications) |> Cmd.ofMsg)
                 |> Cmd.batch
 
             state, cmd

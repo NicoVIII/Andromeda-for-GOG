@@ -3,12 +3,18 @@ namespace Andromeda.AvaloniaApp
 open GogApi.DomainTypes
 
 open Andromeda.Core.DomainTypes
+open Andromeda.Core.Installed
 
 open Andromeda.AvaloniaApp.Components
 
 type AuthMsg =
     | StartGame of Game
-    | UpgradeGame of Game
+    | UpgradeGame of Game * showNotification: bool
+    | FinishGameUpgrade of
+        Game *
+        showNotification: bool *
+        UpdateData option *
+        Authentication
     | LookupGameImage of ProductId
     | SetGameImage of ProductId * string
     | AddNotification of string
@@ -21,7 +27,7 @@ type AuthMsg =
     | FinishGameDownload of ProductId * string
     | UpdateDownloadSize of ProductId * int<MiB>
     | UpdateDownloadInstalling of ProductId
-    | UpgradeGames
+    | UpgradeGames of showNotifications: bool
     | CacheCheck
     // Context change
     | ShowInstallGame

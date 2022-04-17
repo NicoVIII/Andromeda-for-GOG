@@ -50,7 +50,7 @@ module GameList =
                                   MenuItem.create [
                                       MenuItem.header "Update"
                                       MenuItem.onClick (
-                                          (fun _ -> game |> UpgradeGame |> dispatch),
+                                          (fun _ -> UpgradeGame(game, true) |> dispatch),
                                           OnChangeOf game
                                       )
                                   ]

@@ -22,50 +22,37 @@ module Installed =
 
     /// Looks up, if there is an update available for given game
     let checkGameForUpdate authentication game =
-        Helpers.withAutoRefresh (GalaxyApi.getProduct game.id) authentication
-        |> Async.RunSynchronously
-        |> function
-            | (Error _, authentication) -> (None, authentication)
-            | (Ok update, authentication) ->
-                let os =
-                    match SystemInfo.os with
-                    | SystemInfo.OS.Linux -> "linux"
-                    | SystemInfo.OS.Windows -> "windows"
-                    | SystemInfo.OS.MacOS -> "mac"
+        async {
+            let! result =
+                Helpers.withAutoRefresh (GalaxyApi.getProduct game.id) authentication
 
-                // Get first installer for os
-                let installer =
-                    update.downloads.installers
-                    |> List.filter (fun installer -> installer.os = os)
-                    |> List.item 0
+            return
+                match result with
+                | (Error _, authentication) -> (None, authentication)
+                | (Ok update, authentication) ->
+                    let os =
+                        match SystemInfo.os with
+                        | SystemInfo.OS.Linux -> "linux"
+                        | SystemInfo.OS.Windows -> "windows"
+                        | SystemInfo.OS.MacOS -> "mac"
 
-                // Return game, if update is available
-                match (game.status, installer.version) with
-                | (Installed version, Some availableVersion) when
-                    version <> availableVersion
-                    ->
-                    (Some
-                        { newVersion = availableVersion
-                          game = game },
-                     authentication)
-                | _ -> (None, authentication)
+                    // Get first installer for os
+                    let installer =
+                        update.downloads.installers
+                        |> List.filter (fun installer -> installer.os = os)
+                        |> List.item 0
 
-    let checkAllForUpdates
-        (installedGames: Map<ProductId, Game>)
-        (authentication: Authentication)
-        =
-        installedGames
-        |> Map.toList
-        |> List.map snd
-        |> List.filter (fun game -> game.updateable)
-        |> List.fold
-            (fun (lst, authentication: Authentication) game ->
-                let (game, authentication) = checkGameForUpdate authentication game
-                // Add game to list, if game is updateable
-                match game with
-                | Some game -> (game :: lst, authentication)
-                | None -> (lst, authentication))
-            ([], authentication)
+                    // Return game, if update is available
+                    match (game.status, installer.version) with
+                    | (Installed version, Some availableVersion) when
+                        version <> availableVersion
+                        ->
+                        (Some
+                            { newVersion = availableVersion
+                              game = game },
+                         authentication)
+                    | _ -> (None, authentication)
+        }
 
     let private prepareGameProcess processOutput (proc: Process) =
         proc.StartInfo.RedirectStandardOutput <- true

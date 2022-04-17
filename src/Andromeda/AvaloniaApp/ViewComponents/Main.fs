@@ -22,7 +22,7 @@ module Main =
                 ]
                 Button.create [
                     Button.content "Upgrade games"
-                    Button.onClick (fun _ -> UpgradeGames |> dispatch)
+                    Button.onClick (fun _ -> UpgradeGames true |> dispatch)
                 ]
             ]
         ]
