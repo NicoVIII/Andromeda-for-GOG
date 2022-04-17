@@ -8,7 +8,7 @@ open Andromeda.Core.Installed
 open Andromeda.AvaloniaApp.Components
 
 type AuthMsg =
-    | StartGame of gameDir: string
+    | StartGame of gameId: ProductId * gameDir: string
     | UpgradeGame of Game * showNotification: bool
     | FinishGameUpgrade of
         Game *
@@ -19,7 +19,7 @@ type AuthMsg =
     | SetGameImage of ProductId * string
     | AddNotification of string
     | RemoveNotification of string
-    | AddToTerminalOutput of string
+    | AddToTerminalOutput of ProductId * string
     | SetSettings of Settings
     | SearchInstalled of initial: bool
     | StartGameDownload of ProductInfo * Dlc list * Authentication

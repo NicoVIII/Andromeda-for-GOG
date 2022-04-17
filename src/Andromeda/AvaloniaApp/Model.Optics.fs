@@ -27,3 +27,6 @@ module MainStateOptic =
 
     let gameStatus productId =
         Optic.compose (game productId) (GameOptic.status)
+
+    let gameOutput productId =
+        Optic.compose terminalOutput (MapOptic.find productId)

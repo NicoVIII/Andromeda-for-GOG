@@ -18,7 +18,7 @@ module Init =
                   games = Map.empty
                   notifications = []
                   settings = settings
-                  terminalOutput = []
+                  terminalOutput = Map.empty
                   context = Installed }
 
         let cmd =

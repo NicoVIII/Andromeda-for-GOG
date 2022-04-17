@@ -1,9 +1,9 @@
 namespace Andromeda.AvaloniaApp.ViewComponents
 
 open Avalonia.Controls
-open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.Layout
+open SimpleOptics
 open System
 
 open Andromeda.AvaloniaApp
@@ -28,12 +28,26 @@ module Main =
         ]
 
     let renderTerminalOutput state dispatch =
-        TextBox.create [
-            TextBox.dock Dock.Bottom
-            TextBox.height 100.0
-            TextBox.isReadOnly true
-            TextBox.text (
-                state.terminalOutput
-                |> String.concat Environment.NewLine
-            )
+        TabControl.create [
+            TabControl.dock Dock.Bottom
+            TabControl.height 130
+            TabControl.tabStripPlacement Dock.Bottom
+            TabControl.viewItems [
+                for KeyValue (productId, output) in state.terminalOutput do
+                    let gameName =
+                        Optic.get (MainStateOptic.game productId) state
+                        |> function
+                            | Some game -> game.name
+                            | None -> "<deleted>"
+
+                    TabItem.create [
+                        TabItem.header gameName
+                        TabItem.content (
+                            TextBox.create [
+                                TextBox.isReadOnly true
+                                TextBox.text (output |> String.concat Environment.NewLine)
+                            ]
+                        )
+                    ]
+            ]
         ]

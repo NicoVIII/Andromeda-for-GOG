@@ -17,7 +17,7 @@ type AuthenticatedState =
       games: Map<ProductId, Game>
       notifications: string list
       settings: Settings
-      terminalOutput: string list
+      terminalOutput: Map<ProductId, string list>
       // State for subviews
       context: Context }
 

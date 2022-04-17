@@ -42,8 +42,9 @@ module GameList =
                                 [ MenuItem.create [
                                       MenuItem.header "Start"
                                       MenuItem.onClick (
-                                          (fun _ -> StartGame gameDir |> dispatch),
-                                          OnChangeOf game
+                                          (fun _ ->
+                                              StartGame(game.id, gameDir) |> dispatch),
+                                          OnChangeOf(game.id, gameDir)
                                       )
                                   ]
                                   :> IView

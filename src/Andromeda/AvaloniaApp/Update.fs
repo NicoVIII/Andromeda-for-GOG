@@ -21,7 +21,7 @@ open Andromeda.AvaloniaApp.DomainTypes
 module Update =
     module Subs =
         /// Starts a given game in a subprocess and redirects its terminal output
-        let startGame (gameDir: string) =
+        let startGame gameId (gameDir: string) =
             let createEmptyDisposable () =
                 { new IDisposable with
                     member __.Dispose() = () }
@@ -34,7 +34,7 @@ module Update =
                         let state = outLine.Data
 
                         let action _ newLine =
-                            AddToTerminalOutput newLine |> dispatch
+                            AddToTerminalOutput(gameId, newLine) |> dispatch
                             createEmptyDisposable ()
 
                         AvaloniaScheduler.Instance.Schedule(
@@ -264,7 +264,7 @@ module Update =
             { state with context = context contextState }, cmd
 
         match msg with
-        | StartGame gameDir -> state, Subs.startGame gameDir
+        | StartGame (gameId, gameDir) -> state, Subs.startGame gameId gameDir
         | UpgradeGame (game, showNotification) ->
             Update.upgradeGame state game showNotification
         | FinishGameUpgrade (game, showNotification, updateData, authentication) ->
@@ -289,12 +289,20 @@ module Update =
                     state
 
             state, Cmd.none
-        | AddToTerminalOutput newLine ->
+        | AddToTerminalOutput (productId, newLine) ->
             // Add new line to the front of the terminal
             let state =
-                state
+                let tabExists =
+                    Optic.get (MainStateOptic.gameOutput productId) state
+                    |> Option.isSome
+
+                // If the tab does not already exist, initialize it
+                if tabExists then
+                    state
+                else
+                    Optic.set (MainStateOptic.gameOutput productId) [] state
                 // Limit output to 1000 lines
-                |> Optic.map MainStateOptic.terminalOutput (fun lines ->
+                |> Optic.map (MainStateOptic.gameOutput productId) (fun lines ->
                     newLine :: lines.[..999])
 
             state, Cmd.none
