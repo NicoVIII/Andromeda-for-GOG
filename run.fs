@@ -58,9 +58,12 @@ module Task =
                 DotNet.restore proj
         }
 
+    let buildApp () =
+        DotNet.build Config.mainProject Debug
+
     let build () =
         job {
-            DotNet.build Config.mainProject Debug
+            buildApp ()
 
             for proj in Config.testProjects do
                 DotNet.build proj Debug
@@ -187,6 +190,11 @@ let main args =
             job {
                 Task.restore ()
                 Task.build ()
+            }
+        | [ "build-app" ] ->
+            job {
+                Task.restore ()
+                Task.buildApp ()
             }
         | []
         | [ "run" ] ->
