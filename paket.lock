@@ -188,7 +188,7 @@ NUGET
     NicoVIII.GogApi (3.0)
       FsHttp (>= 6.0.1)
       NicoVIII.FSharp.Json (>= 0.5)
-    NicoVIII.SimpleOptics (0.1)
+    NicoVIII.SimpleOptics (0.2)
       FSharp.Core (>= 6.0)
     runtime.debian.8-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3)
     runtime.debian.9-x64.runtime.native.System.Security.Cryptography.OpenSsl (4.3.3)

@@ -1,16 +1,17 @@
 namespace Andromeda.AvaloniaApp
 
 open SimpleOptics
+open SimpleOptics.Presets
+
+open Andromeda.Core.DomainTypes
 
 /// Optics to simplify usage of state
 module MainStateOptic =
+    // Base lenses
     let authentication =
         Lens((fun r -> r.authentication), (fun r v -> { r with authentication = v }))
 
-    let downloads = Lens((fun r -> r.downloads), (fun r v -> { r with downloads = v }))
-
-    let installedGames =
-        Lens((fun r -> r.installedGames), (fun r v -> { r with installedGames = v }))
+    let games = Lens((fun r -> r.games), (fun r v -> { r with games = v }))
 
     let notifications =
         Lens((fun r -> r.notifications), (fun r v -> { r with notifications = v }))
@@ -19,3 +20,10 @@ module MainStateOptic =
 
     let terminalOutput =
         Lens((fun r -> r.terminalOutput), (fun r v -> { r with terminalOutput = v }))
+
+    // Composed lenses
+    let game productId =
+        Optic.compose games (MapOptic.find productId)
+
+    let gameStatus productId =
+        Optic.compose (game productId) (GameOptic.status)

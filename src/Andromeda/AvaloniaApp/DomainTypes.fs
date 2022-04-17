@@ -1,32 +1,15 @@
 namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.DomainTypes
-open Avalonia.FuncUI.Components.Hosts
-open GogApi.DomainTypes
-open System
-
 [<AutoOpen>]
 module DomainTypes =
-    type DownloadStatus =
-        { gameId: ProductId
-          gameTitle: string
-          filePath: string
-          fileSize: float
-          installing: bool
-          downloaded: int }
+    module Game =
+        open GogApi.DomainTypes
+        open Andromeda.Core.DomainTypes
 
-    module DownloadStatus =
-        let create id gameTitle filePath fileSize =
-            { DownloadStatus.gameId = id
-              gameTitle = gameTitle
-              filePath = filePath
-              fileSize = fileSize
-              downloaded = 0
-              installing = false }
+        let toProductInfo game : ProductInfo = { id = game.id; title = game.name }
 
-    let gameToDownloadInfo (game: InstalledGame) =
-        { ProductInfo.id = game.id
-          title = game.name }
+    open Avalonia.FuncUI.Components.Hosts
+    open System
 
     type IAndromedaWindow =
         abstract Close: unit -> unit

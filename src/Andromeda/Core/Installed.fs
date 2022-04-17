@@ -4,10 +4,8 @@ open FSharp.Json
 open GogApi
 open GogApi.DomainTypes
 open Mono.Unix.Native
-open System
 open System.Diagnostics
 open System.IO
-open System.Net
 
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Helpers
@@ -15,9 +13,7 @@ open SimpleOptics
 
 /// A module for everything which works on installed games
 module Installed =
-    type UpdateData =
-        { game: InstalledGame
-          newVersion: string }
+    type UpdateData = { game: Game; newVersion: string }
 
     type WindowsGameInfoFile =
         { gameId: string
@@ -44,13 +40,18 @@ module Installed =
                     |> List.item 0
 
                 // Return game, if update is available
-                match (game.version, installer.version) with
-                | (a, Some b) when a <> b ->
-                    (Some { newVersion = b; game = game }, authentication)
+                match (game.status, installer.version) with
+                | (Installed version, Some availableVersion) when
+                    version <> availableVersion
+                    ->
+                    (Some
+                        { newVersion = availableVersion
+                          game = game },
+                     authentication)
                 | _ -> (None, authentication)
 
     let checkAllForUpdates
-        (installedGames: Map<ProductId, InstalledGame>)
+        (installedGames: Map<ProductId, Game>)
         (authentication: Authentication)
         =
         installedGames
@@ -172,12 +173,9 @@ module Installed =
                 | None -> lines.[1]
 
             let game =
-                InstalledGame.create
-                    (lines.[4] |> uint32 |> ProductId)
-                    lines.[0]
-                    gameDir
-                    version
-                |> Optic.set InstalledGameLenses.updateable true
+                Game.create (lines.[4] |> uint32 |> ProductId) lines.[0] gameDir
+                |> Optic.set GameOptic.status (Installed version)
+                |> Optic.set GameOptic.updateable true
                 |> Some
 
             game
@@ -193,7 +191,8 @@ module Installed =
                 | None -> None
                 | Some id ->
                     let game =
-                        InstalledGame.create id lines.[0] gameDir version
+                        Game.create id lines.[0] gameDir
+                        |> Optic.set GameOptic.status (Installed version)
                         |> Some
 
                     game
@@ -210,12 +209,9 @@ module Installed =
                 | Some version -> version
                 | None -> "1" // TODO:
 
-            InstalledGame.create
-                (gameInfo.gameId |> uint32 |> ProductId)
-                gameInfo.name
-                gameDir
-                versionString
-            |> Optic.set InstalledGameLenses.updateable version.IsSome
+            Game.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name gameDir
+            |> Optic.set GameOptic.status (Installed versionString)
+            |> Optic.set GameOptic.updateable version.IsSome
 
         // Find info file of game
         let files = Directory.GetFiles(gameDir, "goggame-*.info")
@@ -270,13 +266,14 @@ module Installed =
                                 match Diverse.getProductImg installedGame.id with
                                 | Diverse.AlreadyDownloaded imgPath ->
                                     (Optic.set
-                                        InstalledGameLenses.image
+                                        GameOptic.image
                                         (Some imgPath)
                                         installedGame),
                                     imgJobs
                                 | Diverse.HasToBeDownloaded job ->
                                     installedGame, (job :: imgJobs)
 
+                            // TODO: Replace image jobs with "LookupGameImage" msg
                             (Map.add installedGame.id installedGame installedGames,
                              imgJobs)
                         | None -> state)

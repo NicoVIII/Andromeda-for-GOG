@@ -1,19 +1,21 @@
 namespace Andromeda.AvaloniaApp.ViewComponents
 
-open Andromeda.Core
-open Andromeda.Core.DomainTypes
 open Avalonia.Controls
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
+open Avalonia.Layout
 open Avalonia.Media
 open Avalonia.Media.Imaging
 open SimpleOptics
+
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
 
 open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.AvaloniaHelper
 
 module GameList =
-    let gameTile dispatch (i: int, game: InstalledGame) : IView =
+    let gameTile dispatch (game: Game) : IView =
         let gap = 5.0
 
         Border.create [
@@ -47,19 +49,81 @@ module GameList =
                 ]
             )
             Border.child (
-                Image.create [
-                    Image.height 120.0
-                    Image.stretch Stretch.UniformToFill
-                    Image.width 200.0
-                    Image.source (
-                        match game.image with
-                        | Some imgPath -> new Bitmap(imgPath)
-                        | None ->
-                            new Bitmap(
-                                loadAssetPath
-                                    "avares://Andromeda.AvaloniaApp/Assets/placeholder.jpg"
+                let height = 120.0
+                let width = 200.0
+
+                // Is something going on with this game?
+                let inProgress =
+                    match game.status with
+                    | Pending -> Some(0, 1, "Pending...")
+                    | Downloading (current, max) ->
+                        let current, max = (int current, int max)
+                        // TODO: switch units if applicable
+                        let text = sprintf "%i MiB / %i MiB" current max
+                        Some(current, max, text)
+                    | Installing -> Some(1, 1, "Installing...")
+                    | GameStatus.Installed _ -> None
+
+                Canvas.create [
+                    Canvas.height 120
+                    Canvas.width 200
+                    Canvas.children [
+                        Image.create [
+                            Image.height height
+                            Image.stretch Stretch.UniformToFill
+                            Image.width width
+                            Image.source (
+                                match game.image with
+                                | Some imgPath -> new Bitmap(imgPath)
+                                | None ->
+                                    new Bitmap(
+                                        loadAssetPath
+                                            "avares://Andromeda.AvaloniaApp/Assets/placeholder.jpg"
+                                    )
                             )
-                    )
+                        ]
+
+                        match inProgress with
+                        | Some (value, maximum, text) ->
+                            let progressHeight = 20
+
+                            yield!
+                                [ TextBlock.create [
+                                      TextBlock.height height
+                                      TextBlock.left 0
+                                      TextBlock.top 0
+                                      TextBlock.width width
+
+                                      TextBlock.background (
+                                          SolidColorBrush(Colors.Black, 0.7)
+                                      )
+                                  ]
+                                  :> IView
+                                  ProgressBar.create [
+                                      ProgressBar.bottom 0
+                                      ProgressBar.height progressHeight
+                                      ProgressBar.left 0
+                                      ProgressBar.width width
+
+                                      ProgressBar.maximum maximum
+                                      ProgressBar.value value
+                                  ]
+                                  Border.create [
+                                      Border.bottom 0
+                                      Border.left 0
+                                      Border.width width
+                                      Border.height progressHeight
+                                      Border.padding 5
+                                      Border.child (
+                                          TextBlock.create [
+                                              TextBlock.verticalAlignment
+                                                  VerticalAlignment.Center
+                                              TextBlock.text text
+                                          ]
+                                      )
+                                  ] ]
+                        | None -> ()
+                    ]
                 ]
             )
         ]
@@ -68,11 +132,8 @@ module GameList =
     let render state dispatch =
         WrapPanel.create [
             WrapPanel.children (
-                state
-                |> Optic.get MainStateOptic.installedGames
+                Optic.get MainStateOptic.games state
                 |> Map.toList
-                |> List.map snd
-                |> List.indexed
-                |> List.map (gameTile dispatch)
+                |> List.map (snd >> gameTile dispatch)
             )
         ]

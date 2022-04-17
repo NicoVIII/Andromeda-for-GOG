@@ -26,12 +26,13 @@
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-dotnettools.csharp",
-        "ionide.ionide-fsharp",
         "editorconfig.editorconfig",
         "ybaumes.highlight-trailing-white-spaces",
         "aaron-bond.better-comments",
         "gruntfuggly.todo-tree",
         "cschleiden.vscode-github-actions",
+        "GitHub.copilot",
+        "ionide.ionide-fsharp",
     ],
     // "runArgs": [],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.

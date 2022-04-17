@@ -67,7 +67,7 @@ module View =
             | Installed -> renderMain state dispatch
             // Pages without own navigation item
             | InstallGame subState ->
-                let installedGames = state.installedGames |> Map.toList |> List.map fst
+                let installedGames = state.games |> Map.toList |> List.map fst
 
                 InstallGame.View.render
                     installedGames

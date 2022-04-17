@@ -52,7 +52,7 @@ module LeftBar =
             let render item =
                 renderItem dispatch (active = Some item) item
 
-            [ render items.installed (Map.count state.installedGames |> string) ]
+            [ render items.installed (Map.count state.games |> string) ]
 
     let private iconBarView dispatch =
         StackPanel.create [
@@ -62,7 +62,7 @@ module LeftBar =
             StackPanel.children [
                 Button.create [
                     Button.classes [ "iconButton" ]
-                    Button.content Icons.settings
+                    Button.content Icon.settings
                     Button.onClick (fun _ -> ShowSettings |> dispatch)
                 ]
             ]
@@ -78,63 +78,7 @@ module LeftBar =
             ]
         )
 
-    let private downloadTemplateView (downloadStatus: DownloadStatus) =
-        Grid.create [
-            Grid.columnDefinitions "Auto"
-            Grid.margin (0.0, 5.0)
-            Grid.rowDefinitions "Auto, Auto, Auto"
-            Grid.children [
-                TextBlock.create [
-                    TextBlock.row 0
-                    TextBlock.text downloadStatus.gameTitle
-                ]
-                ProgressBar.create [
-                    Grid.row 1
-                    ProgressBar.isVisible
-                    <| not downloadStatus.installing
-                    ProgressBar.maximum downloadStatus.fileSize
-                    ProgressBar.value
-                    <| double downloadStatus.downloaded
-                ]
-                TextBlock.create [
-                    Grid.row 2
-                    TextBlock.isVisible downloadStatus.installing
-                    TextBlock.text "Installing..."
-                ]
-                TextBlock.create [
-                    Grid.row 2
-                    TextBlock.isVisible
-                    <| not downloadStatus.installing
-                    TextBlock.text
-                    <| sprintf
-                        "%i MB / %i MB"
-                        downloadStatus.downloaded
-                        (int downloadStatus.fileSize)
-                ]
-            ]
-        ]
-
-    let private downloadsView downloadMap =
-        let downloadList = Map.toList downloadMap |> List.map snd
-
-        StackPanel.create [
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.margin (Thickness.Parse "12, 12")
-            StackPanel.children [
-                ItemsControl.create [
-                    ItemsControl.dataItems downloadList
-                    ItemsControl.itemTemplate (
-                        DataTemplateView<DownloadStatus>.create downloadTemplateView
-                    )
-                ]
-                TextBlock.create [
-                    TextBlock.isVisible (downloadList.Length = 0)
-                    TextBlock.text "No downloads"
-                ]
-            ]
-        ]
-
-    let private bottomBarView downloads =
+    let private bottomBarView =
         let version =
             let assemblyVersion = Assembly.GetEntryAssembly().GetName().Version
 
@@ -142,17 +86,10 @@ module LeftBar =
             | v when v.Major > 0 || v.Minor > 0 -> $"v{v.Major}.{v.Minor}.{v.Build}"
             | _ -> "development build"
 
-        StackPanel.create [
-            StackPanel.dock Dock.Bottom
-            StackPanel.orientation Orientation.Vertical
-            StackPanel.children [
-                downloadsView downloads
-                TextBlock.create [
-                    TextBlock.dock Dock.Bottom
-                    TextBlock.fontSize 10.0
-                    TextBlock.text version
-                ]
-            ]
+        TextBlock.create [
+            TextBlock.dock Dock.Bottom
+            TextBlock.fontSize 10.0
+            TextBlock.text version
         ]
 
     let render state dispatch =
@@ -163,7 +100,7 @@ module LeftBar =
             Border.child (
                 SimpleDockPanel.create [
                     iconBarView dispatch
-                    bottomBarView state.downloads
+                    bottomBarView
                     middleView state dispatch
                 ]
             )

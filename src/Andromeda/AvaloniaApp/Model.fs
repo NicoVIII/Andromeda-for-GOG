@@ -3,7 +3,6 @@ namespace Andromeda.AvaloniaApp
 open Andromeda.Core.DomainTypes
 open GogApi.DomainTypes
 
-open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.Components
 
 /// Special contexts the application can be in which possibly handle their own
@@ -15,8 +14,7 @@ type Context =
 
 type AuthenticatedState =
     { authentication: Authentication
-      downloads: Map<ProductId, DownloadStatus>
-      installedGames: Map<ProductId, InstalledGame>
+      games: Map<ProductId, Game>
       notifications: string list
       settings: Settings
       terminalOutput: string list

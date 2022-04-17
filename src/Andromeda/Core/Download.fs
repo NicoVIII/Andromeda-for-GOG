@@ -50,7 +50,7 @@ module Download =
 
             let task =
                 task {
-                    use fileStream = File.OpenWrite tmppath
+                    use fileStream = File.Create tmppath
 
                     let! response =
                         client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
@@ -204,7 +204,7 @@ module Download =
                     let (task, filepath, tmppath) =
                         startFileDownload urlResponse.downlink gameName installer.version
 
-                    return Some(task, filepath, tmppath, info.size)
+                    return Some(task, filepath, tmppath, info.size * 1L<Byte>)
                 | Error _ ->
                     // TODO: Add loggin
                     return None

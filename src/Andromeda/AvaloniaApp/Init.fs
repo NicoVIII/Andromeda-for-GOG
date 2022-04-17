@@ -1,9 +1,7 @@
 namespace Andromeda.AvaloniaApp
 
 open Andromeda.Core
-open Andromeda.Core.DomainTypes
 open Elmish
-open GogApi.DomainTypes
 
 open Andromeda.AvaloniaApp.Components
 
@@ -17,8 +15,7 @@ module Init =
         let state =
             Authenticated
                 { authentication = authentication
-                  downloads = Map.empty
-                  installedGames = Map.empty
+                  games = Map.empty
                   notifications = []
                   settings = settings
                   terminalOutput = []

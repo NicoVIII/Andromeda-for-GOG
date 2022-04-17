@@ -1,7 +1,5 @@
 namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core
-open Andromeda.Core.DomainTypes
 open Avalonia.Threading
 open Elmish
 open GogApi.DomainTypes
@@ -11,6 +9,9 @@ open System.Diagnostics
 open System.IO
 open System.Reactive.Concurrency
 open System.Threading.Tasks
+
+open Andromeda.Core
+open Andromeda.Core.DomainTypes
 
 open Andromeda.AvaloniaApp.Components
 open Andromeda.AvaloniaApp.DomainTypes
@@ -25,7 +26,7 @@ module Update =
             Cmd.ofSub sub
 
         /// Starts a given game in a subprocess and redirects its terminal output
-        let startGame (game: InstalledGame) =
+        let startGame (game: Game) =
             let createEmptyDisposable () =
                 { new IDisposable with
                     member __.Dispose() = () }
@@ -55,44 +56,40 @@ module Update =
         let registerDownloadTimer
             (task: Task<unit> option)
             tmppath
-            (downloadInfo: DownloadStatus)
+            (game: Game)
+            maxFileSize
             =
             let sub dispatch =
                 match task with
                 | Some _ ->
-                    "Download installer for "
-                    + downloadInfo.gameTitle
-                    + "."
-                    |> Logger.logInfo
+                    "Download installer for " + game.name + "."
+                    |> logInfo
 
                     let invoke () =
-                        let fileSize =
+                        let currentFileSize =
                             if File.Exists tmppath then
                                 let fileSize =
                                     tmppath
                                     |> FileInfo
                                     |> fun fileInfo ->
-                                        int (float (fileInfo.Length) / 1000000.0)
+                                        byteLToMiB (fileInfo.Length * 1L<Byte>)
 
-                                UpdateDownloadSize(downloadInfo.gameId, fileSize)
-                                |> dispatch
+                                UpdateDownloadSize(game.id, fileSize) |> dispatch
 
                                 fileSize
                             else
-                                0
+                                0<MiB>
 
                         File.Exists tmppath
-                        && fileSize < int downloadInfo.fileSize
+                        && currentFileSize < maxFileSize
 
                     DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
                     |> ignore
                 | None ->
-                    "Use cached installer for "
-                    + downloadInfo.gameTitle
-                    + "."
-                    |> Logger.logInfo
+                    "Use cached installer for " + game.name + "."
+                    |> logInfo
 
-                    UpdateDownloadSize(downloadInfo.gameId, int downloadInfo.fileSize)
+                    UpdateDownloadSize(game.id, maxFileSize)
                     |> dispatch
 
             Cmd.ofSub sub
@@ -113,7 +110,7 @@ module Update =
                 match updateData with
                 | Some updateData ->
                     updateData.game
-                    |> gameToDownloadInfo
+                    |> Game.toProductInfo
                     |> (fun productInfo ->
                         // TODO: update DLCs
                         (productInfo, [], authentication)
@@ -130,7 +127,7 @@ module Update =
             let state =
                 state
                 |> Optic.map
-                    MainStateOptic.installedGames
+                    MainStateOptic.games
                     (Map.change productId (function
                         | Some game -> { game with image = imgPath |> Some } |> Some
                         | None -> None))
@@ -161,7 +158,7 @@ module Update =
                 (Optic.get MainStateOptic.settings state, authentication)
                 ||> Installed.searchInstalled
 
-            let state = Optic.set MainStateOptic.installedGames installedGames state
+            let state = Optic.set MainStateOptic.games installedGames state
 
             let cmd =
                 imgJobs
@@ -192,20 +189,20 @@ module Update =
                 match result with
                 | None -> state, Cmd.none
                 | Some (task, filePath, tmppath, size) ->
-                    let downloadInfo =
-                        DownloadStatus.create
-                            productInfo.id
-                            (productInfo.title)
-                            filePath
-                            (float (size) / 1000000.0)
+                    let fileSize =
+                        size
+                        |> byteToMiBL
+                        |> (fun x -> x / 1L<MiB>)
+                        |> int
+                        |> (fun x -> x * 1<MiB>)
+
+                    let game =
+                        Game.create productInfo.id (productInfo.title) filePath
+                        |> Optic.set GameOptic.status (Downloading(0<MiB>, fileSize))
 
                     let settings = Optic.get MainStateOptic.settings state
 
-                    let state =
-                        Optic.map
-                            MainStateOptic.downloads
-                            (Map.add downloadInfo.gameId downloadInfo)
-                            state
+                    let state = Optic.set (MainStateOptic.game game.id) game state
 
                     let downloadCmd =
                         match task with
@@ -217,13 +214,14 @@ module Update =
                                 }
 
                             Cmd.OfAsync.perform invoke () (fun _ ->
-                                UnpackGame(settings, downloadInfo, installerInfo.version))
+                                UnpackGame(settings, game, installerInfo.version))
                         | None ->
-                            UnpackGame(settings, downloadInfo, installerInfo.version)
+                            UnpackGame(settings, game, installerInfo.version)
                             |> Cmd.ofMsg
 
                     let cmd =
-                        [ Subs.registerDownloadTimer task tmppath downloadInfo
+                        [ Subs.registerDownloadTimer task tmppath game fileSize
+                          Cmd.ofMsg (LookupGameImage game.id)
                           downloadCmd ]
                         |> Cmd.batch
 
@@ -244,6 +242,16 @@ module Update =
         match msg with
         | StartGame installedGame -> state, Subs.startGame installedGame
         | UpgradeGame game -> Update.upgradeGame state game
+        | LookupGameImage productId ->
+            let cmd =
+                match Diverse.getProductImg productId with
+                | Diverse.AlreadyDownloaded imgPath ->
+                    SetGameImage(productId, imgPath) |> Cmd.ofMsg
+                | Diverse.HasToBeDownloaded job ->
+                    let authentication = Optic.get MainStateOptic.authentication state
+                    Cmd.OfAsync.perform job authentication SetGameImage
+
+            state, cmd
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
         | AddNotification notification -> Update.addNotification state notification
         | RemoveNotification notification ->
@@ -297,10 +305,9 @@ module Update =
                 |> Cmd.batch
 
             state, cmd
-        | FinishGameDownload gameId ->
+        | FinishGameDownload (gameId, version) ->
             let state =
-                state
-                |> Optic.map MainStateOptic.downloads (Map.change gameId (fun _ -> None))
+                Optic.set (MainStateOptic.gameStatus gameId) (Installed version) state
 
             state, Cmd.ofMsg (SearchInstalled false)
         | StartGameDownload (productInfo, dlcs, authentication) ->
@@ -309,25 +316,21 @@ module Update =
             let state = Optic.set MainStateOptic.authentication authentication state
 
             Update.startGameDownload state productInfo dlcs
-        | UnpackGame (settings, downloadInfo, version) ->
+        | UnpackGame (settings, game, version) ->
             let invoke () =
-                Download.extractLibrary
-                    settings
-                    downloadInfo.gameTitle
-                    downloadInfo.filePath
-                    version
+                Download.extractLibrary settings game.name game.path version
 
             let cmd =
-                [ Cmd.ofMsg (UpdateDownloadInstalling downloadInfo.gameId)
-                  Cmd.OfAsync.perform invoke () (fun _ ->
-                      FinishGameDownload downloadInfo.gameId) ]
+                [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
+                  Cmd.OfAsync.perform invoke () (fun () ->
+                      FinishGameDownload(game.id, Option.defaultValue "0" version)) ]
                 |> Cmd.batch
 
             state, cmd
         | UpgradeGames ->
             // TODO: refactor into single "UpgradeGame" commands for every game
             let (updateDataList, authentication) =
-                (Optic.get MainStateOptic.installedGames state,
+                (Optic.get MainStateOptic.games state,
                  Optic.get MainStateOptic.authentication state)
                 ||> Installed.checkAllForUpdates
 
@@ -341,7 +344,7 @@ module Update =
                     List.map
                         (fun (updateData: Installed.UpdateData) ->
                             updateData.game
-                            |> gameToDownloadInfo
+                            |> Game.toProductInfo
                             |> (fun productInfo ->
                                 (productInfo, [], authentication)
                                 |> StartGameDownload)
@@ -356,28 +359,26 @@ module Update =
         | UpdateDownloadSize (gameId, fileSize) ->
             let state =
                 state
-                |> Optic.map
-                    MainStateOptic.downloads
-                    (Map.change
-                        gameId
-                        (Option.map (fun download ->
-                            { download with downloaded = fileSize })))
+                |> Optic.map (MainStateOptic.gameStatus gameId) (function
+                    | Downloading (_, total) -> Downloading(fileSize, total)
+                    | _ ->
+                        failwith "Got new filesize although we are no longer downloading")
 
             state, Cmd.none
         | UpdateDownloadInstalling gameId ->
             let state =
                 state
-                |> Optic.map
-                    MainStateOptic.downloads
-                    (Map.change
-                        gameId
-                        (Option.map (fun download -> { download with installing = true })))
+                |> Optic.map (MainStateOptic.gameStatus gameId) (function
+                    | Downloading _ -> Installing
+                    | _ ->
+                        failwith
+                            "Tried to switch to installing, although we are not downloading")
 
             state, Cmd.none
         // Context change
         | ShowInstalled ->
             ((), Cmd.none)
-            |> changeContext (fun () -> Installed)
+            |> changeContext (fun () -> Context.Installed)
         | ShowInstallGame -> InstallGame.init () |> changeContext InstallGame
         | ShowSettings ->
             Settings.init state.settings
@@ -395,8 +396,10 @@ module Update =
                     match intent with
                     | InstallGame.DoNothing -> Cmd.none
                     | InstallGame.Close (productInfo, dlcs) ->
-                        StartGameDownload(productInfo, dlcs, state.authentication)
-                        |> Cmd.ofMsg
+                        [ StartGameDownload(productInfo, dlcs, state.authentication)
+                          |> Cmd.ofMsg
+                          Cmd.ofMsg ShowInstalled ]
+                        |> Cmd.batch
 
                 let cmd =
                     [ Cmd.map InstallGameMgs installGameCmd
