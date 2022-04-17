@@ -44,7 +44,7 @@ module Installed =
 
                     // Return game, if update is available
                     match (game.status, installer.version) with
-                    | (Installed version, Some availableVersion) when
+                    | (Installed (version, _), Some availableVersion) when
                         version <> availableVersion
                         ->
                         (Some
@@ -160,8 +160,8 @@ module Installed =
                 | None -> lines.[1]
 
             let game =
-                Game.create (lines.[4] |> uint32 |> ProductId) lines.[0] gameDir
-                |> Optic.set GameOptic.status (Installed version)
+                Game.create (lines.[4] |> uint32 |> ProductId) lines.[0]
+                |> Optic.set GameOptic.status (Installed(version, gameDir))
                 |> Optic.set GameOptic.updateable true
                 |> Some
 
@@ -178,8 +178,8 @@ module Installed =
                 | None -> None
                 | Some id ->
                     let game =
-                        Game.create id lines.[0] gameDir
-                        |> Optic.set GameOptic.status (Installed version)
+                        Game.create id lines.[0]
+                        |> Optic.set GameOptic.status (Installed(version, gameDir))
                         |> Some
 
                     game
@@ -196,8 +196,8 @@ module Installed =
                 | Some version -> version
                 | None -> "1" // TODO:
 
-            Game.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name gameDir
-            |> Optic.set GameOptic.status (Installed versionString)
+            Game.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name
+            |> Optic.set GameOptic.status (Installed(versionString, gameDir))
             |> Optic.set GameOptic.updateable version.IsSome
 
         // Find info file of game

@@ -1,12 +1,15 @@
 namespace Andromeda.Core
 
 open ICSharpCode.SharpZipLib.Zip
+open FsHttp
+open FsHttp.DslCE
 open GogApi
 open GogApi.DomainTypes
 open Mono.Unix.Native
 open System.Diagnostics
 open System.IO
 open System.Net.Http
+open System.Text.RegularExpressions
 
 open Andromeda.Core.DomainTypes
 open Andromeda.Core.Helpers
@@ -187,6 +190,8 @@ module Download =
             match version with
             | Some version -> createVersionFile target version
             | None -> ()
+
+            return target
         }
 
     let downloadGame
@@ -201,10 +206,35 @@ module Download =
 
                 match result with
                 | Ok urlResponse ->
-                    let (task, filepath, tmppath) =
-                        startFileDownload urlResponse.downlink gameName installer.version
+                    return!
+                        async {
+                            // Get checksum
+                            let! response = httpAsync { GET urlResponse.checksum }
 
-                    return Some(task, filepath, tmppath, info.size * 1L<Byte>)
+                            let checksum =
+                                Regex
+                                    .Match(
+                                        Response.toText response,
+                                        "md5=\"([a-z0-9]+)\""
+                                    )
+                                    .Groups[1]
+                                    .Value
+
+                            let (task, filepath, tmppath) =
+                                startFileDownload
+                                    urlResponse.downlink
+                                    gameName
+                                    installer.version
+
+                            return
+                                Some(
+                                    task,
+                                    filepath,
+                                    tmppath,
+                                    info.size * 1L<Byte>,
+                                    checksum
+                                )
+                        }
                 | Error _ ->
                     // TODO: Add loggin
                     return None

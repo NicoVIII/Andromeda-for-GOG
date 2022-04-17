@@ -19,14 +19,15 @@ module GameList =
         // Is something going on with this game?
         let inProgress =
             match game.status with
-            | Pending -> Some(0, 1, "", "Pending...")
-            | Downloading (current, max) ->
+            | Pending -> Some(0, 1, "Pending...", "")
+            | Downloading (current, max, _) ->
                 let current, max = (int current, int max)
                 // TODO: switch units if applicable
                 let text = sprintf "%i MiB / %i MiB" current max
                 Some(current, max, "Downloading...", text)
-            | Installing -> Some(1, 1, "Installing...", "")
+            | Installing _ -> Some(1, 1, "Installing...", "")
             | GameStatus.Installed _ -> None
+            | Errored msg -> Some(0, 0, $"Error - {msg}", "")
 
         let gap = 5.0
 
@@ -35,14 +36,13 @@ module GameList =
             Border.contextMenu (
                 ContextMenu.create [
                     ContextMenu.viewItems [
-                        match inProgress with
-                        | Some _ -> ()
-                        | None ->
+                        match game.status with
+                        | GameStatus.Installed (_, gameDir) ->
                             yield!
                                 [ MenuItem.create [
                                       MenuItem.header "Start"
                                       MenuItem.onClick (
-                                          (fun _ -> game |> StartGame |> dispatch),
+                                          (fun _ -> StartGame gameDir |> dispatch),
                                           OnChangeOf game
                                       )
                                   ]
@@ -54,14 +54,16 @@ module GameList =
                                           OnChangeOf game
                                       )
                                   ]
-                                  MenuItem.create [ MenuItem.header "-" ] ]
-                        MenuItem.create [
-                            MenuItem.header "Open game folder"
-                            MenuItem.onClick (
-                                (fun _ -> game.path |> System.openFolder),
-                                OnChangeOf game
-                            )
-                        ]
+                                  MenuItem.create [ MenuItem.header "-" ]
+
+                                  MenuItem.create [
+                                      MenuItem.header "Open game folder"
+                                      MenuItem.onClick (
+                                          (fun _ -> gameDir |> System.openFolder),
+                                          OnChangeOf game
+                                      )
+                                  ] ]
+                        | _ -> ()
                     ]
                 ]
             )

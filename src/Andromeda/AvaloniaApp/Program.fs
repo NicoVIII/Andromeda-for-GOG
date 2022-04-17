@@ -50,7 +50,7 @@ module Program =
             Program.mkProgram Init.perform updateWithServices View.render
             |> Program.withHost this
 #if DEBUG
-            |> Program.withConsoleTrace
+            |> Program.withTrace (fun msg _ -> printfn "%A" msg)
 #endif
             |> Program.runWith authentication
 

@@ -8,6 +8,7 @@ open System
 open System.Diagnostics
 open System.IO
 open System.Reactive.Concurrency
+open System.Security.Cryptography
 open System.Threading.Tasks
 
 open Andromeda.Core
@@ -20,7 +21,7 @@ open Andromeda.AvaloniaApp.DomainTypes
 module Update =
     module Subs =
         /// Starts a given game in a subprocess and redirects its terminal output
-        let startGame (game: Game) =
+        let startGame (gameDir: string) =
             let createEmptyDisposable () =
                 { new IDisposable with
                     member __.Dispose() = () }
@@ -42,8 +43,7 @@ module Update =
                         )
                         |> ignore
 
-                Installed.startGameProcess showGameOutput game.path
-                |> ignore
+                startGameProcess showGameOutput gameDir |> ignore
 
             Cmd.ofSub sub
 
@@ -198,7 +198,7 @@ module Update =
 
                 match result with
                 | None -> state, Cmd.none
-                | Some (task, filePath, tmppath, size) ->
+                | Some (task, filePath, tmppath, size, checksum) ->
                     let fileSize =
                         size
                         |> byteToMiBL
@@ -207,8 +207,10 @@ module Update =
                         |> (fun x -> x * 1<MiB>)
 
                     let game =
-                        Game.create productInfo.id (productInfo.title) filePath
-                        |> Optic.set GameOptic.status (Downloading(0<MiB>, fileSize))
+                        Game.create productInfo.id (productInfo.title)
+                        |> Optic.set
+                            GameOptic.status
+                            (Downloading(0<MiB>, fileSize, filePath))
 
                     let settings = Optic.get MainStateOptic.settings state
 
@@ -224,9 +226,21 @@ module Update =
                                 }
 
                             Cmd.OfAsync.perform invoke () (fun _ ->
-                                UnpackGame(settings, game, installerInfo.version))
+                                UnpackGame(
+                                    settings,
+                                    game,
+                                    filePath,
+                                    checksum,
+                                    installerInfo.version
+                                ))
                         | None ->
-                            UnpackGame(settings, game, installerInfo.version)
+                            UnpackGame(
+                                settings,
+                                game,
+                                filePath,
+                                checksum,
+                                installerInfo.version
+                            )
                             |> Cmd.ofMsg
 
                     let cmd =
@@ -250,7 +264,7 @@ module Update =
             { state with context = context contextState }, cmd
 
         match msg with
-        | StartGame installedGame -> state, Subs.startGame installedGame
+        | StartGame gameDir -> state, Subs.startGame gameDir
         | UpgradeGame (game, showNotification) ->
             Update.upgradeGame state game showNotification
         | FinishGameUpgrade (game, showNotification, updateData, authentication) ->
@@ -320,9 +334,12 @@ module Update =
                 |> Cmd.batch
 
             state, cmd
-        | FinishGameDownload (gameId, version) ->
+        | FinishGameDownload (gameId, gameDir, version) ->
             let state =
-                Optic.set (MainStateOptic.gameStatus gameId) (Installed version) state
+                Optic.set
+                    (MainStateOptic.gameStatus gameId)
+                    (Installed(version, gameDir))
+                    state
 
             state, Cmd.none
         | StartGameDownload (productInfo, dlcs, authentication) ->
@@ -331,17 +348,40 @@ module Update =
             let state = Optic.set MainStateOptic.authentication authentication state
 
             Update.startGameDownload state productInfo dlcs
-        | UnpackGame (settings, game, version) ->
-            let invoke () =
-                Download.extractLibrary settings game.name game.path version
+        | UnpackGame (settings, game, filePath, checksum, version) ->
+            // Check checksum
+            use md5 = MD5.Create()
+            use stream = File.OpenRead filePath
 
-            let cmd =
-                [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
-                  Cmd.OfAsync.perform invoke () (fun () ->
-                      FinishGameDownload(game.id, Option.defaultValue "0" version)) ]
-                |> Cmd.batch
+            let hash =
+                BitConverter
+                    .ToString(md5.ComputeHash stream)
+                    .Replace("-", "")
+                    .ToLowerInvariant()
 
-            state, cmd
+            if hash <> checksum then
+                let state =
+                    Optic.set
+                        (MainStateOptic.gameStatus game.id)
+                        (Errored "Checksum failed!")
+                        state
+
+                state, Cmd.none
+            else
+                let invoke () =
+                    Download.extractLibrary settings game.name filePath version
+
+                let cmd =
+                    [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
+                      Cmd.OfAsync.perform invoke () (fun gameDir ->
+                          FinishGameDownload(
+                              game.id,
+                              gameDir,
+                              Option.defaultValue "0" version
+                          )) ]
+                    |> Cmd.batch
+
+                state, cmd
         | UpgradeGames showNotifications ->
             let games =
                 Optic.get MainStateOptic.games state
@@ -359,7 +399,8 @@ module Update =
             let state =
                 state
                 |> Optic.map (MainStateOptic.gameStatus gameId) (function
-                    | Downloading (_, total) -> Downloading(fileSize, total)
+                    | Downloading (_, total, filePath) ->
+                        Downloading(fileSize, total, filePath)
                     | _ ->
                         failwith "Got new filesize although we are no longer downloading")
 
@@ -368,7 +409,7 @@ module Update =
             let state =
                 state
                 |> Optic.map (MainStateOptic.gameStatus gameId) (function
-                    | Downloading _ -> Installing
+                    | Downloading (_, _, filePath) -> Installing filePath
                     | _ ->
                         failwith
                             "Tried to switch to installing, although we are not downloading")
