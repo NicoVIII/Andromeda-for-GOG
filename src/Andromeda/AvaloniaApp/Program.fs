@@ -4,7 +4,6 @@ open Andromeda.Core
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.Diagnostics
 open Avalonia.FuncUI.Elmish
 open Elmish
 open GogApi
@@ -13,8 +12,10 @@ open Avalonia.FuncUI
 open Andromeda.AvaloniaApp
 
 module Program =
+    open Avalonia.FuncUI.Components.Hosts
+
     type MainWindow() as this =
-        inherit AndromedaWindow()
+        inherit HostWindow()
 
         do
             base.Title <- "Andromeda"
@@ -48,7 +49,6 @@ module Program =
 
             Program.mkProgram Init.perform updateWithServices View.render
             |> Program.withHost this
-            |> Program.withSubscription (fun _ -> Update.Subs.closeWindow this)
 #if DEBUG
             |> Program.withConsoleTrace
 #endif

@@ -45,4 +45,3 @@ type UnAuthMsg =
 type Msg =
     | Auth of AuthMsg
     | UnAuth of UnAuthMsg
-    | CloseAllWindows

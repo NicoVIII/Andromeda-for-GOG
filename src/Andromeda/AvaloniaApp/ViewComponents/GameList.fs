@@ -19,13 +19,13 @@ module GameList =
         // Is something going on with this game?
         let inProgress =
             match game.status with
-            | Pending -> Some(0, 1, "Pending...")
+            | Pending -> Some(0, 1, "", "Pending...")
             | Downloading (current, max) ->
                 let current, max = (int current, int max)
                 // TODO: switch units if applicable
                 let text = sprintf "%i MiB / %i MiB" current max
-                Some(current, max, text)
-            | Installing -> Some(1, 1, "Installing...")
+                Some(current, max, "Downloading...", text)
+            | Installing -> Some(1, 1, "Installing...", "")
             | GameStatus.Installed _ -> None
 
         let gap = 5.0
@@ -89,18 +89,27 @@ module GameList =
                         ]
 
                         match inProgress with
-                        | Some (value, maximum, text) ->
+                        | Some (value, maximum, text, downloadText) ->
                             let progressHeight = 20
 
                             yield!
-                                [ TextBlock.create [
-                                      TextBlock.height height
-                                      TextBlock.left 0
-                                      TextBlock.top 0
-                                      TextBlock.width width
+                                [ Border.create [
+                                      Border.height height
+                                      Border.left 0
+                                      Border.top 0
+                                      Border.width width
+                                      Border.background (
+                                          SolidColorBrush(Colors.Black, 0.8)
+                                      )
+                                      Border.child (
+                                          TextBlock.create [
+                                              TextBlock.horizontalAlignment
+                                                  HorizontalAlignment.Center
+                                              TextBlock.verticalAlignment
+                                                  VerticalAlignment.Center
 
-                                      TextBlock.background (
-                                          SolidColorBrush(Colors.Black, 0.7)
+                                              TextBlock.text text
+                                          ]
                                       )
                                   ]
                                   :> IView
@@ -123,7 +132,7 @@ module GameList =
                                           TextBlock.create [
                                               TextBlock.verticalAlignment
                                                   VerticalAlignment.Center
-                                              TextBlock.text text
+                                              TextBlock.text downloadText
                                           ]
                                       )
                                   ] ]

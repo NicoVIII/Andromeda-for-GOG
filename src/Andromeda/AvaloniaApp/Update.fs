@@ -19,13 +19,6 @@ open Andromeda.AvaloniaApp.DomainTypes
 
 module Update =
     module Subs =
-        let closeWindow (wind: IAndromedaWindow) =
-            let sub dispatch =
-                wind.AddClosedHandler(fun _ -> CloseAllWindows |> dispatch)
-                |> ignore
-
-            Cmd.ofSub sub
-
         /// Starts a given game in a subprocess and redirects its terminal output
         let startGame (game: Game) =
             let createEmptyDisposable () =
@@ -331,7 +324,7 @@ module Update =
             let state =
                 Optic.set (MainStateOptic.gameStatus gameId) (Installed version) state
 
-            state, Cmd.ofMsg (SearchInstalled false)
+            state, Cmd.none
         | StartGameDownload (productInfo, dlcs, authentication) ->
             // This is triggered by the parent component, authentication could have changed,
             // so we update it
@@ -475,10 +468,3 @@ module Update =
         | Auth _, Unauthenticated _ -> failwith "Got unauthenticated msg in auth state"
         | UnAuth msg, Unauthenticated state -> performUnauthenticated msg state
         | UnAuth _, Authenticated _ -> failwith "Got authenticated msg in unauth state"
-        | CloseAllWindows, _ ->
-            let closeWindow (window: IAndromedaWindow) =
-                window.CloseWithoutCustomHandler()
-
-            closeWindow mainWindow
-
-            state, Cmd.none
