@@ -11,6 +11,8 @@ If you need something to play Multiplayer over Galaxy on linux, have a look at t
 There is an alternative for Linux systems written in Python called Minigalaxy:  
 <https://github.com/sharkwouter/minigalaxy>
 
+![Screenshot](screenshot-1.png)
+
 ## Installation
 
 Just download the executable for your os from the GitHub releases.
