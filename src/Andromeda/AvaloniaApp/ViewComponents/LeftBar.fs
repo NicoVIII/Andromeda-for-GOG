@@ -2,9 +2,9 @@ namespace Andromeda.AvaloniaApp.ViewComponents
 
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Media
 open Avalonia.Layout
 
-open Avalonia.FuncUI.Components
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 
@@ -62,7 +62,7 @@ module LeftBar =
             StackPanel.children [
                 Button.create [
                     Button.classes [ "iconButton" ]
-                    Button.content Icon.settings
+                    Button.content (Icon.settings Brushes.White [])
                     Button.onClick (fun _ -> ShowSettings |> dispatch)
                 ]
             ]

@@ -28,12 +28,11 @@ type GameStatus =
     | Errored of msg: string
     | Downloading of int<MiB> * int<MiB> * filepath: string
     | Installing of filepath: string
-    | Installed of version: string * gameDir: string
+    | Installed of version: string option * gameDir: string
 
 type Game =
     { id: GogApi.DomainTypes.ProductId
       name: string
-      updateable: bool
       image: string option
       status: GameStatus }
 
@@ -41,7 +40,6 @@ module Game =
     let create id name =
         { Game.id = id
           name = name
-          updateable = false
           image = None
           status = Pending }
 
@@ -56,12 +54,6 @@ module GameOptic =
         Lens(
             (fun (x: Game) -> x.name),
             (fun (x: Game) (value: string) -> { x with name = value })
-        )
-
-    let updateable =
-        Lens(
-            (fun (x: Game) -> x.updateable),
-            (fun (x: Game) (value: bool) -> { x with updateable = value })
         )
 
     let image =

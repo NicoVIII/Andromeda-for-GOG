@@ -29,7 +29,7 @@ type AuthMsg =
         filepath: string *
         checksum: string *
         version: string option
-    | FinishGameDownload of ProductId * gameDir: string * version: string
+    | FinishGameDownload of ProductId * gameDir: string * version: string option
     | UpdateDownloadSize of ProductId * int<MiB>
     | UpdateDownloadInstalling of ProductId
     | UpgradeGames of showNotifications: bool

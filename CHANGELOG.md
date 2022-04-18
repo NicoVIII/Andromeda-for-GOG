@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 -   Installer checksum verification
 -   Tabs for process output
+-   Icon for non-updateable games
 
 ### Changed
 
@@ -18,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 -   Disabled "Start" and "Update" on game which is updating
+-   Don't show "Update" option and update notification for non-updateable games
 
 ## [0.5.2] - 2022-03-03
 

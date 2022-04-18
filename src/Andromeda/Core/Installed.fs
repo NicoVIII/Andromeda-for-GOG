@@ -22,37 +22,39 @@ module Installed =
 
     /// Looks up, if there is an update available for given game
     let checkGameForUpdate authentication game =
-        async {
-            let! result =
-                Helpers.withAutoRefresh (GalaxyApi.getProduct game.id) authentication
+        // It makes only sense to update, if we have an installed game with version
+        match game.status with
+        | Installed (Some installedVersion, _) ->
+            async {
+                let! result =
+                    Helpers.withAutoRefresh (GalaxyApi.getProduct game.id) authentication
 
-            return
-                match result with
-                | (Error _, authentication) -> (None, authentication)
-                | (Ok update, authentication) ->
-                    let os =
-                        match SystemInfo.os with
-                        | SystemInfo.OS.Linux -> "linux"
-                        | SystemInfo.OS.Windows -> "windows"
-                        | SystemInfo.OS.MacOS -> "mac"
+                return
+                    match result with
+                    | (Error _, authentication) -> (None, authentication)
+                    | (Ok update, authentication) ->
+                        let os =
+                            match SystemInfo.os with
+                            | SystemInfo.OS.Linux -> "linux"
+                            | SystemInfo.OS.Windows -> "windows"
+                            | SystemInfo.OS.MacOS -> "mac"
 
-                    // Get first installer for os
-                    let installer =
-                        update.downloads.installers
-                        |> List.filter (fun installer -> installer.os = os)
-                        |> List.item 0
+                        // Get first installer for os
+                        let installer =
+                            update.downloads.installers
+                            |> List.filter (fun installer -> installer.os = os)
+                            |> List.item 0
 
-                    // Return game, if update is available
-                    match (game.status, installer.version) with
-                    | (Installed (version, _), Some availableVersion) when
-                        version <> availableVersion
-                        ->
-                        (Some
-                            { newVersion = availableVersion
-                              game = game },
-                         authentication)
-                    | _ -> (None, authentication)
-        }
+                        // Return game, if update is available
+                        match installer.version with
+                        | Some availableVersion when installedVersion <> availableVersion ->
+                            (Some
+                                { newVersion = availableVersion
+                                  game = game },
+                             authentication)
+                        | _ -> (None, authentication)
+            }
+        | _ -> async { return (None, authentication) }
 
     let private prepareGameProcess processOutput (proc: Process) =
         proc.StartInfo.RedirectStandardOutput <- true
@@ -159,19 +161,10 @@ module Installed =
                 | Some version -> version
                 | None -> lines.[1]
 
-            let game =
-                Game.create (lines.[4] |> uint32 |> ProductId) lines.[0]
-                |> Optic.set GameOptic.status (Installed(version, gameDir))
-                |> Optic.set GameOptic.updateable true
-                |> Some
-
-            game
+            Game.create (lines.[4] |> uint32 |> ProductId) lines.[0]
+            |> Optic.set GameOptic.status (Installed(Some version, gameDir))
+            |> Some
         | Some lines ->
-            let version =
-                match version with
-                | Some version -> version
-                | None -> lines.[1]
-
             Path.GetFileName gameDir
             |> getGameId authentication
             |> function
@@ -190,15 +183,9 @@ module Installed =
                 File.ReadAllLines file
                 |> Seq.fold (+) ""
                 |> Json.deserialize<WindowsGameInfoFile>
-            // TODO: determine version and updateability
-            let versionString =
-                match version with
-                | Some version -> version
-                | None -> "1" // TODO:
 
             Game.create (gameInfo.gameId |> uint32 |> ProductId) gameInfo.name
-            |> Optic.set GameOptic.status (Installed(versionString, gameDir))
-            |> Optic.set GameOptic.updateable version.IsSome
+            |> Optic.set GameOptic.status (Installed(version, gameDir))
 
         // Find info file of game
         let files = Directory.GetFiles(gameDir, "goggame-*.info")

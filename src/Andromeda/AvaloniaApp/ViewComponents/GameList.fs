@@ -37,7 +37,7 @@ module GameList =
                 ContextMenu.create [
                     ContextMenu.viewItems [
                         match game.status with
-                        | GameStatus.Installed (_, gameDir) ->
+                        | GameStatus.Installed (version, gameDir) ->
                             yield!
                                 [ MenuItem.create [
                                       MenuItem.header "Start"
@@ -48,13 +48,18 @@ module GameList =
                                       )
                                   ]
                                   :> IView
-                                  MenuItem.create [
-                                      MenuItem.header "Update"
-                                      MenuItem.onClick (
-                                          (fun _ -> UpgradeGame(game, true) |> dispatch),
-                                          OnChangeOf game
-                                      )
-                                  ]
+                                  // Show update option, if game is updateable
+                                  match version with
+                                  | Some _ ->
+                                      MenuItem.create [
+                                          MenuItem.header "Update"
+                                          MenuItem.onClick (
+                                              (fun _ ->
+                                                  UpgradeGame(game, true) |> dispatch),
+                                              OnChangeOf game
+                                          )
+                                      ]
+                                  | _ -> ()
                                   MenuItem.create [ MenuItem.header "-" ]
 
                                   MenuItem.create [
@@ -90,6 +95,16 @@ module GameList =
                                     )
                             )
                         ]
+
+                        // Show icon if game is not updateable
+                        match game.status with
+                        | GameStatus.Installed (None, _) ->
+                            Icon.noUpdate
+                                Brushes.DarkRed
+                                [ Canvas.left 5
+                                  Canvas.top 5
+                                  Canvas.tip "Not updateable" ]
+                        | _ -> ()
 
                         match inProgress with
                         | Some (value, maximum, text, downloadText) ->

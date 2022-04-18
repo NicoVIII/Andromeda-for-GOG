@@ -92,15 +92,24 @@ module Update =
     module Update =
         /// Checks a single game for an upgrade
         let upgradeGame state game showNotification =
-            let invoke () =
-                (Optic.get MainStateOptic.authentication state, game)
-                ||> checkGameForUpdate
+            // Only update updateable game
+            match game.status with
+            | Installed (Some _, _) ->
+                let invoke () =
+                    (Optic.get MainStateOptic.authentication state, game)
+                    ||> checkGameForUpdate
 
-            let cmd =
-                Cmd.OfAsync.perform invoke () (fun (updateData, authentication) ->
-                    FinishGameUpgrade(game, showNotification, updateData, authentication))
+                let cmd =
+                    Cmd.OfAsync.perform invoke () (fun (updateData, authentication) ->
+                        FinishGameUpgrade(
+                            game,
+                            showNotification,
+                            updateData,
+                            authentication
+                        ))
 
-            state, cmd
+                state, cmd
+            | _ -> state, Cmd.none
 
         let finishGameUpgrade
             state
@@ -382,11 +391,7 @@ module Update =
                 let cmd =
                     [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
                       Cmd.OfAsync.perform invoke () (fun gameDir ->
-                          FinishGameDownload(
-                              game.id,
-                              gameDir,
-                              Option.defaultValue "0" version
-                          )) ]
+                          FinishGameDownload(game.id, gameDir, version)) ]
                     |> Cmd.batch
 
                 state, cmd

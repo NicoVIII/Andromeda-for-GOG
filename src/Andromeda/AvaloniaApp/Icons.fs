@@ -1,10 +1,13 @@
 namespace Andromeda.AvaloniaApp
 
-open Avalonia.Controls
-open Avalonia.Controls.Shapes
-open Avalonia.FuncUI.DSL
-
 module Icon =
+    open Avalonia.Controls
+    open Avalonia.Controls.Shapes
+    open Avalonia.Media
+
+    open Avalonia.FuncUI.DSL
+    open Avalonia.FuncUI.Types
+
     module PathData =
         // From https://materialdesignicons.com/icon/cog-outline
         let cogOutline =
@@ -30,20 +33,31 @@ module Icon =
             + "C14.85,21.87 9.15,21.87 5.64,18.39C2.14,14.92 2.11,9.28 5.62,5.81C9.13,2.34 14.76,2.34 18.27,5.81L21,3"
             + "V10.12M12.5,8V12.25L16,14.33L15.28,15.54L11,13V8H12.5Z"
 
-    let create pathData =
+        let crossLine = "M1,0L24,23L23,24L0,1Z"
+
+    let createPath color pathData =
+        Path.create [
+            Path.fill (color: IBrush)
+            Path.data (pathData: string)
+        ]
+
+    let create attribs children =
         Canvas.create [
             Canvas.width 24.0
             Canvas.height 24.0
             Canvas.classes [ "icon" ]
-            Canvas.children [
-                Path.create [
-                    Path.data (pathData: string)
-                ]
-            ]
+            yield! attribs
+            Canvas.children [ yield! children ]
         ]
 
-    let settings = create PathData.cogOutline
+    let settings color attribs =
+        let path = createPath color PathData.cogOutline
+        create attribs [ path ]
 
-    let noUpdate =
-        let pathData = PathData.update + "M0,0L24,24"
-        create pathData
+    let noUpdate color attribs =
+        // Add cross out to path
+        let paths: IView list =
+            [ createPath color PathData.update
+              createPath color PathData.crossLine ]
+
+        create attribs paths
