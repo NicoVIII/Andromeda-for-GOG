@@ -58,8 +58,7 @@ module Task =
                 DotNet.restore proj
         }
 
-    let buildApp () =
-        DotNet.build Config.mainProject Debug
+    let buildApp () = DotNet.build Config.mainProject Debug
 
     let build () =
         job {
@@ -132,7 +131,6 @@ module Task =
                 Internal.basicCommand
                     "./appimagetool-x86_64.AppImage"
                     [ "--appimage-extract-and-run"
-                      "--no-appstream"
                       "AppDir"
                       "-u"
                       "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync" ]

@@ -26,6 +26,8 @@ jobs:
         uses: actions/setup-dotnet@v1
         with:
           dotnet-version: ${{ matrix.dotnet }}
+      - name: Install appstreamcli
+        run: sudo apt-get install -y appstream
       - name: Restore
         run: dotnet run restore
       - name: Build
