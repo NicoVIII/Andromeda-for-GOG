@@ -211,13 +211,10 @@ let main args =
                 Task.publish version
             }
         // Errors for missing arguments
-        | [ "publish" ] ->
-            let msg = [ "Missing version argument!" ]
-            Error(1, msg)
+        | [ "publish" ] -> Job.error 1 [ "Missing version argument!" ]
         | _ ->
-            let msg =
+            Job.error
+                1
                 [ "Usage: dotnet run [<command>]"
                   "Look up available commands in run.fs" ]
-
-            Error(1, msg)
-    |> ProcessResult.wrapUp
+    |> Job.execute
