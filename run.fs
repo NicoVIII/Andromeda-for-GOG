@@ -4,7 +4,7 @@ open System.IO
 open System.Net.Http
 
 open RunHelpers
-open RunHelpers.BasicShortcuts
+open RunHelpers.Shortcuts
 open RunHelpers.Templates
 
 [<RequireQualifiedAccess>]
@@ -102,7 +102,7 @@ module Task =
                     $"src/Andromeda/AvaloniaApp/bin/Release/{Config.framework}/linux-x64/publish"
                     "AppDir/usr/bin"
 
-                Internal.basicCommand
+                cmd
                     "cp"
                     [ "-a"
                       "assets/build/appimage/."
@@ -123,24 +123,24 @@ module Task =
                         |> Async.AwaitTask
                         |> Async.RunSynchronously
 
-                    Internal.basicCommand
+                    cmd
                         "chmod"
                         [ "a+x"
                           "appimagetool-x86_64.AppImage" ]
 
-                Internal.basicCommand
+                cmd
                     "./appimagetool-x86_64.AppImage"
                     [ "--appimage-extract-and-run"
                       "AppDir"
                       "-u"
                       "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync" ]
 
-                Internal.basicCommand
+                cmd
                     "mv"
                     [ "Andromeda-x86_64.AppImage"
                       "./publish/Andromeda-x86_64.AppImage" ]
 
-                Internal.basicCommand
+                cmd
                     "mv"
                     [ "Andromeda-x86_64.AppImage.zsync"
                       "./publish/Andromeda-x86_64.AppImage.zsync" ]
@@ -148,8 +148,7 @@ module Task =
                 printfn "Finished publishing as AppImage"
 
                 // Clean up
-                Internal.basicCommand "rm" [ "-rf"; "AppDir" ]
-                |> ignore
+                cmd "rm" [ "-rf"; "AppDir" ] |> ignore
             }
 
         result
@@ -158,10 +157,10 @@ module Task =
         let publish =
             DotNet.publishSelfContained Config.publishPath Config.mainProject version
 
-        Shell.mkdir Config.publishPath
-        Shell.cleanDir Config.publishPath
-
         job {
+            Shell.mkdir Config.publishPath
+            Shell.cleanDir Config.publishPath
+
             publish LinuxX64
 
             Shell.mv
@@ -211,10 +210,13 @@ let main args =
                 Task.publish version
             }
         // Errors for missing arguments
-        | [ "publish" ] -> Job.error 1 [ "Missing version argument!" ]
+        | [ "publish" ] ->
+            Job.error [
+                "Missing version argument!"
+            ]
         | _ ->
-            Job.error
-                1
-                [ "Usage: dotnet run [<command>]"
-                  "Look up available commands in run.fs" ]
+            Job.error [
+                "Usage: dotnet run [<command>]"
+                "Look up available commands in run.fs"
+            ]
     |> Job.execute
