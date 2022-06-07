@@ -4,11 +4,11 @@ open Andromeda.Core
 open Andromeda.Core.DomainTypes
 open Avalonia
 open Avalonia.Controls
-open Avalonia.FuncUI.Components
+open Elmish
+open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
-open Elmish
 open System.IO
 
 open Andromeda.AvaloniaApp.AvaloniaHelper

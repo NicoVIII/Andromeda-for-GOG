@@ -1,8 +1,7 @@
+FSharp.Core
 NicoVIII.GogApi
 NicoVIII.SimpleOptics
 Mono.Posix.NETStandard
 SharpZipLib
 TypedPersistence.Json
-Myriad.Plugins
-Myriad.Sdk
 FsToolkit.ErrorHandling

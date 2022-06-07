@@ -3,11 +3,13 @@ namespace Andromeda.AvaloniaApp.Components
 open Andromeda.Core
 open Avalonia
 open Avalonia.Controls
-open Avalonia.FuncUI.Components
+
+open Elmish
+open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.Input
 open Avalonia.Layout
-open Elmish
+
 open GogApi
 open GogApi.DomainTypes
 

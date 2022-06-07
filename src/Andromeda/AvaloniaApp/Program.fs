@@ -4,16 +4,15 @@ open Andromeda.Core
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
-open Avalonia.FuncUI.Elmish
 open Elmish
+open Avalonia.FuncUI.Elmish
+open Avalonia.FuncUI.Hosts
 open GogApi
 open Avalonia.FuncUI
 
 open Andromeda.AvaloniaApp
 
 module Program =
-    open Avalonia.FuncUI.Components.Hosts
-
     type MainWindow() as this =
         inherit HostWindow()
 

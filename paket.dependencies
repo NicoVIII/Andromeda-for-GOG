@@ -4,20 +4,16 @@ framework: auto-detect
 storage: none
 
 nuget FSharp.Core content: none
-nuget Avalonia 0.10.10
-nuget Avalonia.Diagnostics 0.10.10
-nuget FsToolkit.ErrorHandling ~> 2.0
-nuget NicoVIII.GogApi ~> 3.0
+nuget Avalonia
+nuget Avalonia.Diagnostics
+nuget FsToolkit.ErrorHandling
+nuget JaggerJo.Avalonia.FuncUI.DSL
+nuget JaggerJo.Avalonia.FuncUI.Elmish
+nuget MessageBox.Avalonia
+nuget Mono.Posix.NETStandard
+nuget NicoVIII.GogApi
 nuget NicoVIII.SimpleOptics
-nuget JaggerJo.Avalonia.FuncUI 0.5.0-beta
-nuget JaggerJo.Avalonia.FuncUI.DSL 0.5.0-beta
-nuget JaggerJo.Avalonia.FuncUI.Elmish 0.5.0-beta
-nuget MessageBox.Avalonia ~> 1.6
-nuget Mono.Posix.NETStandard ~> 1.0
-nuget Myriad.Core ~> 0.4.0
-nuget Myriad.Plugins ~> 0.4.0
-nuget Myriad.Sdk ~> 0.4.0
-nuget SharpZipLib ~> 1.2
-nuget TypedPersistence.Json ~> 0.6.0-alpha.5
+nuget SharpZipLib
+nuget TypedPersistence.Json prerelease
 
 nuget Expecto.FsCheck

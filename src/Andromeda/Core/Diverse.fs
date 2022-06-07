@@ -1,5 +1,6 @@
 namespace Andromeda.Core
 
+open FsHttp
 open FsHttp.DslCE
 open GogApi
 open GogApi.DomainTypes
@@ -31,7 +32,6 @@ module Diverse =
         }
 
     [<Pure>]
-    /// Takes a list of Installers and returns only those, who are for the given OS
     let filterInstallersByOS systemInfo (installers: InstallerInfo list) =
         let filter =
             match systemInfo with
