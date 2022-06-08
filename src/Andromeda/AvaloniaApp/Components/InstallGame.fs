@@ -48,7 +48,7 @@ module InstallGame =
                 | Some selected ->
                     let dlcs = state.dlcs |> Option.defaultValue []
                     Intent.Close(selected, dlcs)
-                | None -> DoNothing
+                | None -> failwith "No selected product"
 
             state, Cmd.none, intent
         | SearchGame ->
