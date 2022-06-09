@@ -47,7 +47,7 @@ module Update =
             Cmd.ofSub sub
 
         let registerDownloadTimer
-            (task: Task<unit> option)
+            (task: Async<unit> option)
             tmppath
             (game: Game)
             maxFileSize
@@ -213,9 +213,9 @@ module Update =
 
                 match result with
                 | None -> state, Cmd.none
-                | Some (task, filePath, tmppath, size, checksum) ->
+                | Some gameDownload ->
                     let fileSize =
-                        size
+                        gameDownload.size
                         |> byteToMiBL
                         |> (fun x -> x / 1L<MiB>)
                         |> int
@@ -225,41 +225,53 @@ module Update =
                         Game.create productInfo.id (productInfo.title)
                         |> Optic.set
                             GameOptic.status
-                            (Downloading(0<MiB>, fileSize, filePath))
+                            (Downloading(
+                                0<MiB>,
+                                fileSize,
+                                gameDownload.fileDownload.targetPath
+                            ))
 
                     let settings = Optic.get MainStateOptic.settings state
 
                     let state = Optic.set (MainStateOptic.game game.id) game state
 
                     let downloadCmd =
-                        match task with
+                        match gameDownload.fileDownload.task with
                         | Some task ->
                             let invoke () =
                                 async {
-                                    let! _ = task |> Async.AwaitTask
-                                    File.Move(tmppath, filePath)
+                                    do! task
+
+                                    File.Move(
+                                        gameDownload.fileDownload.tmpPath,
+                                        gameDownload.fileDownload.targetPath
+                                    )
                                 }
 
                             ElmishHelper.cmdOfAsync invoke () (fun _ ->
                                 UnpackGame(
                                     settings,
                                     game,
-                                    filePath,
-                                    checksum,
+                                    gameDownload.fileDownload.targetPath,
+                                    gameDownload.checksum,
                                     installerInfo.version
                                 ))
                         | None ->
                             UnpackGame(
                                 settings,
                                 game,
-                                filePath,
-                                checksum,
+                                gameDownload.fileDownload.targetPath,
+                                gameDownload.checksum,
                                 installerInfo.version
                             )
                             |> Cmd.ofMsg
 
                     let cmd =
-                        [ Subs.registerDownloadTimer task tmppath game fileSize
+                        [ Subs.registerDownloadTimer
+                              gameDownload.fileDownload.task
+                              gameDownload.fileDownload.tmpPath
+                              game
+                              fileSize
                           Cmd.ofMsg (LookupGameImage game.id)
                           downloadCmd ]
                         |> Cmd.batch

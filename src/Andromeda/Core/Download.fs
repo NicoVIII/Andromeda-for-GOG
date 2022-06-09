@@ -18,9 +18,9 @@ module Download =
 
     let client = new HttpClient()
 
-    type FileDownloadInfo =
-        { downloadTask: Task<unit> option
-          filePath: string
+    type FileDownload =
+        { task: Async<unit> option
+          targetPath: string
           tmpPath: string }
 
     let getVersionSuffix =
@@ -38,20 +38,25 @@ module Download =
         let filepath = Path.combine dir fileName
         let tmppath = Path.combine3 dir Constants.tmpFolder fileName
 
-        { downloadTask = None
-          filePath = filepath
+        { task = None
+          targetPath = filepath
           tmpPath = tmppath }
 
-    let setupDownloadTask (SafeDownLink url) path =
-        task {
+    let setupDownload (SafeDownLink url) path =
+        async {
             use fileStream = File.create path
 
             let url = url.Replace("http://", "https://")
 
-            let! response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
+            let! response =
+                client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
+                |> Async.AwaitTask
 
             do response.EnsureSuccessStatusCode() |> ignore
-            do! response.Content.CopyToAsync fileStream
+
+            do!
+                response.Content.CopyToAsync fileStream
+                |> Async.AwaitTask
         }
 
     let startFileDownload downLink gameName version =
@@ -60,13 +65,13 @@ module Download =
 
         let download = buildFileDownload gameName version
 
-        let file = FileInfo(download.filePath)
+        let file = FileInfo(download.targetPath)
 
         match file.Exists with
         | false ->
-            let task = setupDownloadTask downLink download.tmpPath
+            let task = setupDownload downLink download.tmpPath
 
-            { download with downloadTask = Some task }
+            { download with task = Some task }
         | true -> download
 
     let rec copyDirectory
@@ -198,6 +203,11 @@ module Download =
             return target
         }
 
+    type GameDownload =
+        { fileDownload: FileDownload
+          size: int64<Byte>
+          checksum: string option }
+
     let downloadGame
         gameName
         (installer: InstallerInfo)
@@ -235,13 +245,10 @@ module Download =
                                     installer.version
 
                             return
-                                Some(
-                                    fileDownload.downloadTask,
-                                    fileDownload.filePath,
-                                    fileDownload.tmpPath,
-                                    info.size * 1L<Byte>,
-                                    checksum
-                                )
+                                Some
+                                    { fileDownload = fileDownload
+                                      size = info.size * 1L<Byte>
+                                      checksum = checksum }
                         }
                 | Error _ ->
                     // TODO: Add loggin
