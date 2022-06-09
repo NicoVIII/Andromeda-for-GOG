@@ -71,11 +71,12 @@ module Diverse =
                     | Ok productResponse ->
                         let imgUrl = "https:" + productResponse.images.logo2x
 
-                        let imgResponse =
+                        let! imgResponse =
                             http {
                                 GET imgUrl
                                 CacheControl "no-cache"
                             }
+                            |> Request.sendAsync
 
                         let! imgData =
                             imgResponse.content.ReadAsByteArrayAsync()

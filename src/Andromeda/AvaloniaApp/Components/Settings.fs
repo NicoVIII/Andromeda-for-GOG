@@ -11,6 +11,7 @@ open Avalonia.FuncUI.Types
 open Avalonia.Layout
 open System.IO
 
+open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.AvaloniaHelper
 
 module Settings =
@@ -56,7 +57,7 @@ module Settings =
                     return result
                 }
 
-            state, Cmd.OfAsync.perform showDialog window SetGamepath, DoNothing
+            state, AvaloniaHelper.cmdOfAsync showDialog window SetGamepath, DoNothing
         | SetCacheRemoval policy ->
             { state with cacheRemoval = policy }, Cmd.none, DoNothing
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none, DoNothing

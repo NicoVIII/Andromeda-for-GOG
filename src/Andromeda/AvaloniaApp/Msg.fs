@@ -27,7 +27,7 @@ type AuthMsg =
         Settings *
         Game *
         filepath: string *
-        checksum: string *
+        checksum: string option *
         version: string option
     | FinishGameDownload of ProductId * gameDir: string * version: string option
     | UpdateDownloadSize of ProductId * int<MiB>

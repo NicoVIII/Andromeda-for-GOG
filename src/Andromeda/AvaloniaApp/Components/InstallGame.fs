@@ -13,6 +13,8 @@ open Avalonia.Layout
 open GogApi
 open GogApi.DomainTypes
 
+open Andromeda.AvaloniaApp
+
 module InstallGame =
     type State =
         { dlcs: Dlc list option
@@ -70,7 +72,7 @@ module InstallGame =
                     productInfos = None
                     selected = None }
 
-            let cmd = Cmd.OfAsync.perform invoke () SetProductInfos
+            let cmd = AvaloniaHelper.cmdOfAsync invoke () SetProductInfos
 
             state, cmd, DoNothing
         | SetProductInfos productInfos ->
@@ -99,7 +101,7 @@ module InstallGame =
                 }
 
             let state = { state with selected = Some productInfo }
-            let cmd = Cmd.OfAsync.perform invoke () SetDlcs
+            let cmd = AvaloniaHelper.cmdOfAsync invoke () SetDlcs
             state, cmd, DoNothing
 
     module View =

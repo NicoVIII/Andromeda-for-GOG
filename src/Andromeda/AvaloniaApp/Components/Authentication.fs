@@ -14,6 +14,8 @@ open System.Diagnostics
 open System.Runtime.InteropServices
 open System.Web
 
+open Andromeda.AvaloniaApp
+
 module Authentication =
     let redirectUri = "https://embed.gog.com/on_login_success?origin=client"
 
@@ -78,7 +80,7 @@ module Authentication =
 
                     let msgFnc auth = TryAuthenticate auth
 
-                    Cmd.OfAsync.perform getAuth () msgFnc
+                    AvaloniaHelper.cmdOfAsync getAuth () msgFnc
 
             state, msg, DoNothing
         | SetCode code ->

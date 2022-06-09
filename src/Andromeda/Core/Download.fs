@@ -2,7 +2,6 @@ namespace Andromeda.Core
 
 open ICSharpCode.SharpZipLib.Zip
 open FsHttp
-open FsHttp.DslCE
 open GogApi
 open GogApi.DomainTypes
 open Mono.Unix.Native
@@ -209,16 +208,20 @@ module Download =
                     return!
                         async {
                             // Get checksum
-                            let! response = httpAsync { GET urlResponse.checksum }
+                            let! response =
+                                http { GET urlResponse.checksum }
+                                |> Request.sendAsync
+
+                            let! responseText = Response.toStringAsync (Some 500) response
+
+                            let regexMatch =
+                                Regex.Match(responseText, "md5=\"([a-z0-9]+)\"")
 
                             let checksum =
-                                Regex
-                                    .Match(
-                                        Response.toText response,
-                                        "md5=\"([a-z0-9]+)\""
-                                    )
-                                    .Groups[1]
-                                    .Value
+                                if regexMatch.Groups.Count >= 2 then
+                                    Some regexMatch.Groups[1].Value
+                                else
+                                    None
 
                             let (task, filepath, tmppath) =
                                 startFileDownload

@@ -100,13 +100,16 @@ module Update =
                     ||> checkGameForUpdate
 
                 let cmd =
-                    Cmd.OfAsync.perform invoke () (fun (updateData, authentication) ->
-                        FinishGameUpgrade(
-                            game,
-                            showNotification,
-                            updateData,
-                            authentication
-                        ))
+                    AvaloniaHelper.cmdOfAsync
+                        invoke
+                        ()
+                        (fun (updateData, authentication) ->
+                            FinishGameUpgrade(
+                                game,
+                                showNotification,
+                                updateData,
+                                authentication
+                            ))
 
                 state, cmd
             | _ -> state, Cmd.none
@@ -166,7 +169,10 @@ module Update =
                 |> Optic.map MainStateOptic.notifications (List.append [ notification ])
 
             let cmd =
-                Cmd.OfAsync.perform removeNotification notification RemoveNotification
+                AvaloniaHelper.cmdOfAsync
+                    removeNotification
+                    notification
+                    RemoveNotification
 
             state, cmd
 
@@ -182,7 +188,7 @@ module Update =
             let cmd =
                 imgJobs
                 |> List.map (fun job ->
-                    Cmd.OfAsync.perform job authentication SetGameImage)
+                    AvaloniaHelper.cmdOfAsync job authentication SetGameImage)
                 |> Cmd.batch
 
             state, cmd
@@ -234,7 +240,7 @@ module Update =
                                     File.Move(tmppath, filePath)
                                 }
 
-                            Cmd.OfAsync.perform invoke () (fun _ ->
+                            AvaloniaHelper.cmdOfAsync invoke () (fun _ ->
                                 UnpackGame(
                                     settings,
                                     game,
@@ -285,7 +291,7 @@ module Update =
                     SetGameImage(productId, imgPath) |> Cmd.ofMsg
                 | Diverse.HasToBeDownloaded job ->
                     let authentication = Optic.get MainStateOptic.authentication state
-                    Cmd.OfAsync.perform job authentication SetGameImage
+                    AvaloniaHelper.cmdOfAsync job authentication SetGameImage
 
             state, cmd
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
@@ -376,7 +382,8 @@ module Update =
                     .Replace("-", "")
                     .ToLowerInvariant()
 
-            if hash <> checksum then
+            match checksum with
+            | Some checksum when hash <> checksum ->
                 let state =
                     Optic.set
                         (MainStateOptic.gameStatus game.id)
@@ -384,13 +391,13 @@ module Update =
                         state
 
                 state, Cmd.none
-            else
+            | _ ->
                 let invoke () =
                     Download.extractLibrary settings game.name filePath version
 
                 let cmd =
                     [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
-                      Cmd.OfAsync.perform invoke () (fun gameDir ->
+                      AvaloniaHelper.cmdOfAsync invoke () (fun gameDir ->
                           FinishGameDownload(game.id, gameDir, version)) ]
                     |> Cmd.batch
 

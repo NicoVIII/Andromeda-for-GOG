@@ -1,9 +1,11 @@
 namespace Andromeda.AvaloniaApp
 
+open Elmish
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Platform
 open Avalonia.FuncUI.DSL
+
 open System
 
 module AvaloniaHelper =
@@ -14,9 +16,13 @@ module AvaloniaHelper =
             else
                 Uri(path, UriKind.RelativeOrAbsolute)
 
-        let assets =
-            AvaloniaLocator.Current.GetService<IAssetLoader>()
+        let assets = AvaloniaLocator.Current.GetService<IAssetLoader>()
 
         assets.Open(uri)
 
-    let simpleTextBlock text = TextBlock.create [ TextBlock.text text ]
+    let simpleTextBlock text =
+        TextBlock.create [ TextBlock.text text ]
+
+    let cmdOfAsync task arg onSuccess =
+        let onError exn = raise exn
+        Cmd.OfAsync.either task arg onSuccess onError
