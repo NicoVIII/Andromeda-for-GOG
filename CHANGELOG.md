@@ -6,6 +6,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2022-06-09
+
+### Fixed
+
+-   Some issue when the checksum response isn't valid
+
 ## [0.6.0] - 2022-06-07
 
 ### Added
