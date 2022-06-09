@@ -28,15 +28,11 @@ type GameStatus =
     | Installing of filepath: string
     | Installed of version: string option * gameDir: string
 
+type GameName = private GameName of string
+type GamePath = private GamePath of string
+
 type Game =
     { id: GogApi.DomainTypes.ProductId
-      name: string
+      name: GameName
       image: string option
       status: GameStatus }
-
-module Game =
-    let create id name =
-        { Game.id = id
-          name = name
-          image = None
-          status = Pending }

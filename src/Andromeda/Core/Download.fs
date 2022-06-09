@@ -14,54 +14,60 @@ open Andromeda.Core.Helpers
 
 /// A module for everything which helps to download and install games
 module Download =
+    open System.Threading.Tasks
+
     let client = new HttpClient()
 
-    let startFileDownload (SafeDownLink url) gameName version =
-        let version =
-            match version with
-            | Some v -> "-" + v
-            | None -> ""
+    type FileDownloadInfo =
+        { downloadTask: Task<unit> option
+          filePath: string
+          tmpPath: string }
 
+    let getVersionSuffix =
+        function
+        | Some version -> $"-%s{version}"
+        | None -> ""
+
+    let getFileName gameName version =
+        let versionSuffix = getVersionSuffix version
+        sprintf "%s%s.%s" gameName versionSuffix SystemInfo.installerEnding
+
+    let buildFileDownload gameName version =
+        let dir = SystemInfo.installerCachePath
+        let fileName = getFileName gameName version
+        let filepath = Path.combine dir fileName
+        let tmppath = Path.combine3 dir Constants.tmpFolder fileName
+
+        { downloadTask = None
+          filePath = filepath
+          tmpPath = tmppath }
+
+    let setupDownloadTask (SafeDownLink url) path =
+        task {
+            use fileStream = File.create path
+
+            let url = url.Replace("http://", "https://")
+
+            let! response = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
+
+            do response.EnsureSuccessStatusCode() |> ignore
+            do! response.Content.CopyToAsync fileStream
+        }
+
+    let startFileDownload downLink gameName version =
         // Remove invalid characters from gameName
         let gameName = Path.removeInvalidFileNameChars gameName
 
-        let dir = SystemInfo.installerCachePath
+        let download = buildFileDownload gameName version
 
-        let filepath =
-            Path.Combine(
-                dir,
-                sprintf "%s%s.%s" gameName version SystemInfo.installerEnding
-            )
-
-        let tmppath =
-            Path.Combine(
-                dir,
-                "tmp",
-                sprintf "%s%s.%s" gameName version SystemInfo.installerEnding
-            )
-
-        Directory.CreateDirectory(Path.Combine(dir, "tmp"))
-        |> ignore
-
-        let file = FileInfo(filepath)
+        let file = FileInfo(download.filePath)
 
         match file.Exists with
         | false ->
-            let url = url.Replace("http://", "https://")
+            let task = setupDownloadTask downLink download.tmpPath
 
-            let task =
-                task {
-                    use fileStream = File.Create tmppath
-
-                    let! response =
-                        client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead)
-
-                    do response.EnsureSuccessStatusCode() |> ignore
-                    do! response.Content.CopyToAsync fileStream
-                }
-
-            (task |> Some, filepath, tmppath)
-        | true -> (None, filepath, tmppath)
+            { download with downloadTask = Some task }
+        | true -> download
 
     let rec copyDirectory
         (sourceDirName: string)
@@ -222,7 +228,7 @@ module Download =
                                 else
                                     None
 
-                            let (task, filepath, tmppath) =
+                            let fileDownload =
                                 startFileDownload
                                     urlResponse.downlink
                                     gameName
@@ -230,9 +236,9 @@ module Download =
 
                             return
                                 Some(
-                                    task,
-                                    filepath,
-                                    tmppath,
+                                    fileDownload.downloadTask,
+                                    fileDownload.filePath,
+                                    fileDownload.tmpPath,
                                     info.size * 1L<Byte>,
                                     checksum
                                 )

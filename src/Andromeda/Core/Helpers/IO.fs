@@ -4,17 +4,30 @@ open System
 open System.IO
 
 [<RequireQualifiedAccess>]
+module File =
+    let create path =
+        Path.GetDirectoryName(path: string)
+        |> Directory.CreateDirectory
+        |> ignore
+
+        File.Create(path)
+
+[<RequireQualifiedAccess>]
 module Path =
+    let combine path1 path2 = Path.Combine(path1, path2)
+    let combine3 path1 path2 path3 = Path.Combine(path1, path2, path3)
+
     // Taken and converted to F# from https://blez.wordpress.com/2013/02/18/get-file-shortcuts-target-with-c/
     let getShortcutTarget (file: string) =
         try
-            if Path.GetExtension(file).ToLower().Equals(".lnk")
-               |> not then
+            if
+                Path.GetExtension(file).ToLower().Equals(".lnk")
+                |> not
+            then
                 Exception("Supplied file must be a .LNK file")
                 |> raise
 
-            let fileStream =
-                File.Open(file, FileMode.Open, FileAccess.Read)
+            let fileStream = File.Open(file, FileMode.Open, FileAccess.Read)
 
             use fileReader = new BinaryReader(fileStream)
 
@@ -50,7 +63,7 @@ module Path =
                 - int64 (2) // read
             // the base pathname. I don't need the 2 terminating nulls.
             let linkTarget = fileReader.ReadChars((int) pathLength) // should be unicode safe
-            let link = new string(linkTarget)
+            let link = new string (linkTarget)
 
             let start = link.IndexOf("\0\0")
 
@@ -64,7 +77,8 @@ module Path =
                 firstPart + secondPart
             else
                 link
-        with _ -> ""
+        with
+        | _ -> ""
 
     let removeInvalidFileNameChars part =
         Path.GetInvalidFileNameChars()

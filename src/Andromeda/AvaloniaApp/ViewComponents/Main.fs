@@ -6,6 +6,8 @@ open Avalonia.Layout
 open SimpleOptics
 open System
 
+open Andromeda.Core
+
 open Andromeda.AvaloniaApp
 
 module Main =
@@ -37,7 +39,7 @@ module Main =
                     let gameName =
                         Optic.get (MainStateOptic.game productId) state
                         |> function
-                            | Some game -> game.name
+                            | Some game -> GameName.unwrap game.name
                             | None -> "<deleted>"
 
                     TabItem.create [

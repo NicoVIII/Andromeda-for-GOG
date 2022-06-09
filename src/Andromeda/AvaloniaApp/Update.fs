@@ -55,7 +55,8 @@ module Update =
             let sub dispatch =
                 match task with
                 | Some _ ->
-                    "Download installer for " + game.name + "."
+                    GameName.unwrap game.name
+                    |> sprintf "Download installer for %s."
                     |> logInfo
 
                     let invoke () =
@@ -79,7 +80,8 @@ module Update =
                     DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
                     |> ignore
                 | None ->
-                    "Use cached installer for " + game.name + "."
+                    GameName.unwrap game.name
+                    |> sprintf "Use cached installer for %s."
                     |> logInfo
 
                     UpdateDownloadSize(game.id, maxFileSize)
@@ -136,7 +138,9 @@ module Update =
                     |> Cmd.ofMsg
                 | None ->
                     if showNotification then
-                        AddNotification $"No new version available for %s{game.name}"
+                        GameName.unwrap game.name
+                        |> sprintf "No new version available for %s"
+                        |> AddNotification
                         |> Cmd.ofMsg
                     else
                         Cmd.none
@@ -389,7 +393,8 @@ module Update =
                 state, Cmd.none
             | _ ->
                 let invoke () =
-                    Download.extractLibrary settings game.name filePath version
+                    let gameName = GameName.unwrap game.name
+                    Download.extractLibrary settings gameName filePath version
 
                 let cmd =
                     [ Cmd.ofMsg (UpdateDownloadInstalling game.id)

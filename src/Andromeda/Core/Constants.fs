@@ -7,3 +7,4 @@ module Constants =
     let settingsFile = "settings.json"
     let versionFile = "version.txt"
     let installerCacheSubPath = "installers"
+    let tmpFolder = "tmp"
