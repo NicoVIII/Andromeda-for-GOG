@@ -1,7 +1,6 @@
 namespace Andromeda.Core
 
 open FsHttp
-open FsHttp.DslCE
 open GogApi
 open GogApi.DomainTypes
 open System.Diagnostics.Contracts
@@ -11,8 +10,6 @@ open Andromeda.Core.Helpers
 
 /// A module for everything, which does not really have a good place in structured modules
 module Diverse =
-    type GetProduct = unit -> Async<Result<GalaxyApi.ProductsResponse, string * string>>
-
     let getAvailableGamesForSearch name (authentication: Authentication) =
         async {
             let! result =

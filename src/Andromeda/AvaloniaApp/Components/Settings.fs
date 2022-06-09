@@ -1,7 +1,6 @@
 namespace Andromeda.AvaloniaApp.Components
 
 open Andromeda.Core
-open Andromeda.Core.DomainTypes
 open Avalonia
 open Avalonia.Controls
 open Elmish
@@ -57,7 +56,7 @@ module Settings =
                     return result
                 }
 
-            state, AvaloniaHelper.cmdOfAsync showDialog window SetGamepath, DoNothing
+            state, ElmishHelper.cmdOfAsync showDialog window SetGamepath, DoNothing
         | SetCacheRemoval policy ->
             { state with cacheRemoval = policy }, Cmd.none, DoNothing
         | SetGamepath gamePath -> { state with gamePath = gamePath }, Cmd.none, DoNothing

@@ -12,7 +12,6 @@ open System.Security.Cryptography
 open System.Threading.Tasks
 
 open Andromeda.Core
-open Andromeda.Core.DomainTypes
 open Andromeda.Core.Installed
 
 open Andromeda.AvaloniaApp.Components
@@ -100,7 +99,7 @@ module Update =
                     ||> checkGameForUpdate
 
                 let cmd =
-                    AvaloniaHelper.cmdOfAsync
+                    ElmishHelper.cmdOfAsync
                         invoke
                         ()
                         (fun (updateData, authentication) ->
@@ -169,10 +168,7 @@ module Update =
                 |> Optic.map MainStateOptic.notifications (List.append [ notification ])
 
             let cmd =
-                AvaloniaHelper.cmdOfAsync
-                    removeNotification
-                    notification
-                    RemoveNotification
+                ElmishHelper.cmdOfAsync removeNotification notification RemoveNotification
 
             state, cmd
 
@@ -188,7 +184,7 @@ module Update =
             let cmd =
                 imgJobs
                 |> List.map (fun job ->
-                    AvaloniaHelper.cmdOfAsync job authentication SetGameImage)
+                    ElmishHelper.cmdOfAsync job authentication SetGameImage)
                 |> Cmd.batch
 
             state, cmd
@@ -240,7 +236,7 @@ module Update =
                                     File.Move(tmppath, filePath)
                                 }
 
-                            AvaloniaHelper.cmdOfAsync invoke () (fun _ ->
+                            ElmishHelper.cmdOfAsync invoke () (fun _ ->
                                 UnpackGame(
                                     settings,
                                     game,
@@ -291,7 +287,7 @@ module Update =
                     SetGameImage(productId, imgPath) |> Cmd.ofMsg
                 | Diverse.HasToBeDownloaded job ->
                     let authentication = Optic.get MainStateOptic.authentication state
-                    AvaloniaHelper.cmdOfAsync job authentication SetGameImage
+                    ElmishHelper.cmdOfAsync job authentication SetGameImage
 
             state, cmd
         | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
@@ -397,7 +393,7 @@ module Update =
 
                 let cmd =
                     [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
-                      AvaloniaHelper.cmdOfAsync invoke () (fun gameDir ->
+                      ElmishHelper.cmdOfAsync invoke () (fun gameDir ->
                           FinishGameDownload(game.id, gameDir, version)) ]
                     |> Cmd.batch
 

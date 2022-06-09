@@ -10,7 +10,6 @@ open System.IO
 open System.Net.Http
 open System.Text.RegularExpressions
 
-open Andromeda.Core.DomainTypes
 open Andromeda.Core.Helpers
 
 /// A module for everything which helps to download and install games

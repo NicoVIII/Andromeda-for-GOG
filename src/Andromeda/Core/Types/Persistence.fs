@@ -2,8 +2,6 @@ namespace Andromeda.Core
 
 open GogApi.DomainTypes
 
-open Andromeda.Core.DomainTypes
-
 module PersistenceTypes =
     // TODO: Add Uniontypes for errors and return Result types
     type LoadAuthorizationData = unit -> Authentication

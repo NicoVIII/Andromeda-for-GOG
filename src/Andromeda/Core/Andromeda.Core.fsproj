@@ -8,6 +8,7 @@
     <Compile Include="Helpers/Path.fs" />
     <Compile Include="Types/Settings.fs" />
     <Compile Include="Types/Game.fs" />
+    <Compile Include="Types/Game.Optics.fs" />
     <Compile Include="Types/Persistence.fs" />
     <Compile Include="SystemInfo.fs" />
     <Compile Include="System.fs" />

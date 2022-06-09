@@ -3,7 +3,7 @@ namespace Andromeda.AvaloniaApp
 open SimpleOptics
 open SimpleOptics.Presets
 
-open Andromeda.Core.DomainTypes
+open Andromeda.Core
 
 /// Optics to simplify usage of state
 module MainStateOptic =

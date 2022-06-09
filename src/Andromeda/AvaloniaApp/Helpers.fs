@@ -1,14 +1,14 @@
 namespace Andromeda.AvaloniaApp
 
-open Elmish
-open Avalonia
-open Avalonia.Controls
-open Avalonia.Platform
-open Avalonia.FuncUI.DSL
-
-open System
 
 module AvaloniaHelper =
+    open Avalonia
+    open Avalonia.Controls
+    open Avalonia.Platform
+    open Avalonia.FuncUI.DSL
+
+    open System
+
     let loadAssetPath (path: string) =
         let uri =
             if path.StartsWith("/") then
@@ -22,6 +22,9 @@ module AvaloniaHelper =
 
     let simpleTextBlock text =
         TextBlock.create [ TextBlock.text text ]
+
+module ElmishHelper =
+    open Elmish
 
     let cmdOfAsync task arg onSuccess =
         let onError exn = raise exn

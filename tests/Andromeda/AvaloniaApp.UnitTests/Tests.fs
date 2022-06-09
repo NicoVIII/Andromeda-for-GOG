@@ -1,12 +1,11 @@
 module Tests
 
-open Andromeda.Core.DomainTypes
 open Expecto
-open GogApi.DomainTypes
 open System
 
-open Andromeda.AvaloniaApp
-open Andromeda.AvaloniaApp.Components
+open GogApi.DomainTypes
+
+open Andromeda.Core
 
 let dummyAuthentication: Authentication =
     { accessExpires = DateTimeOffset.MinValue

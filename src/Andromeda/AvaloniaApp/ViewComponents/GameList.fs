@@ -9,7 +9,6 @@ open Avalonia.Media.Imaging
 open SimpleOptics
 
 open Andromeda.Core
-open Andromeda.Core.DomainTypes
 
 open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.AvaloniaHelper

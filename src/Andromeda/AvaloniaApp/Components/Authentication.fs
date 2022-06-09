@@ -80,7 +80,7 @@ module Authentication =
 
                     let msgFnc auth = TryAuthenticate auth
 
-                    AvaloniaHelper.cmdOfAsync getAuth () msgFnc
+                    ElmishHelper.cmdOfAsync getAuth () msgFnc
 
             state, msg, DoNothing
         | SetCode code ->

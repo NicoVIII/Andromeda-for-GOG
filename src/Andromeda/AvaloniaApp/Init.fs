@@ -1,8 +1,10 @@
 namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core
 open Elmish
 
+open Andromeda.Core
+
+open Andromeda.AvaloniaApp
 open Andromeda.AvaloniaApp.Components
 
 [<RequireQualifiedAccess>]

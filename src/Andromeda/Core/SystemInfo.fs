@@ -6,8 +6,6 @@ open System
 open System.IO
 open System.Runtime.InteropServices
 
-open Andromeda.Core.DomainTypes
-
 /// Contains everything specific for different platforms
 module SystemInfo =
     type OS =
@@ -24,15 +22,14 @@ module SystemInfo =
             | Windows -> OSPlatform.Windows
 
         // Wrap IsOSPlatform to use with OS record
-        let isOS =
-            mapPlatform >> RuntimeInformation.IsOSPlatform
+        let isOS = mapPlatform >> RuntimeInformation.IsOSPlatform
 
         // Determine os
         [ Linux; MacOS; Windows ]
         |> List.tryFind isOS
         |> function
-        | Some os -> os
-        | None -> failwith "I couldn't determine your OS? :O" // TODO: Logger stuff?
+            | Some os -> os
+            | None -> failwith "I couldn't determine your OS? :O" // TODO: Logger stuff?
 
     let installerEnding =
         match os with
@@ -61,8 +58,7 @@ module SystemInfo =
         Directory.CreateDirectory(path) |> ignore
         path
 
-    let installerCachePath =
-        Path.Combine(cachePath, Constants.installerCacheSubPath)
+    let installerCachePath = Path.Combine(cachePath, Constants.installerCacheSubPath)
 
     // TODO: Move to config?
     let tmpPath = Path.GetTempPath()
@@ -89,7 +85,7 @@ module SystemInfo =
     let logo2xPath productId =
         Path.Combine(gameInfoPath productId, "logo_2x.jpg")
 
-    let defaultSettings (): Settings =
+    let defaultSettings () : Settings =
         let gamePath =
             match os with
             | Linux

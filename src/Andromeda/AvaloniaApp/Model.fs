@@ -1,6 +1,6 @@
 namespace Andromeda.AvaloniaApp
 
-open Andromeda.Core.DomainTypes
+open Andromeda.Core
 open GogApi.DomainTypes
 
 open Andromeda.AvaloniaApp.Components

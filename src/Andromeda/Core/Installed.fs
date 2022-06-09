@@ -7,7 +7,6 @@ open Mono.Unix.Native
 open System.Diagnostics
 open System.IO
 
-open Andromeda.Core.DomainTypes
 open Andromeda.Core.Helpers
 open SimpleOptics
 

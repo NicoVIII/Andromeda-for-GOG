@@ -1,4 +1,4 @@
-namespace Andromeda.Core.DomainTypes
+namespace Andromeda.Core
 
 type CacheRemovalPolicy =
     | NoRemoval

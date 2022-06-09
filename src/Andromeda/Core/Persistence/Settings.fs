@@ -5,17 +5,15 @@ open TypedPersistence.Json
 open System.IO
 
 open Andromeda.Core
-open Andromeda.Core.DomainTypes
 
 module Settings =
-    let file =
-        Path.Combine(SystemInfo.savePath, Constants.settingsFile)
+    let file = Path.Combine(SystemInfo.savePath, Constants.settingsFile)
 
-    let v1tov2 (v1: SettingsV1): SettingsV2 =
+    let v1tov2 (v1: SettingsV1) : SettingsV2 =
         { cacheRemoval = NoRemoval
           gamePath = v1.gamePath }
 
-    let v2tov3 (v2: SettingsV2): Settings =
+    let v2tov3 (v2: SettingsV2) : Settings =
         { cacheRemoval = v2.cacheRemoval
           gamePath = v2.gamePath
           updateOnStartup = false }

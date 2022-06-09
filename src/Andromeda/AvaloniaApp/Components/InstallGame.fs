@@ -72,7 +72,7 @@ module InstallGame =
                     productInfos = None
                     selected = None }
 
-            let cmd = AvaloniaHelper.cmdOfAsync invoke () SetProductInfos
+            let cmd = ElmishHelper.cmdOfAsync invoke () SetProductInfos
 
             state, cmd, DoNothing
         | SetProductInfos productInfos ->
@@ -101,7 +101,7 @@ module InstallGame =
                 }
 
             let state = { state with selected = Some productInfo }
-            let cmd = AvaloniaHelper.cmdOfAsync invoke () SetDlcs
+            let cmd = ElmishHelper.cmdOfAsync invoke () SetDlcs
             state, cmd, DoNothing
 
     module View =

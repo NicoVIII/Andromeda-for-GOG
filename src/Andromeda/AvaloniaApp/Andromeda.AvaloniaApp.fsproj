@@ -21,7 +21,7 @@
     <Compile Include="Logger.fs" />
     <Compile Include="Icons.fs" />
     <Compile Include="DomainTypes.fs" />
-    <Compile Include="AvaloniaHelper.fs" />
+    <Compile Include="Helpers.fs" />
 
     <!-- Elements -->
     <Compile Include="Elements/Badge.fs" />
