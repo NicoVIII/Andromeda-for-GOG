@@ -20,7 +20,7 @@ module Main =
             StackPanel.children [
                 Button.create [
                     Button.content "Install game"
-                    Button.onClick (fun _ -> ShowInstallGame |> dispatch)
+                    Button.onClick (fun _ -> ContextChangeMsg ShowInstallGame |> dispatch)
                 ]
                 Button.create [
                     Button.content "Upgrade games"

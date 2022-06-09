@@ -7,6 +7,11 @@ open Andromeda.Core.Installed
 
 open Andromeda.AvaloniaApp.Components
 
+type ContextChangeMsg =
+    | ShowInstallGame
+    | ShowSettings
+    | ShowInstalled
+
 type AuthMsg =
     | StartGame of gameId: ProductId * gameDir: string
     | LookupGameImage of ProductId
@@ -18,7 +23,12 @@ type AuthMsg =
     | SearchInstalled of initial: bool
     | CacheCheck
     // Feature: Install game
-    | StartGameDownload of ProductInfo * Dlc list * Authentication
+    | SearchGameDownload of ProductInfo * Dlc list * Authentication
+    | StartGameDownload of ProductInfo * InstallerInfo list
+    | SetupGameDownloadMonitoring of
+        ProductInfo *
+        InstallerInfo *
+        Download.GameDownload option
     | UpdateDownloadSize of ProductId * int<MiB>
     | UpdateDownloadInstalling of ProductId
     | FinishGameDownload of ProductId * gameDir: string * version: string option
@@ -36,10 +46,8 @@ type AuthMsg =
         UpdateData option *
         Authentication
     | UpgradeGames of showNotifications: bool
-    // Context change
-    | ShowInstallGame
-    | ShowSettings
-    | ShowInstalled
+    // Feature: Context
+    | ContextChangeMsg of ContextChangeMsg
     // Child component messages
     | InstallGameMgs of InstallGame.Msg
     | SettingsMsg of Settings.Msg

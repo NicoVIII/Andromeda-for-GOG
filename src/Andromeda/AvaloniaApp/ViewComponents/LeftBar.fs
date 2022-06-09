@@ -16,7 +16,7 @@ open System.Reflection
 module LeftBar =
     [<RequireQualifiedAccess>]
     module Menu =
-        type Item = { text: string; msg: AuthMsg }
+        type Item = { text: string; msg: ContextChangeMsg }
 
         module Item =
             let create text msg = { text = text; msg = msg }
@@ -38,7 +38,7 @@ module LeftBar =
                         ]
                     ]
                 )
-                Button.onClick (fun _ -> item.msg |> dispatch)
+                Button.onClick (fun _ -> item.msg |> ContextChangeMsg |> dispatch)
             ]
 
         let render state dispatch : IView list =
@@ -63,7 +63,7 @@ module LeftBar =
                 Button.create [
                     Button.classes [ "iconButton" ]
                     Button.content (Icon.settings Brushes.White [])
-                    Button.onClick (fun _ -> ShowSettings |> dispatch)
+                    Button.onClick (fun _ -> ContextChangeMsg ShowSettings |> dispatch)
                 ]
             ]
         ]

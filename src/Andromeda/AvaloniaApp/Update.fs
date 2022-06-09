@@ -134,7 +134,7 @@ module Update =
                     |> (fun productInfo ->
                         // TODO: update DLCs
                         (productInfo, [], authentication)
-                        |> StartGameDownload)
+                        |> SearchGameDownload)
                     |> Cmd.ofMsg
                 | None ->
                     if showNotification then
@@ -192,99 +192,6 @@ module Update =
                 |> Cmd.batch
 
             state, cmd
-
-        let startGameDownload state (productInfo: ProductInfo) (dlcs: Dlc list) =
-            // TODO: download and install DLCs
-            let authentication = Optic.get MainStateOptic.authentication state
-
-            let installerInfoList =
-                Diverse.getAvailableInstallersForOs productInfo.id authentication
-                |> Async.RunSynchronously
-
-            match installerInfoList with
-            | [] ->
-                let cmd = Cmd.ofMsg (AddNotification "Found no installer for this OS...")
-
-                state, cmd
-            | [ installerInfo ] ->
-                let result =
-                    Download.downloadGame productInfo.title installerInfo authentication
-                    |> Async.RunSynchronously
-
-                match result with
-                | None -> state, Cmd.none
-                | Some gameDownload ->
-                    let fileSize =
-                        gameDownload.size
-                        |> byteToMiBL
-                        |> (fun x -> x / 1L<MiB>)
-                        |> int
-                        |> (fun x -> x * 1<MiB>)
-
-                    let game =
-                        Game.create productInfo.id (productInfo.title)
-                        |> Optic.set
-                            GameOptic.status
-                            (Downloading(
-                                0<MiB>,
-                                fileSize,
-                                gameDownload.fileDownload.targetPath
-                            ))
-
-                    let settings = Optic.get MainStateOptic.settings state
-
-                    let state = Optic.set (MainStateOptic.game game.id) game state
-
-                    let downloadCmd =
-                        match gameDownload.fileDownload.task with
-                        | Some task ->
-                            let invoke () =
-                                async {
-                                    do! task
-
-                                    File.Move(
-                                        gameDownload.fileDownload.tmpPath,
-                                        gameDownload.fileDownload.targetPath
-                                    )
-                                }
-
-                            ElmishHelper.cmdOfAsync invoke () (fun _ ->
-                                UnpackGame(
-                                    settings,
-                                    game,
-                                    gameDownload.fileDownload.targetPath,
-                                    gameDownload.checksum,
-                                    installerInfo.version
-                                ))
-                        | None ->
-                            UnpackGame(
-                                settings,
-                                game,
-                                gameDownload.fileDownload.targetPath,
-                                gameDownload.checksum,
-                                installerInfo.version
-                            )
-                            |> Cmd.ofMsg
-
-                    let cmd =
-                        [ Subs.registerDownloadTimer
-                              gameDownload.fileDownload.task
-                              gameDownload.fileDownload.tmpPath
-                              game
-                              fileSize
-                          Cmd.ofMsg (LookupGameImage game.id)
-                          downloadCmd ]
-                        |> Cmd.batch
-
-                    state, cmd
-            | _ ->
-                let cmd =
-                    Cmd.ofMsg (
-                        AddNotification
-                            "Found multiple installers, this is not supported yet..."
-                    )
-
-                state, cmd
 
     let performAuthenticated msg state mainWindow =
         let inline changeContext context (contextState, cmd) =
@@ -369,6 +276,115 @@ module Update =
                 |> Cmd.batch
 
             state, cmd
+        | SearchGameDownload (productInfo, dlcs, authentication) ->
+            // This is triggered by the parent component, authentication could have changed,
+            // so we update it
+            let state = Optic.set MainStateOptic.authentication authentication state
+
+            let cmd =
+                ElmishHelper.cmdOfAsync
+                    (Diverse.getAvailableInstallersForOs productInfo.id)
+                    authentication
+                    (fun installerInfoList ->
+                        StartGameDownload(productInfo, installerInfoList))
+
+            state, cmd
+        | StartGameDownload (productInfo, installerInfoList) ->
+            match installerInfoList with
+            | [] ->
+                let cmd = Cmd.ofMsg (AddNotification "Found no installer for this OS...")
+
+                state, cmd
+            | _ :: _ :: _ ->
+                let cmd =
+                    Cmd.ofMsg (
+                        AddNotification
+                            "Found multiple installers, this is not supported yet..."
+                    )
+
+                state, cmd
+            | [ installerInfo ] ->
+                let authentication = Optic.get MainStateOptic.authentication state
+
+                let cmd =
+                    ElmishHelper.cmdOfAsync
+                        (Download.downloadGame productInfo.title installerInfo)
+                        authentication
+                        (fun result ->
+                            SetupGameDownloadMonitoring(
+                                productInfo,
+                                installerInfo,
+                                result
+                            ))
+
+                state, cmd
+        | SetupGameDownloadMonitoring (productInfo, installerInfo, result) ->
+            match result with
+            | None -> state, Cmd.none
+            | Some gameDownload ->
+                let fileSize =
+                    gameDownload.size
+                    |> byteToMiBL
+                    |> (fun x -> x / 1L<MiB>)
+                    |> int
+                    |> (fun x -> x * 1<MiB>)
+
+                let game =
+                    Game.create productInfo.id (productInfo.title)
+                    |> Optic.set
+                        GameOptic.status
+                        (Downloading(
+                            0<MiB>,
+                            fileSize,
+                            gameDownload.fileDownload.targetPath
+                        ))
+
+                let settings = Optic.get MainStateOptic.settings state
+
+                let state = Optic.set (MainStateOptic.game game.id) game state
+
+                let downloadCmd =
+                    match gameDownload.fileDownload.task with
+                    | Some task ->
+                        let invoke () =
+                            async {
+                                do! task
+
+                                File.Move(
+                                    gameDownload.fileDownload.tmpPath,
+                                    gameDownload.fileDownload.targetPath
+                                )
+                            }
+
+                        ElmishHelper.cmdOfAsync invoke () (fun _ ->
+                            UnpackGame(
+                                settings,
+                                game,
+                                gameDownload.fileDownload.targetPath,
+                                gameDownload.checksum,
+                                installerInfo.version
+                            ))
+                    | None ->
+                        UnpackGame(
+                            settings,
+                            game,
+                            gameDownload.fileDownload.targetPath,
+                            gameDownload.checksum,
+                            installerInfo.version
+                        )
+                        |> Cmd.ofMsg
+
+                let cmd =
+                    [ Subs.registerDownloadTimer
+                          gameDownload.fileDownload.task
+                          gameDownload.fileDownload.tmpPath
+                          game
+                          fileSize
+                      Cmd.ofMsg (LookupGameImage game.id)
+                      downloadCmd ]
+                    |> Cmd.batch
+
+                state, cmd
         | FinishGameDownload (gameId, gameDir, version) ->
             let state =
                 Optic.set
@@ -377,12 +393,6 @@ module Update =
                     state
 
             state, Cmd.none
-        | StartGameDownload (productInfo, dlcs, authentication) ->
-            // This is triggered by the parent component, authentication could have changed,
-            // so we update it
-            let state = Optic.set MainStateOptic.authentication authentication state
-
-            Update.startGameDownload state productInfo dlcs
         | UnpackGame (settings, game, filePath, checksum, version) ->
             // Check checksum
             use md5 = MD5.Create()
@@ -449,11 +459,12 @@ module Update =
 
             state, Cmd.none
         // Context change
-        | ShowInstalled ->
+        | ContextChangeMsg ShowInstalled ->
             ((), Cmd.none)
             |> changeContext (fun () -> Context.Installed)
-        | ShowInstallGame -> InstallGame.init () |> changeContext InstallGame
-        | ShowSettings ->
+        | ContextChangeMsg ShowInstallGame ->
+            InstallGame.init () |> changeContext InstallGame
+        | ContextChangeMsg ShowSettings ->
             Settings.init state.settings
             |> changeContext Settings
         // Child components
@@ -469,9 +480,9 @@ module Update =
                     match intent with
                     | InstallGame.DoNothing -> Cmd.none
                     | InstallGame.Close (productInfo, dlcs) ->
-                        [ StartGameDownload(productInfo, dlcs, state.authentication)
+                        [ SearchGameDownload(productInfo, dlcs, state.authentication)
                           |> Cmd.ofMsg
-                          Cmd.ofMsg ShowInstalled ]
+                          Cmd.ofMsg (ContextChangeMsg ShowInstalled) ]
                         |> Cmd.batch
 
                 let cmd =
@@ -495,7 +506,8 @@ module Update =
                     match intent with
                     | Settings.DoNothing -> Cmd.none
                     | Settings.Save settings ->
-                        [ SetSettings settings; ShowInstalled ]
+                        [ SetSettings settings
+                          (ContextChangeMsg ShowInstalled) ]
                         |> List.map Cmd.ofMsg
                         |> Cmd.batch
 
