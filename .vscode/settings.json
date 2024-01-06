@@ -7,5 +7,5 @@
     },
     "editor.formatOnSave": true,
     "files.trimFinalNewlines": true,
-    "FSharp.workspacePath": "Andromeda-for-GOG.sln"
+    "FSharp.workspacePath": "./Andromeda-for-GOG.sln"
 }

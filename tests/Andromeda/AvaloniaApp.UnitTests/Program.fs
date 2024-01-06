@@ -3,5 +3,4 @@ open Expecto
 open Tests
 
 [<EntryPoint>]
-let main args =
-    runTestsWithArgs defaultConfig args tests
+let main args = runTestsInAssemblyWithCLIArgs [] args

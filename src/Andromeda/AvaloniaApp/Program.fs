@@ -1,18 +1,21 @@
 namespace Andromeda.AvaloniaApp
 
 open Andromeda.Core
+open Elmish
+open GogApi
+
+open System
 open Avalonia
 open Avalonia.Controls
-open Avalonia.Controls.ApplicationLifetimes
-open Elmish
-open Avalonia.FuncUI.Elmish
 open Avalonia.FuncUI.Hosts
-open GogApi
-open Avalonia.FuncUI
+open Avalonia.FuncUI.Elmish
+open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.Markup.Xaml.Styling
 
 open Andromeda.AvaloniaApp
 
 module Program =
+
     type MainWindow() as this =
         inherit HostWindow()
 
@@ -35,10 +38,7 @@ module Program =
             // Try to load authentication from disk and refresh, if possible
             let authentication =
                 Persistence.Authentication.load ()
-                |> Option.bind (
-                    Authentication.getRefreshToken
-                    >> Async.RunSynchronously
-                )
+                |> Option.bind (Authentication.getRefreshToken >> Async.RunSynchronously)
                 // Save refreshed authentication
                 |> Option.map (fun auth ->
                     Persistence.Authentication.save auth
@@ -49,7 +49,7 @@ module Program =
             Program.mkProgram Init.perform updateWithServices View.render
             |> Program.withHost this
 #if DEBUG
-            |> Program.withTrace (fun msg _ -> printfn "%A" msg)
+            |> Program.withTrace (fun msg _ _ -> printfn "%A" msg)
 #endif
             |> Program.runWith authentication
 
@@ -57,9 +57,14 @@ module Program =
         inherit Application()
 
         override this.Initialize() =
-            this.Styles.Load "avares://Avalonia.Themes.Default/DefaultTheme.xaml"
-            this.Styles.Load "avares://Avalonia.Themes.Default/Accents/BaseDark.xaml"
-            this.Styles.Load "avares://Andromeda.AvaloniaApp/Styles.xaml"
+            this.Styles.Add(
+                StyleInclude(
+                    baseUri = null,
+                    Source = Uri("avares://Andromeda.AvaloniaApp/Styles.xaml")
+                )
+            )
+
+            this.RequestedThemeVariant <- Styling.ThemeVariant.Dark
 
         override this.OnFrameworkInitializationCompleted() =
             match this.ApplicationLifetime with
@@ -68,7 +73,7 @@ module Program =
             | _ -> ()
 
     [<EntryPoint>]
-    let main (args: string []) : int =
+    let main (args: string[]) : int =
         AppBuilder
             .Configure<AndromedaApplication>()
             .UsePlatformDetect()

@@ -97,6 +97,8 @@ module SystemInfo =
                     "GOG Games"
                 )
 
-        { cacheRemoval = RemoveByAge 30u
-          gamePath = gamePath
-          updateOnStartup = true }
+        {
+            cacheRemoval = RemoveByAge 30u
+            gamePath = gamePath
+            updateOnStartup = true
+        }

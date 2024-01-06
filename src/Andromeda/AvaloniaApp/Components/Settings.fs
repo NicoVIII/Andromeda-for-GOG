@@ -8,6 +8,8 @@ open Avalonia.FuncUI
 open Avalonia.FuncUI.DSL
 open Avalonia.FuncUI.Types
 open Avalonia.Layout
+open Avalonia.Platform.Storage
+open System
 open System.IO
 
 open Andromeda.AvaloniaApp
@@ -15,13 +17,16 @@ open Andromeda.AvaloniaApp.AvaloniaHelper
 
 module Settings =
     module Dialogs =
-        let getFolderDialog currentPath =
-            let dialog = OpenFolderDialog()
+        let getFolderDialog (window: Window) currentPath =
+            task {
+                let! folder =
+                    Uri currentPath |> window.StorageProvider.TryGetFolderFromPathAsync
 
-            dialog.Directory <- currentPath
-
-            dialog.Title <- "Choose where to look for GOG games"
-            dialog
+                let options = FolderPickerOpenOptions()
+                options.SuggestedStartLocation <- folder
+                options.Title <- "Choose where to look for GOG games"
+                return! window.StorageProvider.OpenFolderPickerAsync options
+            }
 
     type State = Settings
 
@@ -38,22 +43,22 @@ module Settings =
 
     let init (settings: Settings) = settings, Cmd.none
 
-    let isStateValid state = state.gamePath |> Directory.Exists
+    let isStateValid (state: Settings) = state.gamePath |> Directory.Exists
 
     let update (window: Window) (msg: Msg) (state: State) =
         match msg with
         | OpenDialog ->
-            let dialog = Dialogs.getFolderDialog state.gamePath
+            let dialog = Dialogs.getFolderDialog window state.gamePath
 
             let showDialog window =
                 async {
-                    let! result = dialog.ShowAsync(window) |> Async.AwaitTask
+                    let! result = dialog |> Async.AwaitTask
                     // The dialog can return null, we throw an error to avoid updating the gamepath
                     if isNull result then
                         // TODO: Don't throw but simply don't update the gamepath
                         failwith "Dialog was canceled"
 
-                    return result
+                    return result[0].Path.AbsolutePath
                 }
 
             state, ElmishHelper.cmdOfAsync showDialog window SetGamepath, DoNothing
@@ -65,10 +70,7 @@ module Settings =
         | Save ->
             let intent =
                 // We only save, if state is valid
-                if isStateValid state then
-                    Intent.Save state
-                else
-                    DoNothing
+                if isStateValid state then Intent.Save state else DoNothing
 
             state, Cmd.none, intent
 
@@ -102,10 +104,7 @@ module Settings =
                         StackPanel.children [
                             ComboBox.create [
                                 ComboBox.width 300.0
-                                ComboBox.dataItems [
-                                    NoRemoval
-                                    RemoveByAge 30u
-                                ]
+                                ComboBox.dataItems [ NoRemoval; RemoveByAge 30u ]
                                 ComboBox.itemTemplate (
                                     DataTemplateView<CacheRemovalPolicy>.create
                                     <| (function
