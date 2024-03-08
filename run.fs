@@ -40,12 +40,11 @@ module DotNet =
             "-o"
             outDir
             "--self-contained"
-            "/p:PublishSingleFile=true"
-            "/p:PublishTrimmed=true"
-            "/p:EnableCompressionInSingleFile=true"
-            "/p:IncludeNativeLibrariesForSelfExtract=true"
-            "/p:DebugType=None"
-            $"/p:Version=%s{version}"
+            "-p:PublishSingleFile=true"
+            "-p:EnableCompressionInSingleFile=true"
+            "-p:IncludeNativeLibrariesForSelfExtract=true"
+            "-p:DebugType=None"
+            $"-p:Version=%s{version}"
             project
         ]
 
@@ -91,13 +90,13 @@ module Task =
                     "-r"
                     "linux-x64"
                     "--self-contained"
-                    "-p:PublishTrimmed=true"
                     "-p:DebugType=None"
-                    $"/p:Version=%s{version}"
+                    $"-p:Version=%s{version}"
                     Config.mainProject
                 ]
 
                 Shell.mkdir "AppDir/usr"
+                Shell.cleanDir "AppDir/usr"
 
                 Shell.mv
                     $"src/Andromeda/AvaloniaApp/bin/Release/{Config.framework}/linux-x64/publish"

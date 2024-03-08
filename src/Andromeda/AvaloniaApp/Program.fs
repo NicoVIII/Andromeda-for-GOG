@@ -4,14 +4,12 @@ open Andromeda.Core
 open Elmish
 open GogApi
 
-open System
 open Avalonia
 open Avalonia.Controls
 open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.FuncUI
 open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Elmish
-open Avalonia.Markup.Xaml.Styling
 open Avalonia.Themes.Simple
 
 open Andromeda.AvaloniaApp
@@ -59,8 +57,8 @@ module Program =
 
         override this.Initialize() =
             this.Styles.Add(new SimpleTheme())
-            this.Styles.Load "avares://Andromeda.AvaloniaApp/Styles.xaml"
             this.RequestedThemeVariant <- Styling.ThemeVariant.Dark
+            this.Styles.Load "avares://Andromeda.AvaloniaApp/Styles.xaml"
 
         override this.OnFrameworkInitializationCompleted() =
             match this.ApplicationLifetime with

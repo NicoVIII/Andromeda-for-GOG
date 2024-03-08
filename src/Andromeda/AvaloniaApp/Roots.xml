@@ -1,0 +1,11 @@
+<linker>
+  <!-- We need this, because our styles have to be compiled -->
+  <assembly fullname="Andromeda.AvaloniaApp">
+    <type fullname="CompiledAvaloniaXaml.!XamlLoader">
+      <method name="TryLoad" />
+    </type>
+  </assembly>
+  <!-- This stuff uses reflection internally, those have to add support for trimming -->
+  <assembly fullname="TypedPersistence.Json"/>
+  <assembly fullname="GogApi"/>
+</linker>

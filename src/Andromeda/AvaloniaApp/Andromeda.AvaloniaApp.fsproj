@@ -9,10 +9,12 @@
   </PropertyGroup>
   <PropertyGroup>
     <Version>0</Version>
+    <PublishTrimmed>true</PublishTrimmed>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="../Core/Andromeda.Core.fsproj" />
+    <TrimmerRootDescriptor Include="Roots.xml" />
   </ItemGroup>
 
   <ItemGroup>
