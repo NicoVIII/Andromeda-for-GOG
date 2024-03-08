@@ -13,15 +13,16 @@ module Config =
 
     let mainProject = "./src/Andromeda/AvaloniaApp/Andromeda.AvaloniaApp.fsproj"
 
-    let testProjects =
-        [ "./tests/Andromeda/AvaloniaApp.UnitTests/Andromeda.AvaloniaApp.UnitTests.fsproj"
-          "./tests/Andromeda/Core.UnitTests/Andromeda.Core.UnitTests.fsproj" ]
+    let testProjects = [
+        "./tests/Andromeda/AvaloniaApp.UnitTests/Andromeda.AvaloniaApp.UnitTests.fsproj"
+        "./tests/Andromeda/Core.UnitTests/Andromeda.Core.UnitTests.fsproj"
+    ]
 
     let artifactName = "Andromeda"
 
     let publishPath = "./publish"
 
-    let framework = "net6.0"
+    let framework = "net8.0"
     let appimagetoolVersion = "continuous"
 
 let httpClient = new HttpClient()
@@ -102,11 +103,7 @@ module Task =
                     $"src/Andromeda/AvaloniaApp/bin/Release/{Config.framework}/linux-x64/publish"
                     "AppDir/usr/bin"
 
-                cmd
-                    "cp"
-                    [ "-a"
-                      "assets/build/appimage/."
-                      "AppDir" ]
+                cmd "cp" [ "-a"; "assets/build/appimage/."; "AppDir" ]
 
                 if not (File.exists "appimagetool-x86_64.AppImage") then
                     do
@@ -123,27 +120,24 @@ module Task =
                         |> Async.AwaitTask
                         |> Async.RunSynchronously
 
-                    cmd
-                        "chmod"
-                        [ "a+x"
-                          "appimagetool-x86_64.AppImage" ]
+                    cmd "chmod" [ "a+x"; "appimagetool-x86_64.AppImage" ]
 
-                cmd
-                    "./appimagetool-x86_64.AppImage"
-                    [ "--appimage-extract-and-run"
-                      "AppDir"
-                      "-u"
-                      "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync" ]
+                cmd "./appimagetool-x86_64.AppImage" [
+                    "--appimage-extract-and-run"
+                    "AppDir"
+                    "-u"
+                    "gh-releases-zsync|NicoVIII|Andromeda-for-GOG|latest|Andromeda-*.AppImage.zsync"
+                ]
 
-                cmd
-                    "mv"
-                    [ "Andromeda-x86_64.AppImage"
-                      "./publish/Andromeda-x86_64.AppImage" ]
+                cmd "mv" [
+                    "Andromeda-x86_64.AppImage"
+                    "./publish/Andromeda-x86_64.AppImage"
+                ]
 
-                cmd
-                    "mv"
-                    [ "Andromeda-x86_64.AppImage.zsync"
-                      "./publish/Andromeda-x86_64.AppImage.zsync" ]
+                cmd "mv" [
+                    "Andromeda-x86_64.AppImage.zsync"
+                    "./publish/Andromeda-x86_64.AppImage.zsync"
+                ]
 
                 printfn "Finished publishing as AppImage"
 
@@ -210,10 +204,7 @@ let main args =
                 Task.publish version
             }
         // Errors for missing arguments
-        | [ "publish" ] ->
-            Job.error [
-                "Missing version argument!"
-            ]
+        | [ "publish" ] -> Job.error [ "Missing version argument!" ]
         | _ ->
             Job.error [
                 "Usage: dotnet run [<command>]"
