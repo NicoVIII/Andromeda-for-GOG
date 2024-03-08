@@ -3,5 +3,5 @@ Avalonia.Desktop
 Avalonia.Diagnostics
 Avalonia.FuncUI
 Avalonia.FuncUI.Elmish
-Avalonia.Themes.Fluent
+Avalonia.Themes.Simple
 MessageBox.Avalonia

@@ -32,10 +32,7 @@ module View =
                     Grid.columnDefinitions "1*, Auto"
                     Grid.margin 6.0
                     Grid.children [
-                        TextBlock.create [
-                            Grid.column 0
-                            TextBlock.text notification
-                        ]
+                        TextBlock.create [ Grid.column 0; TextBlock.text notification ]
                     ]
                 ]
             ]
@@ -56,10 +53,7 @@ module View =
                     ]
                 ]
             ]
-        | _ ->
-            StackPanel.create [
-                StackPanel.dock Dock.Top
-            ]
+        | _ -> StackPanel.create [ StackPanel.dock Dock.Top ]
 
     let renderAuthenticated state dispatch : IView =
         let contextRender =

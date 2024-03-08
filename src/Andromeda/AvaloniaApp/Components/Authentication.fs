@@ -46,12 +46,9 @@ module Authentication =
         | OpenBrowser ->
             // Open url in browser (from: https://brockallen.com/2016/09/24/process-start-for-urls-on-net-core/)
             if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then
-                let command =
-                    authUri.Replace("&", "^&")
-                    |> sprintf "/c start %s"
+                let command = authUri.Replace("&", "^&") |> sprintf "/c start %s"
 
-                Process.Start(ProcessStartInfo("cmd", command))
-                |> ignore
+                Process.Start(ProcessStartInfo("cmd", command)) |> ignore
             else if RuntimeInformation.IsOSPlatform(OSPlatform.Linux) then
                 Process.Start("xdg-open", authUri) |> ignore
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX)) then
@@ -76,7 +73,11 @@ module Authentication =
                 | "" -> Cmd.none
                 | authCode ->
                     let getAuth () =
-                        async { return! Authentication.getNewToken redirectUri authCode }
+                        async {
+                            let! result = Authentication.getNewToken redirectUri authCode
+                            printfn "%A" result
+                            return result
+                        }
 
                     let msgFnc auth = TryAuthenticate auth
 
@@ -84,10 +85,11 @@ module Authentication =
 
             state, msg, DoNothing
         | SetCode code ->
-            let state =
-                { state with
+            let state = {
+                state with
                     authCode = code
-                    invalidCode = false }
+                    invalidCode = false
+            }
 
             state, Cmd.none, DoNothing
 

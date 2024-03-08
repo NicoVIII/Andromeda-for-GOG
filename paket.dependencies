@@ -10,7 +10,7 @@ nuget Avalonia.Diagnostics
 nuget FsToolkit.ErrorHandling
 nuget Avalonia.FuncUI
 nuget Avalonia.FuncUI.Elmish
-nuget Avalonia.Themes.Fluent
+nuget Avalonia.Themes.Simple
 nuget MessageBox.Avalonia
 nuget Mono.Posix.NETStandard
 nuget NicoVIII.GogApi

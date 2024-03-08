@@ -7,10 +7,12 @@ open GogApi
 open System
 open Avalonia
 open Avalonia.Controls
+open Avalonia.Controls.ApplicationLifetimes
+open Avalonia.FuncUI
 open Avalonia.FuncUI.Hosts
 open Avalonia.FuncUI.Elmish
-open Avalonia.Controls.ApplicationLifetimes
 open Avalonia.Markup.Xaml.Styling
+open Avalonia.Themes.Simple
 
 open Andromeda.AvaloniaApp
 
@@ -57,13 +59,8 @@ module Program =
         inherit Application()
 
         override this.Initialize() =
-            this.Styles.Add(
-                StyleInclude(
-                    baseUri = null,
-                    Source = Uri("avares://Andromeda.AvaloniaApp/Styles.xaml")
-                )
-            )
-
+            this.Styles.Add(new SimpleTheme())
+            this.Styles.Load "avares://Andromeda.AvaloniaApp/Styles.xaml"
             this.RequestedThemeVariant <- Styling.ThemeVariant.Dark
 
         override this.OnFrameworkInitializationCompleted() =
@@ -73,7 +70,7 @@ module Program =
             | _ -> ()
 
     [<EntryPoint>]
-    let main (args: string[]) : int =
+    let main args =
         AppBuilder
             .Configure<AndromedaApplication>()
             .UsePlatformDetect()
