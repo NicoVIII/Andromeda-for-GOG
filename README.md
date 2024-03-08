@@ -1,6 +1,7 @@
 # Andromeda-for-GOG
 
 [![GitHub Release](https://img.shields.io/github/release/NicoVIII/Andromeda-for-GOG.svg?style=flat-square)](https://github.com/NicoVIII/Andromeda-for-GOG/releases/latest)
+![GitHub Release Date](https://img.shields.io/github/release-date/NicoVIII/Andromeda-for-Gog?style=flat-square)
 [![Last commit](https://img.shields.io/github/last-commit/NicoVIII/Andromeda-for-GOG?style=flat-square)](https://github.com/NicoVIII/Andromeda-for-GOG/commits/)
 
 This project aims at providing a Galaxy-like client for GOG with the help of <https://www.gog.com/forum/general/unofficial_gog_api_documentation/page1> also for Linux systems. It will focus the downloading, installing and updating of games at first.
