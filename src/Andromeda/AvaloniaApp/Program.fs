@@ -17,7 +17,6 @@ open Avalonia.Themes.Simple
 open Andromeda.AvaloniaApp
 
 module Program =
-
     type MainWindow() as this =
         inherit HostWindow()
 
@@ -53,7 +52,7 @@ module Program =
 #if DEBUG
             |> Program.withTrace (fun msg _ _ -> printfn "%A" msg)
 #endif
-            |> Program.runWith authentication
+            |> Program.runWithAvaloniaSyncDispatch authentication
 
     type AndromedaApplication() =
         inherit Application()

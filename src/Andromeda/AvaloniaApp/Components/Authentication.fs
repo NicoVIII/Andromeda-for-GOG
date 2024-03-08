@@ -73,11 +73,7 @@ module Authentication =
                 | "" -> Cmd.none
                 | authCode ->
                     let getAuth () =
-                        async {
-                            let! result = Authentication.getNewToken redirectUri authCode
-                            printfn "%A" result
-                            return result
-                        }
+                        async { return! Authentication.getNewToken redirectUri authCode }
 
                     let msgFnc auth = TryAuthenticate auth
 
