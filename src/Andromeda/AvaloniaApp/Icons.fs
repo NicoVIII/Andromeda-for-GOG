@@ -5,8 +5,8 @@ module Icon =
     open Avalonia.Controls.Shapes
     open Avalonia.Media
 
-    open Avalonia.FuncUI.DSL
     open Avalonia.FuncUI.Types
+    open Avalonia.FuncUI.DSL
 
     module PathData =
         // From https://materialdesignicons.com/icon/cog-outline
@@ -36,10 +36,7 @@ module Icon =
         let crossLine = "M1,0L24,23L23,24L0,1Z"
 
     let createPath color pathData =
-        Path.create [
-            Path.fill (color: IBrush)
-            Path.data (pathData: string)
-        ]
+        Path.create [ Path.fill (color: IBrush); Path.data (pathData: string) ]
 
     let create attribs children =
         Canvas.create [
@@ -56,8 +53,9 @@ module Icon =
 
     let noUpdate color attribs =
         // Add cross out to path
-        let paths: IView list =
-            [ createPath color PathData.update
-              createPath color PathData.crossLine ]
+        let paths: IView list = [
+            createPath color PathData.update
+            createPath color PathData.crossLine
+        ]
 
         create attribs paths

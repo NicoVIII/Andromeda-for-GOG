@@ -1,39 +1,40 @@
-// For format details, see https://aka.ms/vscode-remote/devcontainer.json or this file's README at:
-// https://github.com/microsoft/vscode-dev-containers/tree/v0.106.0/containers/dotnetcore-3.1-fsharp
 {
     "name": "F# (.NET Core)",
     "build": {
         "dockerfile": "Dockerfile",
         "args": {}
     },
-    // Set container specific defaults for F# in .NET Core 2.1+
-    "settings": {
-        "terminal.integrated.profiles.linux": {
-            "bash": {
-                "path": "bash",
-                "icon": "terminal-bash"
+    "customizations": {
+        "vscode": {
+            "settings": {
+                "terminal.integrated.profiles.linux": {
+                    "bash": {
+                        "path": "bash",
+                        "icon": "terminal-bash"
+                    },
+                    "zsh": {
+                        "path": "zsh"
+                    },
+                    "pwsh": {
+                        "path": "pwsh",
+                        "icon": "terminal-powershell"
+                    }
+                },
+                "FSharp.dotnetRoot": "/bin"
             },
-            "zsh": {
-                "path": "zsh"
-            },
-            "pwsh": {
-                "path": "pwsh",
-                "icon": "terminal-powershell"
-            }
-        },
-        "FSharp.dotnetRoot": "/bin",
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "ms-dotnettools.csharp",
+                "editorconfig.editorconfig",
+                "ybaumes.highlight-trailing-white-spaces",
+                "aaron-bond.better-comments",
+                "gruntfuggly.todo-tree",
+                "cschleiden.vscode-github-actions",
+                "GitHub.copilot",
+                "ionide.ionide-fsharp"
+            ]
+        }
     },
-    // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [
-        "ms-dotnettools.csharp",
-        "editorconfig.editorconfig",
-        "ybaumes.highlight-trailing-white-spaces",
-        "aaron-bond.better-comments",
-        "gruntfuggly.todo-tree",
-        "cschleiden.vscode-github-actions",
-        "GitHub.copilot",
-        "ionide.ionide-fsharp",
-    ],
     // "runArgs": [],
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     "forwardPorts": [
@@ -41,10 +42,10 @@
         6080
     ],
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "dotnet run restore",
+    "postStartCommand": "dotnet run restore",
     // Uncomment to connect as a non-root user. See https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "vscode",
     "features": {
-        "desktop-lite": "latest"
+        "ghcr.io/devcontainers/features/desktop-lite:1": {}
     }
 }

@@ -7,9 +7,7 @@ open SimpleOptics
 open System
 open System.Diagnostics
 open System.IO
-open System.Reactive.Concurrency
 open System.Security.Cryptography
-open System.Threading.Tasks
 
 open Andromeda.Core
 open Andromeda.Core.Installed
@@ -23,28 +21,29 @@ module Update =
         let startGame gameId (gameDir: string) =
             let createEmptyDisposable () =
                 { new IDisposable with
-                    member __.Dispose() = () }
+                    member __.Dispose() = ()
+                }
 
-            let sub dispatch =
+            let effect dispatch =
                 let showGameOutput _ (outLine: DataReceivedEventArgs) =
                     match outLine.Data with
                     | newLine when String.IsNullOrEmpty newLine -> ()
                     | _ ->
                         let state = outLine.Data
 
-                        let action _ newLine =
-                            AddToTerminalOutput(gameId, newLine) |> dispatch
-                            createEmptyDisposable ()
+                        //let action _ newLine =
+                        AddToTerminalOutput(gameId, state) |> dispatch
+                //createEmptyDisposable ()
 
-                        AvaloniaScheduler.Instance.Schedule(
+                (*AvaloniaScheduler.Instance.Schedule(
                             state,
                             new Func<IScheduler, string, IDisposable>(action)
                         )
-                        |> ignore
+                        |> ignore*)
 
                 startGameProcess showGameOutput gameDir |> ignore
 
-            Cmd.ofSub sub
+            Cmd.ofEffect effect
 
         let registerDownloadTimer
             (task: Async<unit> option)
@@ -52,7 +51,7 @@ module Update =
             (game: Game)
             maxFileSize
             =
-            let sub dispatch =
+            let effect dispatch =
                 match task with
                 | Some _ ->
                     GameName.unwrap game.name
@@ -74,8 +73,7 @@ module Update =
                             else
                                 0<MiB>
 
-                        File.Exists tmppath
-                        && currentFileSize < maxFileSize
+                        File.Exists tmppath && currentFileSize < maxFileSize
 
                     DispatcherTimer.Run(Func<bool>(invoke), TimeSpan.FromSeconds 0.5)
                     |> ignore
@@ -84,10 +82,9 @@ module Update =
                     |> sprintf "Use cached installer for %s."
                     |> logInfo
 
-                    UpdateDownloadSize(game.id, maxFileSize)
-                    |> dispatch
+                    UpdateDownloadSize(game.id, maxFileSize) |> dispatch
 
-            Cmd.ofSub sub
+            Cmd.ofEffect effect
 
     /// Contains everything for the update method, which is a little longer
     module Update =
@@ -95,22 +92,19 @@ module Update =
         let upgradeGame state game showNotification =
             // Only update updateable game
             match game.status with
-            | Installed (Some _, _) ->
+            | Installed(Some _, _) ->
                 let invoke () =
                     (Optic.get MainStateOptic.authentication state, game)
                     ||> checkGameForUpdate
 
                 let cmd =
-                    ElmishHelper.cmdOfAsync
-                        invoke
-                        ()
-                        (fun (updateData, authentication) ->
-                            FinishGameUpgrade(
-                                game,
-                                showNotification,
-                                updateData,
-                                authentication
-                            ))
+                    ElmishHelper.cmdOfAsync invoke () (fun (updateData, authentication) ->
+                        FinishGameUpgrade(
+                            game,
+                            showNotification,
+                            updateData,
+                            authentication
+                        ))
 
                 state, cmd
             | _ -> state, Cmd.none
@@ -133,8 +127,7 @@ module Update =
                     |> Game.toProductInfo
                     |> (fun productInfo ->
                         // TODO: update DLCs
-                        (productInfo, [], authentication)
-                        |> SearchGameDownload)
+                        (productInfo, [], authentication) |> SearchGameDownload)
                     |> Cmd.ofMsg
                 | None ->
                     if showNotification then
@@ -195,13 +188,17 @@ module Update =
 
     let performAuthenticated msg state mainWindow =
         let inline changeContext context (contextState, cmd) =
-            { state with context = context contextState }, cmd
+            {
+                state with
+                    context = context contextState
+            },
+            cmd
 
         match msg with
-        | StartGame (gameId, gameDir) -> state, Subs.startGame gameId gameDir
-        | UpgradeGame (game, showNotification) ->
+        | StartGame(gameId, gameDir) -> state, Subs.startGame gameId gameDir
+        | UpgradeGame(game, showNotification) ->
             Update.upgradeGame state game showNotification
-        | FinishGameUpgrade (game, showNotification, updateData, authentication) ->
+        | FinishGameUpgrade(game, showNotification, updateData, authentication) ->
             Update.finishGameUpgrade state showNotification game updateData authentication
         | LookupGameImage productId ->
             let cmd =
@@ -213,7 +210,7 @@ module Update =
                     ElmishHelper.cmdOfAsync job authentication SetGameImage
 
             state, cmd
-        | SetGameImage (productId, imgPath) -> Update.setGameImage state productId imgPath
+        | SetGameImage(productId, imgPath) -> Update.setGameImage state productId imgPath
         | AddNotification notification -> Update.addNotification state notification
         | RemoveNotification notification ->
             let state =
@@ -223,12 +220,11 @@ module Update =
                     state
 
             state, Cmd.none
-        | AddToTerminalOutput (productId, newLine) ->
+        | AddToTerminalOutput(productId, newLine) ->
             // Add new line to the front of the terminal
             let state =
                 let tabExists =
-                    Optic.get (MainStateOptic.gameOutput productId) state
-                    |> Option.isSome
+                    Optic.get (MainStateOptic.gameOutput productId) state |> Option.isSome
 
                 // If the tab does not already exist, initialize it
                 if tabExists then
@@ -246,19 +242,13 @@ module Update =
 
             let cmd' =
                 match initial && state.settings.updateOnStartup with
-                | true ->
-                    [ cmd; UpgradeGames false |> Cmd.ofMsg ]
-                    |> Cmd.batch
+                | true -> [ cmd; UpgradeGames false |> Cmd.ofMsg ] |> Cmd.batch
                 | false -> cmd
 
             state, cmd'
         | CacheCheck ->
             let cacheCheck () =
-                async {
-                    do
-                        Optic.get MainStateOptic.settings state
-                        |> Cache.check
-                }
+                async { do Optic.get MainStateOptic.settings state |> Cache.check }
 
             let cmd =
                 Cmd.OfAsync.attempt cacheCheck () (fun _ ->
@@ -271,12 +261,10 @@ module Update =
             let state = Optic.set MainStateOptic.settings settings state
 
             let cmd =
-                [ Cmd.ofMsg (SearchInstalled false)
-                  Cmd.ofMsg CacheCheck ]
-                |> Cmd.batch
+                [ Cmd.ofMsg (SearchInstalled false); Cmd.ofMsg CacheCheck ] |> Cmd.batch
 
             state, cmd
-        | SearchGameDownload (productInfo, dlcs, authentication) ->
+        | SearchGameDownload(productInfo, dlcs, authentication) ->
             // This is triggered by the parent component, authentication could have changed,
             // so we update it
             let state = Optic.set MainStateOptic.authentication authentication state
@@ -289,7 +277,7 @@ module Update =
                         StartGameDownload(productInfo, installerInfoList))
 
             state, cmd
-        | StartGameDownload (productInfo, installerInfoList) ->
+        | StartGameDownload(productInfo, installerInfoList) ->
             match installerInfoList with
             | [] ->
                 let cmd = Cmd.ofMsg (AddNotification "Found no installer for this OS...")
@@ -318,7 +306,7 @@ module Update =
                             ))
 
                 state, cmd
-        | SetupGameDownloadMonitoring (productInfo, installerInfo, result) ->
+        | SetupGameDownloadMonitoring(productInfo, installerInfo, result) ->
             match result with
             | None -> state, Cmd.none
             | Some gameDownload ->
@@ -375,17 +363,19 @@ module Update =
                         |> Cmd.ofMsg
 
                 let cmd =
-                    [ Subs.registerDownloadTimer
-                          gameDownload.fileDownload.task
-                          gameDownload.fileDownload.tmpPath
-                          game
-                          fileSize
-                      Cmd.ofMsg (LookupGameImage game.id)
-                      downloadCmd ]
+                    [
+                        Subs.registerDownloadTimer
+                            gameDownload.fileDownload.task
+                            gameDownload.fileDownload.tmpPath
+                            game
+                            fileSize
+                        Cmd.ofMsg (LookupGameImage game.id)
+                        downloadCmd
+                    ]
                     |> Cmd.batch
 
                 state, cmd
-        | FinishGameDownload (gameId, gameDir, version) ->
+        | FinishGameDownload(gameId, gameDir, version) ->
             let state =
                 Optic.set
                     (MainStateOptic.gameStatus gameId)
@@ -393,7 +383,7 @@ module Update =
                     state
 
             state, Cmd.none
-        | UnpackGame (settings, game, filePath, checksum, version) ->
+        | UnpackGame(settings, game, filePath, checksum, version) ->
             // Check checksum
             use md5 = MD5.Create()
             use stream = File.OpenRead filePath
@@ -419,30 +409,30 @@ module Update =
                     Download.extractLibrary settings gameName filePath version
 
                 let cmd =
-                    [ Cmd.ofMsg (UpdateDownloadInstalling game.id)
-                      ElmishHelper.cmdOfAsync invoke () (fun gameDir ->
-                          FinishGameDownload(game.id, gameDir, version)) ]
+                    [
+                        Cmd.ofMsg (UpdateDownloadInstalling game.id)
+                        ElmishHelper.cmdOfAsync invoke () (fun gameDir ->
+                            FinishGameDownload(game.id, gameDir, version))
+                    ]
                     |> Cmd.batch
 
                 state, cmd
         | UpgradeGames showNotifications ->
-            let games =
-                Optic.get MainStateOptic.games state
-                |> Map.toList
-                |> List.map snd
+            let games = Optic.get MainStateOptic.games state |> Map.toList |> List.map snd
 
             // Download updated installers or show notification
             let cmd =
                 games
-                |> List.map (fun game -> UpgradeGame(game, showNotifications) |> Cmd.ofMsg)
+                |> List.map (fun game ->
+                    UpgradeGame(game, showNotifications) |> Cmd.ofMsg)
                 |> Cmd.batch
 
             state, cmd
-        | UpdateDownloadSize (gameId, fileSize) ->
+        | UpdateDownloadSize(gameId, fileSize) ->
             let state =
                 state
                 |> Optic.map (MainStateOptic.gameStatus gameId) (function
-                    | Downloading (_, total, filePath) ->
+                    | Downloading(_, total, filePath) ->
                         Downloading(fileSize, total, filePath)
                     | _ ->
                         failwith "Got new filesize although we are no longer downloading")
@@ -452,7 +442,7 @@ module Update =
             let state =
                 state
                 |> Optic.map (MainStateOptic.gameStatus gameId) (function
-                    | Downloading (_, _, filePath) -> Installing filePath
+                    | Downloading(_, _, filePath) -> Installing filePath
                     | _ ->
                         failwith
                             "Tried to switch to installing, although we are not downloading")
@@ -460,13 +450,11 @@ module Update =
             state, Cmd.none
         // Context change
         | ContextChangeMsg ShowInstalled ->
-            ((), Cmd.none)
-            |> changeContext (fun () -> Context.Installed)
+            ((), Cmd.none) |> changeContext (fun () -> Context.Installed)
         | ContextChangeMsg ShowInstallGame ->
             InstallGame.init () |> changeContext InstallGame
         | ContextChangeMsg ShowSettings ->
-            Settings.init state.settings
-            |> changeContext Settings
+            Settings.init state.settings |> changeContext Settings
         // Child components
         | InstallGameMgs msg ->
             match state.context with
@@ -474,21 +462,24 @@ module Update =
                 let installGameState, installGameCmd, intent =
                     InstallGame.update state.authentication msg subState
 
-                let state = { state with context = InstallGame installGameState }
+                let state = {
+                    state with
+                        context = InstallGame installGameState
+                }
 
                 let intentCmd =
                     match intent with
                     | InstallGame.DoNothing -> Cmd.none
-                    | InstallGame.Close (productInfo, dlcs) ->
-                        [ SearchGameDownload(productInfo, dlcs, state.authentication)
-                          |> Cmd.ofMsg
-                          Cmd.ofMsg (ContextChangeMsg ShowInstalled) ]
+                    | InstallGame.Close(productInfo, dlcs) ->
+                        [
+                            SearchGameDownload(productInfo, dlcs, state.authentication)
+                            |> Cmd.ofMsg
+                            Cmd.ofMsg (ContextChangeMsg ShowInstalled)
+                        ]
                         |> Cmd.batch
 
                 let cmd =
-                    [ Cmd.map InstallGameMgs installGameCmd
-                      intentCmd ]
-                    |> Cmd.batch
+                    [ Cmd.map InstallGameMgs installGameCmd; intentCmd ] |> Cmd.batch
 
                 state, cmd
             | _ ->
@@ -500,21 +491,20 @@ module Update =
                 let settingsState, settingsCmd, intent =
                     Settings.update mainWindow msg subState
 
-                let state = { state with context = Settings settingsState }
+                let state = {
+                    state with
+                        context = Settings settingsState
+                }
 
                 let intentCmd =
                     match intent with
                     | Settings.DoNothing -> Cmd.none
                     | Settings.Save settings ->
-                        [ SetSettings settings
-                          (ContextChangeMsg ShowInstalled) ]
+                        [ SetSettings settings; (ContextChangeMsg ShowInstalled) ]
                         |> List.map Cmd.ofMsg
                         |> Cmd.batch
 
-                let cmd =
-                    [ Cmd.map SettingsMsg settingsCmd
-                      intentCmd ]
-                    |> Cmd.batch
+                let cmd = [ Cmd.map SettingsMsg settingsCmd; intentCmd ] |> Cmd.batch
 
                 state, cmd
             | _ ->
@@ -534,15 +524,11 @@ module Update =
                 match intent with
                 | Authentication.DoNothing -> Cmd.none
                 | Authentication.Authenticate authentication ->
-                    Persistence.Authentication.save authentication
-                    |> ignore
+                    Persistence.Authentication.save authentication |> ignore
 
                     authentication |> Authenticate |> Cmd.ofMsg
 
-            let cmd =
-                [ Cmd.map AuthenticationMsg authCmd
-                  intentCmd ]
-                |> Cmd.batch
+            let cmd = [ Cmd.map AuthenticationMsg authCmd; intentCmd ] |> Cmd.batch
 
             Unauthenticated state, Cmd.map UnAuth cmd
 

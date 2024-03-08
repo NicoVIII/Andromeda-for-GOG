@@ -9,8 +9,8 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 
 [*.fs]
+fsharp_multiline_bracket_style = stroustrup
 max_line_length = 90
-fsharp_single_argument_web_mode = true
 
 [*.{c,f}sproj]
 indent_size = 2

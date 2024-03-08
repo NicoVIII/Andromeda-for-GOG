@@ -2,7 +2,6 @@ namespace Andromeda.AvaloniaApp
 
 
 module AvaloniaHelper =
-    open Avalonia
     open Avalonia.Controls
     open Avalonia.Platform
     open Avalonia.FuncUI.DSL
@@ -16,9 +15,7 @@ module AvaloniaHelper =
             else
                 Uri(path, UriKind.RelativeOrAbsolute)
 
-        let assets = AvaloniaLocator.Current.GetService<IAssetLoader>()
-
-        assets.Open(uri)
+        AssetLoader.Open(uri)
 
     let simpleTextBlock text =
         TextBlock.create [ TextBlock.text text ]
