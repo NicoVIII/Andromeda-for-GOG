@@ -18,12 +18,14 @@ jobs:
         os: [ubuntu-latest]
         dotnet: [10.0.403]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Install appstreamcli
@@ -38,12 +40,10 @@ jobs:
         run: dotnet run publish 0
       # For now I simply make a continuous build
       - name: Release files
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          automatic_release_tag: latest
-          prerelease: true
-          title: Continuous Build
-          files: |
-            README.md
-            publish/*
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view latest > /dev/null 2>&1; then
+            gh release delete latest --cleanup-tag --yes
+          fi
+          gh release create latest --prerelease --title "Continuous Build" --target "$GITHUB_SHA" README.md publish/*
