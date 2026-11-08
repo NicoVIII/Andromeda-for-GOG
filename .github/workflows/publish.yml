@@ -10,8 +10,10 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        dotnet: [8.0.201]
+        dotnet: [10.0.403]
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
 
     steps:
       - name: Get version from tag
@@ -22,12 +24,12 @@ jobs:
           else
             RTAG=${GITHUB_REF#refs/tags/v}
           fi
-          echo ::set-output name=current_version::${GITHUB_REF#refs/tags/v}
-          echo ::set-output name=release_tag::$RTAG
+          echo "current_version=${GITHUB_REF#refs/tags/v}" >> "$GITHUB_OUTPUT"
+          echo "release_tag=$RTAG" >> "$GITHUB_OUTPUT"
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v7
       - name: Setup .NET Core
-        uses: actions/setup-dotnet@v1
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ matrix.dotnet }}
       - name: Install appstreamcli
@@ -42,28 +44,9 @@ jobs:
         with:
           version: ${{ steps.tag_name.outputs.release_tag }}
           path: ./CHANGELOG.md
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
+      - name: Create release with binaries
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{ github.ref }}
-          body: ${{ steps.changelog_reader.outputs.changes }}
-          prerelease: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
-      - name: Upload binaries to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
-          file: publish/*
-          overwrite: true
-          file_glob: true
-      - name: Upload readme to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: README.md
-          tag: ${{ github.ref }}
-          overwrite: true
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NOTES: ${{ steps.changelog_reader.outputs.changes }}
+          PRERELEASE: ${{ steps.changelog_reader.outputs.status == 'unreleased' }}
+        run: gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes "$NOTES" --prerelease="$PRERELEASE" README.md publish/*

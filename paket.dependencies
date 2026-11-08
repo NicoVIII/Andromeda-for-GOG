@@ -4,14 +4,16 @@ framework: auto-detect
 storage: none
 
 nuget FSharp.Core content: none
-nuget Avalonia
-nuget Avalonia.Desktop
-nuget Avalonia.Diagnostics
+nuget Avalonia ~> 11.3
+nuget Avalonia.Desktop ~> 11.3
+nuget Avalonia.Diagnostics ~> 11.3
 nuget FsToolkit.ErrorHandling
-nuget Avalonia.FuncUI
-nuget Avalonia.FuncUI.Elmish
-nuget Avalonia.Themes.Simple
-nuget MessageBox.Avalonia
+nuget Avalonia.FuncUI ~> 1.5
+nuget Avalonia.FuncUI.Elmish ~> 1.5
+nuget Avalonia.Themes.Simple ~> 11.3
+// Avalonia 11 is compiled against this API; 0.90+ renamed Connection and crashes at startup
+nuget Tmds.DBus.Protocol ~> 0.21.3
+nuget MessageBox.Avalonia ~> 3.2
 nuget Mono.Posix.NETStandard
 nuget NicoVIII.GogApi
 nuget NicoVIII.SimpleOptics

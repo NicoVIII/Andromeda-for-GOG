@@ -1,5 +1,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+        <!-- Paket lists transitive framework packages as explicit references -->
+        <NoWarn>$(NoWarn);NU1510</NoWarn>
     </PropertyGroup>
 </Project>

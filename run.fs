@@ -22,7 +22,7 @@ module Config =
 
     let publishPath = "./publish"
 
-    let framework = "net8.0"
+    let framework = "net10.0"
     let appimagetoolVersion = "continuous"
 
 let httpClient = new HttpClient()
@@ -168,6 +168,14 @@ module Task =
             Shell.mv
                 $"{Config.publishPath}/%s{Config.projectName}.exe"
                 $"{Config.publishPath}/%s{Config.artifactName}-win-x64.exe"
+
+            // The native Windows packages ship these regardless of DebugType=None,
+            // and everything left in publish/ becomes a release asset
+            cmd "rm" [
+                "-f"
+                $"{Config.publishPath}/libHarfBuzzSharp.pdb"
+                $"{Config.publishPath}/libSkiaSharp.pdb"
+            ]
         }
 
 [<EntryPoint>]

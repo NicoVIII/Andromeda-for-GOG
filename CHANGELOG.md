@@ -6,6 +6,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Updated runtime: .NET 8 -> .NET 10
+- Updated dependencies
+
+### Security
+
+- Updated Tmds.DBus.Protocol to 0.21.3 ([GHSA-xrw6-gwf8-vvr9](https://github.com/advisories/GHSA-xrw6-gwf8-vvr9))
+
 ## [0.7.0] - 2024-03-08
 
 ### Changed

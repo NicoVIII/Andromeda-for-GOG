@@ -17,4 +17,5 @@ let dummySettings: Settings =
       gamePath = ""
       updateOnStartup = false }
 
+[<Tests>]
 let tests = testList "Components.Main.Update" []
