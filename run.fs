@@ -22,7 +22,7 @@ module Config =
 
     let publishPath = "./publish"
 
-    let framework = "net8.0"
+    let framework = "net10.0"
     let appimagetoolVersion = "continuous"
 
 let httpClient = new HttpClient()
