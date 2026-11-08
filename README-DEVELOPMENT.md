@@ -17,6 +17,6 @@ To build simply run `dotnet run build`.
 
 ## Publishing
 
-Publishing is done automatically with every commit on develop and for every release tag.
-You can build the executables by running `dotnet run publish`.
-It is possible that you need additional dependencies to run this.
+Publishing is done automatically with every commit on main and for every release tag.
+You can build the executables by running `dotnet run publish <version>`.
+The AppImage step uses `appstreamcli` to validate its metadata (`sudo apt-get install appstream`).
