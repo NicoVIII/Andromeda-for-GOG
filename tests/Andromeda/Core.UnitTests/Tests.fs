@@ -5,6 +5,7 @@ open Expecto
 open GogApi.DomainTypes
 open Andromeda.Core
 
+[<Tests>]
 let tests =
     testList
         "Diverse"
